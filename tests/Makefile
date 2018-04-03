@@ -25,7 +25,7 @@ coverage/html/index.html: coverage/coverage-final.json
 
 cover: coverage/html/index.html
 
-clean: 
+clean:
 	rm -f **/*.elf
 	rm -f **/*.res
 	rm -f **/*.c

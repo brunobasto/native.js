@@ -1,67 +1,75 @@
-import { IScope, CProgram } from '../program';
-import { StandardCallHelper } from '../resolver';
-import { ConsoleLogHelper } from '../standard/console/log';
-import { CodeTemplate, CodeTemplateFactory } from '../template';
-import { CExpression } from './expressions';
-import * as ts from 'typescript';
-import {CFunction, CFunctionPrototype} from './function';
+import { IScope, CProgram } from "../program";
+import { StandardCallHelper } from "../resolver";
+import { CodeTemplate, CodeTemplateFactory } from "../template";
+import { CExpression } from "./expressions";
+import * as ts from "typescript";
+import { CFunction, CFunctionPrototype } from "./function";
+import { PluginRegistry } from "../core/plugin";
+import { HeaderRegistry, Int16HeaderType } from "../core/header";
 
-@CodeTemplate(`
+@CodeTemplate(
+  `
 {#statements}
     {#if printfCalls.length}
         {printfCalls => {this}\n}
     {/if}
 {/statements}
-{#if standardCall}
+{#if pluginExpression}
+    {pluginExpression}
+{#elseif standardCall}
     {standardCall}
 {#elseif printfCall}
     {printfCall}
 {#else}
     {funcName}({arguments {, }=> {this}})
-{/if}`, ts.SyntaxKind.CallExpression)
+{/if}`,
+  ts.SyntaxKind.CallExpression
+)
 export class CCallExpression {
-    public funcName: string;
-    public standardCall: CExpression;
-    public arguments: CExpression[];
-    public printfCalls: any[] = [];
-    public printfCall: any = null;
-    constructor(scope: IScope, call: ts.CallExpression) {
-        this.funcName = call.expression.getText();
-        this.standardCall = StandardCallHelper.createTemplate(scope, call);
+  public arguments: CExpression[];
+  public funcName: string;
+  public pluginExpression: CExpression;
+  public printfCall: any = null;
+  public printfCalls: any[] = [];
+  public standardCall: CExpression;
 
-        if (this.standardCall) {
-            return;
-        }
+  constructor(scope: IScope, call: ts.CallExpression) {
+    this.funcName = call.expression.getText();
 
-        if (this.funcName != "console.log") {
-            this.arguments = call.arguments.map(a => {
-                return CodeTemplateFactory.createForNode(scope, a);
-            });
-        }
-        if (call.expression.kind == ts.SyntaxKind.Identifier && this.funcName == "parseInt") {
-            scope.root.headerFlags.int16_t = true;
-            scope.root.headerFlags.parseInt = true;
-        }
-        if (call.expression.kind == ts.SyntaxKind.PropertyAccessExpression) {
-            let propAccess = <ts.PropertyAccessExpression>call.expression;
+    this.pluginExpression = PluginRegistry.executePlugins(scope, call, this);
 
-            if (this.funcName == "console.log" && call.arguments.length) {
-                let printfs = ConsoleLogHelper.create(scope, call.arguments);
-                this.printfCalls = printfs.slice(0, -1);
-                this.printfCall = printfs[printfs.length - 1];
-                scope.root.headerFlags.printf = true;
-            }
-        }
+    if (this.pluginExpression) {
+      return;
     }
+
+    this.standardCall = StandardCallHelper.createTemplate(scope, call);
+
+    if (this.standardCall) {
+      return;
+    }
+
+    if (this.funcName != "console.log") {
+      this.arguments = call.arguments.map(a => {
+        return CodeTemplateFactory.createForNode(scope, a);
+      });
+    }
+    if (
+      call.expression.kind == ts.SyntaxKind.Identifier &&
+      this.funcName == "parseInt"
+    ) {
+      HeaderRegistry.declareDependency(Int16HeaderType);
+      scope.root.headerFlags.parseInt = true;
+    }
+  }
 }
 
 @CodeTemplate(`{name}`, ts.SyntaxKind.FunctionExpression)
 export class CFunctionExpression {
-    public name: string;
+  public name: string;
 
-    constructor(scope: IScope, expression: ts.FunctionExpression) {
-        const dynamicFunction = new CFunction(scope.root, expression);
-        scope.root.functions.push(dynamicFunction);
-        this.name = dynamicFunction.name;
-    }
+  constructor(scope: IScope, expression: ts.FunctionExpression) {
+    const dynamicFunction = new CFunction(scope.root, expression);
+    scope.root.functions.push(dynamicFunction);
+    this.name = dynamicFunction.name;
+  }
 }

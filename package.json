@@ -16,7 +16,11 @@
   "devDependencies": {
     "browserify": "^13.0.1",
     "browserify-shim": "^3.8.12",
-    "remap-istanbul": "^0.6.4"
+    "prettier": "^1.11.1",
+    "remap-istanbul": "^0.6.4",
+    "tslint": "^5.9.1",
+    "tslint-config-prettier": "^1.10.0",
+    "tslint-plugin-prettier": "^1.3.0"
   },
   "browserify": {
     "transform": [
@@ -30,6 +34,8 @@
     "build": "tsc && browserify ts2c.js -x typescript -s ts2c -o ts2c.bundle.js",
     "clean": "cd tests && make clean",
     "cover": "cd tests && make -B cover",
+    "format": "prettier --write 'src/**/*.ts'",
+    "lint": "tslint -c tslint.json 'src/**/*.ts'",
     "prepublish": "tsc",
     "test": "npm run build && cd tests && make -B all"
   },

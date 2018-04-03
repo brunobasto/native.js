@@ -1,39 +1,55 @@
-import * as ts from 'typescript';
-import {CodeTemplate, CodeTemplateFactory} from '../../template';
-import {StandardCallResolver, IResolver} from '../../resolver';
-import {ArrayType, StringVarType, NumberVarType, TypeHelper} from '../../types';
-import {IScope} from '../../program';
-import {CVariable} from '../../nodes/variable';
-import {CExpression} from '../../nodes/expressions';
-import {CElementAccess} from '../../nodes/elementaccess';
+import * as ts from "typescript";
+import {
+  ArrayCreateHeaderType,
+  ArrayInsertHeaderType,
+  ArrayRemoveHeaderType,
+  HeaderRegistry
+} from "../../core/header";
+import { CElementAccess } from "../../nodes/elementaccess";
+import { CExpression } from "../../nodes/expressions";
+import { CVariable } from "../../nodes/variable";
+import { IScope } from "../../program";
+import { IResolver, StandardCallResolver } from "../../resolver";
+import { CodeTemplate, CodeTemplateFactory } from "../../template";
+import {
+  ArrayType,
+  NumberVarType,
+  StringVarType,
+  TypeHelper
+} from "../../types";
 
 @StandardCallResolver
 class ArraySpliceResolver implements IResolver {
-    public matchesNode(typeHelper: TypeHelper, call: ts.CallExpression) {
-        if (call.expression.kind != ts.SyntaxKind.PropertyAccessExpression)
-            return false;
-        let propAccess = <ts.PropertyAccessExpression>call.expression;
-        let objType = typeHelper.getCType(propAccess.expression);
-        return propAccess.name.getText() == "splice" && objType instanceof ArrayType && objType.isDynamicArray;
+  public matchesNode(typeHelper: TypeHelper, call: ts.CallExpression) {
+    if (call.expression.kind != ts.SyntaxKind.PropertyAccessExpression) {
+      return false;
     }
-    public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
-        let propAccess = <ts.PropertyAccessExpression>call.expression;
-        return typeHelper.getCType(propAccess.expression);
-    }
-    public createTemplate(scope: IScope, node: ts.CallExpression) {
-        return new CArraySplice(scope, node);
-    }
-    public needsDisposal(typeHelper: TypeHelper, node: ts.CallExpression) {
-        // if parent is expression statement, then this is the top expression
-        // and thus return value is not used, so the temporary variable will not be created
-        return node.parent.kind != ts.SyntaxKind.ExpressionStatement;
-    }
-    public getTempVarName(typeHelper: TypeHelper, node: ts.CallExpression) {
-        return "tmp_removed_values";
-    }
-    public getEscapeNode(typeHelper: TypeHelper, node: ts.CallExpression) {
-        return (<ts.PropertyAccessExpression>node.expression).expression;
-    }
+    const propAccess = call.expression as ts.PropertyAccessExpression;
+    const objType = typeHelper.getCType(propAccess.expression);
+    return (
+      propAccess.name.getText() == "splice" &&
+      objType instanceof ArrayType &&
+      objType.isDynamicArray
+    );
+  }
+  public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
+    const propAccess = call.expression as ts.PropertyAccessExpression;
+    return typeHelper.getCType(propAccess.expression);
+  }
+  public createTemplate(scope: IScope, node: ts.CallExpression) {
+    return new CArraySplice(scope, node);
+  }
+  public needsDisposal(typeHelper: TypeHelper, node: ts.CallExpression) {
+    // if parent is expression statement, then this is the top expression
+    // and thus return value is not used, so the temporary variable will not be created
+    return node.parent.kind != ts.SyntaxKind.ExpressionStatement;
+  }
+  public getTempVarName(typeHelper: TypeHelper, node: ts.CallExpression) {
+    return "tmp_removed_values";
+  }
+  public getEscapeNode(typeHelper: TypeHelper, node: ts.CallExpression) {
+    return (node.expression as ts.PropertyAccessExpression).expression;
+  }
 }
 
 @CodeTemplate(`
@@ -55,45 +71,61 @@ class ArraySpliceResolver implements IResolver {
     {tempVarName}
 {/if}`)
 class CArraySplice {
-    public topExpressionOfStatement: boolean;
-    public tempVarName: string = '';
-    public iteratorVarName: string;
-    public varAccess: CElementAccess = null;
-    public startPosArg: CExpression;
-    public deleteCountArg: CExpression;
-    public insertValues: CInsertValue[] = [];
-    public needsRemove: boolean = false;
-    constructor(scope: IScope, call: ts.CallExpression) {
-        let propAccess = <ts.PropertyAccessExpression>call.expression;
-        this.varAccess = new CElementAccess(scope, propAccess.expression);
-        let args = call.arguments.map(a => CodeTemplateFactory.createForNode(scope, a));
-        this.startPosArg = args[0];
-        this.deleteCountArg = args[1];
-        this.topExpressionOfStatement = call.parent.kind == ts.SyntaxKind.ExpressionStatement;
+  public topExpressionOfStatement: boolean;
+  public tempVarName: string = "";
+  public iteratorVarName: string;
+  public varAccess: CElementAccess = null;
+  public startPosArg: CExpression;
+  public deleteCountArg: CExpression;
+  public insertValues: CInsertValue[] = [];
+  public needsRemove: boolean = false;
+  constructor(scope: IScope, call: ts.CallExpression) {
+    const propAccess = call.expression as ts.PropertyAccessExpression;
+    this.varAccess = new CElementAccess(scope, propAccess.expression);
+    const args = call.arguments.map(a =>
+      CodeTemplateFactory.createForNode(scope, a)
+    );
+    this.startPosArg = args[0];
+    this.deleteCountArg = args[1];
+    this.topExpressionOfStatement =
+      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
 
-        if (!this.topExpressionOfStatement) {
-            this.tempVarName = scope.root.memoryManager.getReservedTemporaryVarName(call);
-            let type = scope.root.typeHelper.getCType(propAccess.expression);
-            if (!scope.root.memoryManager.variableWasReused(call))
-                scope.variables.push(new CVariable(scope, this.tempVarName, type));
-            this.iteratorVarName = scope.root.typeHelper.addNewIteratorVariable(propAccess);
-            scope.variables.push(new CVariable(scope, this.iteratorVarName, NumberVarType));
-        }
-        if (call.arguments.length > 2) {
-            this.insertValues = args.slice(2).reverse().map(a => new CInsertValue(scope, this.varAccess, this.startPosArg, a));
-            scope.root.headerFlags.array_insert = true;
-        }
-        if (call.arguments[1].kind == ts.SyntaxKind.NumericLiteral) {
-            this.needsRemove = call.arguments[1].getText() != "0";
-        }
-        scope.root.headerFlags.array = true;
-        scope.root.headerFlags.array_insert = true;
-        scope.root.headerFlags.array_remove = true;
+    if (!this.topExpressionOfStatement) {
+      this.tempVarName = scope.root.memoryManager.getReservedTemporaryVarName(
+        call
+      );
+      const type = scope.root.typeHelper.getCType(propAccess.expression);
+      if (!scope.root.memoryManager.variableWasReused(call)) {
+        scope.variables.push(new CVariable(scope, this.tempVarName, type));
+      }
+      this.iteratorVarName = scope.root.typeHelper.addNewIteratorVariable(
+        propAccess
+      );
+      scope.variables.push(
+        new CVariable(scope, this.iteratorVarName, NumberVarType)
+      );
     }
-
+    if (call.arguments.length > 2) {
+      this.insertValues = args
+        .slice(2)
+        .reverse()
+        .map(a => new CInsertValue(scope, this.varAccess, this.startPosArg, a));
+      HeaderRegistry.declareDependency(ArrayInsertHeaderType);
+    }
+    if (call.arguments[1].kind == ts.SyntaxKind.NumericLiteral) {
+      this.needsRemove = call.arguments[1].getText() != "0";
+    }
+    HeaderRegistry.declareDependency(ArrayCreateHeaderType);
+    HeaderRegistry.declareDependency(ArrayRemoveHeaderType);
+  }
 }
 
 @CodeTemplate(`ARRAY_INSERT({varAccess}, {startIndex}, {value});\n`)
 class CInsertValue {
-    constructor(scope: IScope, public varAccess: CElementAccess, public startIndex: CExpression, public value: CExpression) { }
+  constructor(
+    scope: IScope,
+    public varAccess: CElementAccess,
+    public startIndex: CExpression,
+    public value: CExpression
+  ) {}
 }

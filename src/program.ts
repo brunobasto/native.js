@@ -1,115 +1,80 @@
-import * as ts from 'typescript'
-import {MemoryManager} from './memory';
-import {TypeHelper, ArrayType} from './types';
-import {CodeTemplate, CodeTemplateFactory} from './template';
-import {CFunction, CFunctionPrototype} from './nodes/function';
-import {CVariable, CVariableDestructors} from './nodes/variable';
+import * as ts from "typescript";
+import { MemoryManager } from "./memory";
+import { TypeHelper, ArrayType } from "./types";
+import { CodeTemplate, CodeTemplateFactory } from "./template";
+import { CFunction, CFunctionPrototype } from "./nodes/function";
+import { CVariable, CVariableDestructors } from "./nodes/variable";
+import { Preset } from "./core/preset";
+import { Plugin, PluginRegistry } from "./core/plugin";
+import { Header, HeaderRegistry } from "./core/header";
+import { Main, MainRegistry } from "./core/main";
 
 // these imports are here only because it is necessary to run decorators
-import './nodes/statements';
-import './nodes/expressions';
-import './nodes/call';
-import './nodes/literals';
+import "./nodes/statements";
+import "./nodes/expressions";
+import "./nodes/call";
+import "./nodes/literals";
 
-import './standard/array/forEach';
-import './standard/array/push';
-import './standard/array/pop';
-import './standard/array/unshift';
-import './standard/array/shift';
-import './standard/array/splice';
-import './standard/array/slice';
-import './standard/array/concat';
-import './standard/array/join';
-import './standard/array/indexOf';
-import './standard/array/lastIndexOf';
-import './standard/array/sort';
-import './standard/array/reverse';
+import "./standard/array/forEach";
+import "./standard/array/push";
+import "./standard/array/pop";
+import "./standard/array/unshift";
+import "./standard/array/shift";
+import "./standard/array/splice";
+import "./standard/array/slice";
+import "./standard/array/concat";
+import "./standard/array/join";
+import "./standard/array/indexOf";
+import "./standard/array/lastIndexOf";
+import "./standard/array/sort";
+import "./standard/array/reverse";
 
-import './standard/string/search';
-import './standard/string/charCodeAt';
-import './standard/string/charAt';
-import './standard/string/concat';
-import './standard/string/substring';
-import './standard/string/slice';
-import './standard/string/toString';
-import './standard/string/indexOf';
-import './standard/string/lastIndexOf';
-import './standard/string/match';
-
+import "./standard/string/search";
+import "./standard/string/charCodeAt";
+import "./standard/string/charAt";
+import "./standard/string/concat";
+import "./standard/string/substring";
+import "./standard/string/slice";
+import "./standard/string/toString";
+import "./standard/string/indexOf";
+import "./standard/string/lastIndexOf";
+import "./standard/string/match";
 
 export interface IScope {
-    parent: IScope;
-    func: IScope;
-    root: CProgram;
-    variables: CVariable[];
-    statements: any[];
+  parent: IScope;
+  func: IScope;
+  root: CProgram;
+  variables: CVariable[];
+  statements: any[];
 }
 
 class HeaderFlags {
-    strings: boolean = false;
-    printf: boolean = false;
-    malloc: boolean = false;
-    bool: boolean = false;
-    uint8_t: boolean = false;
-    int16_t: boolean = false;
-    js_var: boolean = false;
-    array: boolean = false;
-    array_pop: boolean = false;
-    array_insert: boolean = false;
-    array_remove: boolean = false;
-    array_int16_t_cmp: boolean = false;
-    array_str_cmp: boolean = false;
-    gc_iterator: boolean = false;
-    gc_iterator2: boolean = false;
-    dict: boolean = false;
-    str_int16_t_cmp: boolean = false;
-    str_int16_t_cat: boolean = false;
-    str_pos: boolean = false;
-    str_rpos: boolean = false;
-    str_len: boolean = false;
-    str_char_code_at: boolean = false;
-    str_substring: boolean = false;
-    str_slice: boolean = false;
-    atoi: boolean = false;
-    parseInt: boolean = false;
-    regex: boolean = false;
-    regex_match: boolean = false;
+  malloc: boolean = false;
+  bool: boolean = false;
+  js_var: boolean = false;
+  array_int16_t_cmp: boolean = false;
+  array_str_cmp: boolean = false;
+  gc_iterator: boolean = false;
+  gc_iterator2: boolean = false;
+  str_int16_t_cmp: boolean = false;
+  str_int16_t_cat: boolean = false;
+  str_pos: boolean = false;
+  str_rpos: boolean = false;
+  str_len: boolean = false;
+  str_char_code_at: boolean = false;
+  str_substring: boolean = false;
+  str_slice: boolean = false;
+  atoi: boolean = false;
+  parseInt: boolean = false;
+  regex: boolean = false;
+  regex_match: boolean = false;
 }
 
-
 @CodeTemplate(`
-{#if headerFlags.strings || headerFlags.str_int16_t_cmp || headerFlags.str_int16_t_cat
-    || headerFlags.str_pos || headerFlags.str_rpos || headerFlags.array_str_cmp
-    || headerFlags.str_substring
-    || headerFlags.array_insert || headerFlags.array_remove || headerFlags.dict}
-    #include <string.h>
-{/if}
-{#if headerFlags.malloc || headerFlags.atoi || headerFlags.array || headerFlags.str_substring 
-    || headerFlags.str_slice}
-    #include <stdlib.h>
-{/if}
-{#if headerFlags.malloc || headerFlags.array || headerFlags.str_substring || headerFlags.str_slice}
-    #include <assert.h>
-{/if}
-{#if headerFlags.printf || headerFlags.parseInt}
-    #include <stdio.h>
-{/if}
+{headers}
+
 {#if headerFlags.str_int16_t_cmp || headerFlags.str_int16_t_cat}
     #include <limits.h>
-{/if}
-
-{#if headerFlags.bool}
-    #define TRUE 1
-    #define FALSE 0
-{/if}
-{#if headerFlags.bool || headerFlags.js_var}
-    typedef unsigned char uint8_t;
-{/if}
-{#if headerFlags.int16_t || headerFlags.js_var || headerFlags.array ||
-     headerFlags.str_int16_t_cmp || headerFlags.str_pos || headerFlags.str_len ||
-     headerFlags.str_char_code_at || headerFlags.str_substring || headerFlags.str_slice ||
-     headerFlags.regex }
-    typedef short int16_t;
 {/if}
 {#if headerFlags.regex}
     struct regex_indices_struct_t {
@@ -128,7 +93,6 @@ class HeaderFlags {
         regex_func_t * func;
     };
 {/if}
-
 {#if headerFlags.js_var}
     enum js_var_type {JS_VAR_BOOL, JS_VAR_INT, JS_VAR_STRING, JS_VAR_ARRAY, JS_VAR_STRUCT, JS_VAR_DICT};
 	struct js_var {
@@ -139,7 +103,6 @@ class HeaderFlags {
 	    void *obj;
 	};
 {/if}
-
 {#if headerFlags.gc_iterator || headerFlags.dict}
     #define ARRAY(T) struct {\\
         int16_t size;\\
@@ -147,91 +110,6 @@ class HeaderFlags {
         T *data;\\
     } *
 {/if}
-
-{#if headerFlags.array || headerFlags.dict}
-    #define ARRAY_CREATE(array, init_capacity, init_size) {\\
-        array = malloc(sizeof(*array)); \\
-        array->data = malloc((init_capacity) * sizeof(*array->data)); \\
-        assert(array->data != NULL); \\
-        array->capacity = init_capacity; \\
-        array->size = init_size; \\
-    }
-    #define ARRAY_PUSH(array, item) {\\
-        if (array->size == array->capacity) {  \\
-            array->capacity *= 2;  \\
-            array->data = realloc(array->data, array->capacity * sizeof(*array->data)); \\
-            assert(array->data != NULL); \\
-        }  \\
-        array->data[array->size++] = item; \\
-    }
-{/if}
-{#if headerFlags.array_pop}
-	#define ARRAY_POP(a) (a->size != 0 ? a->data[--a->size] : 0)
-{/if}
-{#if headerFlags.array_insert || headerFlags.dict}
-    #define ARRAY_INSERT(array, pos, item) {\\
-        ARRAY_PUSH(array, item); \\
-        if (pos < array->size - 1) {\\
-            memmove(&(array->data[(pos) + 1]), &(array->data[pos]), (array->size - (pos) - 1) * sizeof(*array->data)); \\
-            array->data[pos] = item; \\
-        } \\
-    }
-{/if}
-{#if headerFlags.array_remove}
-    #define ARRAY_REMOVE(array, pos, num) {\\
-        memmove(&(array->data[pos]), &(array->data[(pos) + num]), (array->size - (pos) - num) * sizeof(*array->data)); \\
-        array->size -= num; \\
-    }
-{/if}
-
-{#if headerFlags.dict}
-    #define DICT(T) struct { \\
-        ARRAY(const char *) index; \\
-        ARRAY(T) values; \\
-    } *
-    #define DICT_CREATE(dict, init_capacity) { \\
-        dict = malloc(sizeof(*dict)); \\
-        ARRAY_CREATE(dict->index, init_capacity, 0); \\
-        ARRAY_CREATE(dict->values, init_capacity, 0); \\
-    }
-
-    int16_t dict_find_pos(const char ** keys, int16_t keys_size, const char * key) {
-        int16_t low = 0;
-        int16_t high = keys_size - 1;
-
-        if (keys_size == 0 || key == NULL)
-            return -1;
-
-        while (low <= high)
-        {
-            int mid = (low + high) / 2;
-            int res = strcmp(keys[mid], key);
-
-            if (res == 0)
-                return mid;
-            else if (res < 0)
-                low = mid + 1;
-            else
-                high = mid - 1;
-        }
-
-        return -1 - low;
-    }
-
-    int16_t tmp_dict_pos;
-    #define DICT_GET(dict, prop) ((tmp_dict_pos = dict_find_pos(dict->index->data, dict->index->size, prop)) < 0 ? 0 : dict->values->data[tmp_dict_pos])
-    #define DICT_SET(dict, prop, value) { \\
-        tmp_dict_pos = dict_find_pos(dict->index->data, dict->index->size, prop); \\
-        if (tmp_dict_pos < 0) { \\
-            tmp_dict_pos = -tmp_dict_pos - 1; \\
-            ARRAY_INSERT(dict->index, tmp_dict_pos, prop); \\
-            ARRAY_INSERT(dict->values, tmp_dict_pos, value); \\
-        } else \\
-            dict->values->data[tmp_dict_pos] = value; \\
-    }
-
-{/if}
-
 {#if headerFlags.str_int16_t_cmp || headerFlags.str_int16_t_cat}
     #define STR_INT16_T_BUFLEN ((CHAR_BIT * sizeof(int16_t) - 1) / 3 + 2)
 {/if}
@@ -370,18 +248,16 @@ class HeaderFlags {
         strcat(str, numstr);
     }
 {/if}
-
 {#if headerFlags.array_int16_t_cmp}
     int array_int16_t_cmp(const void* a, const void* b) {
         return ( *(int16_t*)a - *(int16_t*)b );
     }
 {/if}
 {#if headerFlags.array_str_cmp}
-    int array_str_cmp(const void* a, const void* b) { 
+    int array_str_cmp(const void* a, const void* b) {
         return strcmp(*(const char **)a, *(const char **)b);
     }
 {/if}
-
 {#if headerFlags.parseInt}
     int16_t parseInt(const char * str) {
         int r;
@@ -401,7 +277,6 @@ class HeaderFlags {
         }
     }
 {/if}
-
 {#if headerFlags.regex_match}
     struct array_string_t *regex_match(struct regex_struct_t regex, const char * s) {
         struct regex_match_struct_t match_info;
@@ -425,7 +300,6 @@ class HeaderFlags {
         return match_array;
     }
 {/if}
-
 {#if headerFlags.gc_iterator}
     int16_t gc_i;
 {/if}
@@ -440,68 +314,119 @@ class HeaderFlags {
 {functions => {this}\n}
 
 int main(void) {
+    {mains}
+
     {gcVarNames {    }=> ARRAY_CREATE({this}, 2, 0);\n}
 
     {statements {    }=> {this}}
 
     {destructors}
+
     return 0;
-}`
-)
+}
+`)
 export class CProgram implements IScope {
-    public parent: IScope = null;
-    public root = this;
-    public func = this;
-    public variables: CVariable[] = [];
-    public statements: any[] = [];
-    public functions: any[] = [];
-    public functionPrototypes: CFunctionPrototype[] = [];
-    public gcVarNames: string[];
-    public destructors: CVariableDestructors;
-    public userStructs: { name: string, properties: CVariable[] }[];
-    public headerFlags = new HeaderFlags();
-    public typeHelper: TypeHelper;
-    public memoryManager: MemoryManager;
-    public typeChecker: ts.TypeChecker;
-    constructor(tsProgram: ts.Program) {
+  public destructors: CVariableDestructors;
+  public func = this;
+  public functionPrototypes: CFunctionPrototype[] = [];
+  public functions: any[] = [];
+  public gcVarNames: string[];
+  public headerFlags = new HeaderFlags();
+  public headers : any[] = [];
+  public mains : any[] = [];
+  public memoryManager: MemoryManager;
+  public parent: IScope = null;
+  public root = this;
+  public statements: any[] = [];
+  public typeChecker: ts.TypeChecker;
+  public typeHelper: TypeHelper;
+  public userStructs: { name: string; properties: CVariable[] }[];
+  public variables: CVariable[] = [];
 
-        this.typeChecker = tsProgram.getTypeChecker();
-        this.typeHelper = new TypeHelper(this.typeChecker);
-        this.memoryManager = new MemoryManager(this.typeChecker, this.typeHelper);
+  private resolvePreset(preset: Preset, collectedHeaders: Header[], collectedPlugins: Plugin[]) {
+      for (let plugin of preset.getPlugins()) {
+          collectedPlugins.push(plugin);
+      }
 
-        this.typeHelper.figureOutVariablesAndTypes(tsProgram.getSourceFiles());
+      for (let header of preset.getHeaders()) {
+          collectedHeaders.push(header);
+      }
 
-        this.memoryManager.preprocessVariables();
-        for (let source of tsProgram.getSourceFiles())
-            this.memoryManager.preprocessTemporaryVariables(source);
+      for (let p of preset.getPresets()) {
+          this.resolvePreset(p, collectedHeaders, collectedPlugins);
+      }
+  }
 
-        this.gcVarNames = this.memoryManager.getGCVariablesForScope(null);
-        for (let gcVarName of this.gcVarNames) {
-            let gcType = "ARRAY(void *)";
-            if (gcVarName.indexOf("_arrays") > -1) gcType = "ARRAY(ARRAY(void *))";
-            if (gcVarName.indexOf("_arrays_c") > -1) gcType = "ARRAY(ARRAY(ARRAY(void *)))";
-            this.variables.push(new CVariable(this, gcVarName, gcType));
-        }
+  constructor(tsProgram: ts.Program, presets = []) {
+    this.typeChecker = tsProgram.getTypeChecker();
+    this.typeHelper = new TypeHelper(this.typeChecker);
+    this.memoryManager = new MemoryManager(this.typeChecker, this.typeHelper);
 
-        for (let source of tsProgram.getSourceFiles()) {
-            for (let s of source.statements) {
-                if (s.kind == ts.SyntaxKind.FunctionDeclaration)
-                    this.functions.push(new CFunction(this, <any>s));
-                else
-                    this.statements.push(CodeTemplateFactory.createForNode(this, s));
-            }
-        }
+    const collectedPlugins: Plugin[] = [];
+    const collectedHeaders: Header[] = [];
 
-        let [structs, functionPrototypes] = this.typeHelper.getStructsAndFunctionPrototypes();
-
-        this.userStructs = structs.map(s => {
-            return {
-                name: s.name,
-                properties: s.properties.map(p => new CVariable(this, p.name, p.type, { removeStorageSpecifier: true }))
-            };
-        });
-        this.functionPrototypes = functionPrototypes.map(fp => new CFunctionPrototype(this, fp));
-
-        this.destructors = new CVariableDestructors(this, null);
+    for (let preset of presets) {
+        this.resolvePreset(preset, collectedHeaders, collectedPlugins);
     }
+
+    for (let header of collectedHeaders) {
+        HeaderRegistry.registerHeader(header.getType(), header);
+    }
+
+    for (let plugin of collectedPlugins) {
+        PluginRegistry.registerPlugin(plugin);
+    }
+
+    this.typeHelper.figureOutVariablesAndTypes(tsProgram.getSourceFiles());
+
+    this.memoryManager.preprocessVariables();
+
+    for (let source of tsProgram.getSourceFiles()) {
+        this.memoryManager.preprocessTemporaryVariables(source);
+    }
+
+    this.gcVarNames = this.memoryManager.getGCVariablesForScope(null);
+    for (let gcVarName of this.gcVarNames) {
+      let gcType = "ARRAY(void *)";
+      if (gcVarName.indexOf("_arrays") > -1) gcType = "ARRAY(ARRAY(void *))";
+      if (gcVarName.indexOf("_arrays_c") > -1)
+        gcType = "ARRAY(ARRAY(ARRAY(void *)))";
+      this.variables.push(new CVariable(this, gcVarName, gcType));
+    }
+
+    for (let source of tsProgram.getSourceFiles()) {
+      for (let s of source.statements) {
+        if (s.kind == ts.SyntaxKind.FunctionDeclaration)
+          this.functions.push(new CFunction(this, <any>s));
+        else this.statements.push(CodeTemplateFactory.createForNode(this, s));
+      }
+    }
+
+    let [
+      structs,
+      functionPrototypes
+    ] = this.typeHelper.getStructsAndFunctionPrototypes();
+
+    this.userStructs = structs.map(s => {
+      return {
+        name: s.name,
+        properties: s.properties.map(
+          p =>
+            new CVariable(this, p.name, p.type, {
+              removeStorageSpecifier: true
+            })
+        )
+      };
+    });
+
+    this.functionPrototypes = functionPrototypes.map(
+      fp => new CFunctionPrototype(this, fp)
+    );
+
+    this.headers = HeaderRegistry.getDeclaredDependencies();
+
+    this.mains = MainRegistry.getDeclaredDependencies();
+
+    this.destructors = new CVariableDestructors(this, null);
+  }
 }

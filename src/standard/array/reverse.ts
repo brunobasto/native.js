@@ -1,37 +1,42 @@
-import * as ts from 'typescript';
-import {CodeTemplate, CodeTemplateFactory} from '../../template';
-import {StandardCallResolver, IResolver} from '../../resolver';
-import {ArrayType, NumberVarType, TypeHelper} from '../../types';
-import {IScope} from '../../program';
-import {CVariable} from '../../nodes/variable';
-import {CExpression} from '../../nodes/expressions';
-import {CElementAccess} from '../../nodes/elementaccess';
+import * as ts from "typescript";
+import { CElementAccess } from "../../nodes/elementaccess";
+import { CExpression } from "../../nodes/expressions";
+import { CVariable } from "../../nodes/variable";
+import { IScope } from "../../program";
+import { IResolver, StandardCallResolver } from "../../resolver";
+import { CodeTemplate, CodeTemplateFactory } from "../../template";
+import { ArrayType, NumberVarType, TypeHelper } from "../../types";
 
 @StandardCallResolver
 class ArraySortResolver implements IResolver {
-    public matchesNode(typeHelper: TypeHelper, call: ts.CallExpression) {
-        if (call.expression.kind != ts.SyntaxKind.PropertyAccessExpression)
-            return false;
-        let propAccess = <ts.PropertyAccessExpression>call.expression;
-        let objType = typeHelper.getCType(propAccess.expression);
-        return propAccess.name.getText() == "reverse" && objType instanceof ArrayType && objType.isDynamicArray;
+  public matchesNode(typeHelper: TypeHelper, call: ts.CallExpression) {
+    if (call.expression.kind != ts.SyntaxKind.PropertyAccessExpression) {
+      return false;
     }
-    public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
-        let propAccess = <ts.PropertyAccessExpression>call.expression;
-        return typeHelper.getCType(propAccess.expression);
-    }
-    public createTemplate(scope: IScope, node: ts.CallExpression) {
-        return new CArrayReverse(scope, node);
-    }
-    public needsDisposal(typeHelper: TypeHelper, node: ts.CallExpression) {
-        return false;
-    }
-    public getTempVarName(typeHelper: TypeHelper, node: ts.CallExpression) {
-        return "";
-    }
-    public getEscapeNode(typeHelper: TypeHelper, node: ts.CallExpression) {
-        return null;
-    }
+    const propAccess = call.expression as ts.PropertyAccessExpression;
+    const objType = typeHelper.getCType(propAccess.expression);
+    return (
+      propAccess.name.getText() == "reverse" &&
+      objType instanceof ArrayType &&
+      objType.isDynamicArray
+    );
+  }
+  public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
+    const propAccess = call.expression as ts.PropertyAccessExpression;
+    return typeHelper.getCType(propAccess.expression);
+  }
+  public createTemplate(scope: IScope, node: ts.CallExpression) {
+    return new CArrayReverse(scope, node);
+  }
+  public needsDisposal(typeHelper: TypeHelper, node: ts.CallExpression) {
+    return false;
+  }
+  public getTempVarName(typeHelper: TypeHelper, node: ts.CallExpression) {
+    return "";
+  }
+  public getEscapeNode(typeHelper: TypeHelper, node: ts.CallExpression) {
+    return null;
+  }
 }
 
 @CodeTemplate(`
@@ -50,22 +55,33 @@ class ArraySortResolver implements IResolver {
     {varAccess}
 {/if}`)
 class CArrayReverse {
-    public topExpressionOfStatement: boolean;
-    public varAccess: CElementAccess = null;
-    public iteratorVar1: string;
-    public iteratorVar2: string;
-    public tempVarName: string;
-    constructor(scope: IScope, call: ts.CallExpression) {
-        let propAccess = <ts.PropertyAccessExpression>call.expression;
-        let type = <ArrayType>scope.root.typeHelper.getCType(propAccess.expression);
-        this.varAccess = new CElementAccess(scope, propAccess.expression);
-        this.topExpressionOfStatement = call.parent.kind == ts.SyntaxKind.ExpressionStatement;
-        this.iteratorVar1 = scope.root.typeHelper.addNewIteratorVariable(call);
-        this.iteratorVar2 = scope.root.typeHelper.addNewIteratorVariable(call);
-        this.tempVarName = scope.root.typeHelper.addNewTemporaryVariable(call, "temp");
-        scope.variables.push(new CVariable(scope, this.iteratorVar1, NumberVarType));
-        scope.variables.push(new CVariable(scope, this.iteratorVar2, NumberVarType));
-        scope.variables.push(new CVariable(scope, this.tempVarName, type.elementType))
-    }
-
+  public topExpressionOfStatement: boolean;
+  public varAccess: CElementAccess = null;
+  public iteratorVar1: string;
+  public iteratorVar2: string;
+  public tempVarName: string;
+  constructor(scope: IScope, call: ts.CallExpression) {
+    const propAccess = call.expression as ts.PropertyAccessExpression;
+    const type = scope.root.typeHelper.getCType(
+      propAccess.expression
+    ) as ArrayType;
+    this.varAccess = new CElementAccess(scope, propAccess.expression);
+    this.topExpressionOfStatement =
+      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
+    this.iteratorVar1 = scope.root.typeHelper.addNewIteratorVariable(call);
+    this.iteratorVar2 = scope.root.typeHelper.addNewIteratorVariable(call);
+    this.tempVarName = scope.root.typeHelper.addNewTemporaryVariable(
+      call,
+      "temp"
+    );
+    scope.variables.push(
+      new CVariable(scope, this.iteratorVar1, NumberVarType)
+    );
+    scope.variables.push(
+      new CVariable(scope, this.iteratorVar2, NumberVarType)
+    );
+    scope.variables.push(
+      new CVariable(scope, this.tempVarName, type.elementType)
+    );
+  }
 }

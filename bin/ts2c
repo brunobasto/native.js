@@ -4,6 +4,10 @@ var fs = require('fs');
 var ts = require('typescript');
 var ts2cprogram = require(path.join(__dirname, "../src/", "program.js"));
 
+const findUp = require('find-up');
+const configPath = findUp.sync(['.ts2crc', '.ts2crc.json'])
+let config = configPath ? JSON.parse(fs.readFileSync(configPath)) : {}
+
 const yargs = require('yargs')
   .usage('Usage: ts2c [options] <fileName>')
   .boolean('intermediate-transpile')
@@ -43,7 +47,23 @@ var program = ts.createProgram([fileName], {
 	noLib: true
 });
 
-var output = new ts2cprogram.CProgram(program)["resolve"]();
+config = Object.assign({}, {
+	presets: [path.resolve(__dirname, "../src/presets/standard")]
+}, config);
+
+const presets = config.presets.map((presetPath) => {
+	let preset;
+	if (presetPath.indexOf('.') === 0) {
+		preset = require(path.resolve(configPath, '../', presetPath));
+	}
+	else {
+		preset = require(presetPath);
+	}
+
+	return new preset.default();
+})
+
+var output = new ts2cprogram.CProgram(program, presets)["resolve"]();
 fs.writeFileSync(path.join(filePath, `${baseName}.c`), output);
 
 process.exit();
