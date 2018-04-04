@@ -7,19 +7,11 @@ import { CFunction, CFunctionPrototype } from "./function";
 import { PluginRegistry } from "../core/plugin";
 import { HeaderRegistry, Int16HeaderType } from "../core/header";
 
-@CodeTemplate(
-  `
-{#statements}
-    {#if printfCalls.length}
-        {printfCalls => {this}\n}
-    {/if}
-{/statements}
+@CodeTemplate(`
 {#if pluginExpression}
     {pluginExpression}
 {#elseif standardCall}
     {standardCall}
-{#elseif printfCall}
-    {printfCall}
 {#else}
     {funcName}({arguments {, }=> {this}})
 {/if}`,
@@ -29,8 +21,6 @@ export class CCallExpression {
   public arguments: CExpression[];
   public funcName: string;
   public pluginExpression: CExpression;
-  public printfCall: any = null;
-  public printfCalls: any[] = [];
   public standardCall: CExpression;
 
   constructor(scope: IScope, call: ts.CallExpression) {
@@ -48,11 +38,10 @@ export class CCallExpression {
       return;
     }
 
-    if (this.funcName != "console.log") {
-      this.arguments = call.arguments.map(a => {
-        return CodeTemplateFactory.createForNode(scope, a);
-      });
-    }
+    this.arguments = call.arguments.map(a => {
+      return CodeTemplateFactory.createForNode(scope, a);
+    });
+
     if (
       call.expression.kind == ts.SyntaxKind.Identifier &&
       this.funcName == "parseInt"
