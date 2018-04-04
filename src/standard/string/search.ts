@@ -12,6 +12,7 @@ import {
   StringVarType,
   TypeHelper
 } from "../../types";
+import { BooleanHeaderType, HeaderRegistry } from "../../core/header";
 
 @StandardCallResolver
 class StringSearchResolver implements IResolver {
@@ -53,6 +54,7 @@ class CStringSearch {
     this.topExpressionOfStatement =
       call.parent.kind == ts.SyntaxKind.ExpressionStatement;
     if (!this.topExpressionOfStatement) {
+      HeaderRegistry.declareDependency(BooleanHeaderType);
       if (call.arguments.length == 1) {
         this.argAccess = new CElementAccess(scope, propAccess.expression);
         this.regexVar = CodeTemplateFactory.createForNode(
