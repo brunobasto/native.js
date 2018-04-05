@@ -148,10 +148,6 @@ export class CVariableAllocation {
     {/if}
     {#if gcDictsVarName}
         for (gc_i = 0; gc_i < {gcDictsVarName}->size; gc_i++) {
-            free({gcDictsVarName}->data[gc_i]->index->data);
-            free({gcDictsVarName}->data[gc_i]->index);
-            free({gcDictsVarName}->data[gc_i]->values->data);
-            free({gcDictsVarName}->data[gc_i]->values);
             free({gcDictsVarName}->data[gc_i]);
         }
         free({gcDictsVarName}->data);
