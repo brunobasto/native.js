@@ -5,7 +5,7 @@ import { ArrayType, StructType, DictType } from "../types";
 import { CVariable, CVariableAllocation } from "./variable";
 import { AssignmentHelper, CAssignment } from "./assignment";
 import { CRegexSearchFunction } from "./regexfunc";
-import { HeaderRegistry, ArrayCreateHeaderType, ArrayPushHeaderType } from "../core/header";
+import { HeaderRegistry, ArrayCreateHeaderType, ArrayPushHeaderType, BooleanHeaderType } from "../core/header";
 
 @CodeTemplate(`{expression}`, ts.SyntaxKind.ArrayLiteralExpression)
 class CArrayLiteralExpression {
@@ -197,7 +197,7 @@ export class CBoolean {
   public value: string;
   constructor(scope: IScope, value: ts.Node) {
     this.value = value.kind == ts.SyntaxKind.TrueKeyword ? "TRUE" : "FALSE";
-    scope.root.headerFlags.bool = true;
+    HeaderRegistry.declareDependency(BooleanHeaderType);
   }
 }
 

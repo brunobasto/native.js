@@ -2,6 +2,7 @@ import {
   ArrayCreateHeaderType,
   ArrayInsertHeaderType,
   ArrayTypeHeaderType,
+  ArrayRemoveHeaderType,
   DictCreateHeaderType,
   Header,
   HeaderRegistry,
@@ -71,9 +72,10 @@ int16_t tmp_dict_pos;
         ARRAY_INSERT(dict->index, tmp_dict_pos, prop); \\
         ARRAY_INSERT(dict->values, tmp_dict_pos, value); \\
     } else { \\
+      free((void *)dict->index->data[tmp_dict_pos]); \\
+      dict->index->data[tmp_dict_pos] = prop; \\
       dict->values->data[tmp_dict_pos] = value; \\
     } \
 }
 `)
 class Template {}
-///free(prop); \\
