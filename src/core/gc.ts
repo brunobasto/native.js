@@ -159,7 +159,7 @@ export class GarbageCollector {
 				return list.indexOf(variable) == index;
 			});
 		const simpleInitializers = variables
-			.filter(variable => variable.scopeNode == node)
+			.filter(variable => variable.scopeNode == ScopeUtil.getScopeNode(node))
 			.map((variable: TemporaryVariable) => {
 				let typeString = 'char *';
 				if (variable.type == NumberVarType) {
