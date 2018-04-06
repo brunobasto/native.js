@@ -32,7 +32,7 @@ export class StandardArrayPushHeader implements Header {
 @CodeTemplate(`
 #define ARRAY_PUSH(array, item) {\\
     if (array->size == array->capacity) {  \\
-        array->capacity *= 2;  \\
+        array->capacity += 1;  \\
         array->data = realloc(array->data, array->capacity * sizeof(*array->data)); \\
         assert(array->data != NULL); \\
     }  \\
