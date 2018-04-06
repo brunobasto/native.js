@@ -24,6 +24,7 @@ export class StandardDictCreateHeader implements Header {
     HeaderRegistry.declareDependency(ArrayTypeHeaderType);
     HeaderRegistry.declareDependency(ArrayCreateHeaderType);
     HeaderRegistry.declareDependency(ArrayInsertHeaderType);
+    HeaderRegistry.declareDependency(ArrayRemoveHeaderType);
   }
 
   public getTemplate(): CExpression {
@@ -68,9 +69,9 @@ int16_t tmp_dict_pos;
 #define DICT_SET(dict, prop, value) { \\
     tmp_dict_pos = dict_find_pos(dict->index->data, dict->index->size, prop); \\
     if (tmp_dict_pos < 0) { \\
-        tmp_dict_pos = -tmp_dict_pos - 1; \\
-        ARRAY_INSERT(dict->index, tmp_dict_pos, prop); \\
-        ARRAY_INSERT(dict->values, tmp_dict_pos, value); \\
+      tmp_dict_pos = -tmp_dict_pos - 1; \\
+      ARRAY_INSERT(dict->index, tmp_dict_pos, prop); \\
+      ARRAY_INSERT(dict->values, tmp_dict_pos, value); \\
     } else { \\
       free((void *)dict->index->data[tmp_dict_pos]); \\
       dict->index->data[tmp_dict_pos] = prop; \\
