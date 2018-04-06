@@ -24,7 +24,6 @@ export class StandardDictCreateHeader implements Header {
     HeaderRegistry.declareDependency(ArrayTypeHeaderType);
     HeaderRegistry.declareDependency(ArrayCreateHeaderType);
     HeaderRegistry.declareDependency(ArrayInsertHeaderType);
-    HeaderRegistry.declareDependency(ArrayRemoveHeaderType);
   }
 
   public getTemplate(): CExpression {
