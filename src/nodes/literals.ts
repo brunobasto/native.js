@@ -57,9 +57,9 @@ class CArrayLiteralExpression {
           let gcVarName = scope.root.memoryManager.getGCVariableForNode(node);
           if (gcVarName) {
             HeaderRegistry.declareDependency(ArrayPushHeaderType);
-            scope.statements.push(
-              "ARRAY_PUSH(" + gcVarName + ", (void *)" + varName + ");\n"
-            );
+            // scope.statements.push(
+            //   "ARRAY_PUSH(" + gcVarName + ", (void *)" + varName + ");\n"
+            // );
             scope.root.headerFlags.gc_iterator = true;
           }
         } else {
@@ -76,6 +76,7 @@ class CArrayLiteralExpression {
             varName,
             i + "",
             type,
+            node,
             node.elements[i]
           );
           scope.statements.push(assignment);
@@ -128,6 +129,7 @@ class CObjectLiteralExpression {
               varName,
               this.isDict ? '"' + p.name.getText() + '"' : p.name.getText(),
               type,
+              node,
               p.initializer
             )
         );

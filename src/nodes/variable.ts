@@ -77,7 +77,7 @@ export class CVariableDeclaration {
     assert({varName} != NULL);
 {/if}
 {#if gcVarName && (needAllocateStruct || needAllocateArray || needAllocateDict)}
-    ARRAY_PUSH({gcVarName}, (void *){varName});
+    
 {/if}
 `)
 export class CVariableAllocation {
@@ -168,34 +168,34 @@ export class CVariableDestructors {
   public destructors: string[];
   public arrayDestructors: string[] = [];
   constructor(scope: IScope, node: ts.Node) {
-    let gcVarNames = scope.root.memoryManager.getGCVariablesForScope(node);
-    for (let gc of gcVarNames) {
-      if (gc.indexOf("_arrays_c") > -1) this.gcArraysCVarName = gc;
-      else if (gc.indexOf("_dicts") > -1) this.gcDictsVarName = gc;
-      else if (gc.indexOf("_arrays") > -1) this.gcArraysVarName = gc;
-      else this.gcVarName = gc;
-    }
+    // let gcVarNames = scope.root.memoryManager.getGCVariablesForScope(node);
+    // for (let gc of gcVarNames) {
+    //   if (gc.indexOf("_arrays_c") > -1) this.gcArraysCVarName = gc;
+    //   else if (gc.indexOf("_dicts") > -1) this.gcDictsVarName = gc;
+    //   else if (gc.indexOf("_arrays") > -1) this.gcArraysVarName = gc;
+    //   else this.gcVarName = gc;
+    // }
 
     this.destructors = [];
-    scope.root.memoryManager.getDestructorsForScope(node).forEach(r => {
-      if (r.array) {
-        this.destructors.push(r.varName + "->data");
-        this.destructors.push(r.varName);
-      } else if (r.arrayWithContents) {
-        scope.root.headerFlags.gc_iterator2 = true;
-        this.arrayDestructors.push(r.varName);
-        this.destructors.push(r.varName + " ? " + r.varName + "->data : NULL");
-        this.destructors.push(r.varName);
-      } else if (r.dict) {
-        this.destructors.push(r.varName + "->index->data");
-        this.destructors.push(r.varName + "->index");
-        this.destructors.push(r.varName + "->values->data");
-        this.destructors.push(r.varName + "->values");
-        this.destructors.push(r.varName);
-      } else if (r.string) {
-        this.destructors.push("(char *)" + r.varName);
-      } else this.destructors.push(r.varName);
-    });
+    // scope.root.memoryManager.getDestructorsForScope(node).forEach(r => {
+    //   if (r.array) {
+    //     this.destructors.push(r.varName + "->data");
+    //     this.destructors.push(r.varName);
+    //   } else if (r.arrayWithContents) {
+    //     scope.root.headerFlags.gc_iterator2 = true;
+    //     this.arrayDestructors.push(r.varName);
+    //     this.destructors.push(r.varName + " ? " + r.varName + "->data : NULL");
+    //     this.destructors.push(r.varName);
+    //   } else if (r.dict) {
+    //     this.destructors.push(r.varName + "->index->data");
+    //     this.destructors.push(r.varName + "->index");
+    //     this.destructors.push(r.varName + "->values->data");
+    //     this.destructors.push(r.varName + "->values");
+    //     this.destructors.push(r.varName);
+    //   } else if (r.string) {
+    //     this.destructors.push("(char *)" + r.varName);
+    //   } else this.destructors.push(r.varName);
+    // });
   }
 }
 

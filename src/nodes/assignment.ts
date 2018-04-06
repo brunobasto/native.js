@@ -4,7 +4,7 @@ import { IScope } from "../program";
 import { CType, ArrayType, StructType, DictType } from "../types";
 import { CElementAccess, CSimpleElementAccess } from "./elementaccess";
 import { CExpression } from "./expressions";
-import { CVariableAllocation } from "./variable";
+import { CVariable } from "./variable";
 
 export class AssignmentHelper {
   public static create(
@@ -50,6 +50,7 @@ export class AssignmentHelper {
       accessor,
       argumentExpression,
       varType,
+      left,
       right,
       inline
     );
@@ -97,6 +98,7 @@ export class CAssignment {
     public accessor: CElementAccess | CSimpleElementAccess | string,
     public argumentExpression: CExpression,
     type: CType,
+    left: ts.Node,
     right: ts.Expression,
     inline: boolean = false
   ) {
@@ -138,6 +140,7 @@ export class CAssignment {
               argAccessor,
               this.isDict ? '"' + p.name.getText() + '"' : p.name.getText(),
               argType,
+              left,
               p.initializer
             )
         );
@@ -149,9 +152,11 @@ export class CAssignment {
       let arrLiteral = <ts.ArrayLiteralExpression>right;
       this.arrayLiteralSize = arrLiteral.elements.length;
       this.arrInitializers = arrLiteral.elements.map(
-        (e, i) => new CAssignment(scope, argAccessor, "" + i, argType, e)
+        (e, i) => new CAssignment(scope, argAccessor, "" + i, argType, left, e)
       );
-    } else this.expression = CodeTemplateFactory.createForNode(scope, right);
+    } else {
+      this.expression = CodeTemplateFactory.createForNode(scope, right);
+    }
 
     if (this.argumentExpression == null) {
       let expr =
@@ -167,6 +172,14 @@ export class CAssignment {
             this.accessor["resolve"] &&
             this.accessor["resolve"]();
       if (expr == "" || acc == expr) this.assignmentRemoved = true;
+    }
+
+    if (this.isDict) {
+      scope.root.gc.trackAssignmentToDict(scope, left, right);
+    } else if (this.argumentExpression == null) {
+      scope.root.gc.trackAssignmentToVariable(left, right);
+    } else if (scope.root.gc.resolveToTemporaryVariable(right)) {
+      scope.root.gc.trackAssignmentToTemporaryVariable(left, right);
     }
   }
 }

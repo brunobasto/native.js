@@ -35,8 +35,6 @@ export class CFunctionPrototype {
     {gcVarNames {    }=> ARRAY_CREATE({this}, 2, 0);\n}
 
     {statements {    }=> {this}}
-
-    {destructors}
 }`,
   ts.SyntaxKind.FunctionDeclaration
 )

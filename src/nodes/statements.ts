@@ -27,7 +27,7 @@ export class CEmptyStatement {
 
 @CodeTemplate(
   `
-{destructors}
+
 return {expression};
 `,
   ts.SyntaxKind.ReturnStatement
@@ -59,7 +59,8 @@ export class CIfStatement {
   public hasElseBlock: boolean;
   constructor(scope: IScope, node: ts.IfStatement) {
     this.condition = CodeTemplateFactory.createForNode(scope, node.expression);
-    this.thenBlock = new CBlock(scope, node.thenStatement);
+    const thenBlock = new CBlock(scope, node.thenStatement);
+    this.thenBlock = thenBlock;
     this.hasElseBlock = !!node.elseStatement;
     this.elseBlock = this.hasElseBlock && new CBlock(scope, node.elseStatement);
   }
@@ -301,11 +302,20 @@ export class CBlock implements IScope {
     this.parent = scope;
     this.func = scope.func;
     this.root = scope.root;
+
     if (node.kind == ts.SyntaxKind.Block) {
       let block = <ts.Block>node;
       block.statements.forEach(s =>
         this.statements.push(CodeTemplateFactory.createForNode(this, s))
       );
-    } else this.statements.push(CodeTemplateFactory.createForNode(this, node));
+    } else {
+      this.statements.push(CodeTemplateFactory.createForNode(this, node))
+    }
+
+    const {gc} = scope.root;
+    const temporaryVariableDestructors = gc.getTemporaryVariableDestructors(this, node);
+    this.statements = this.statements.concat(temporaryVariableDestructors);
+    const temporaryVariableDeclarators = gc.getTemporaryVariableDeclarators(this, node);
+    this.variables = temporaryVariableDeclarators.concat(this.variables);
   }
 }

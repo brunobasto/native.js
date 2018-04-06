@@ -8,6 +8,7 @@ import { Preset } from "./core/preset";
 import { Plugin, PluginRegistry } from "./core/plugin";
 import { Header, HeaderRegistry } from "./core/header";
 import { Main, MainRegistry } from "./core/main";
+import { GarbageCollector } from "./core/gc";
 
 // these imports are here only because it is necessary to run decorators
 import "./nodes/statements";
@@ -307,6 +308,8 @@ class HeaderFlags {
     int16_t gc_j;
 {/if}
 
+{experimentalGCVariables => {this};\n}
+
 {variables => {this};\n}
 
 {functionPrototypes => {this}\n}
@@ -316,11 +319,7 @@ class HeaderFlags {
 int main(void) {
     {mains}
 
-    {gcVarNames {    }=> ARRAY_CREATE({this}, 2, 0);\n}
-
     {statements {    }=> {this}}
-
-    {destructors}
 
     return 0;
 }
@@ -342,6 +341,9 @@ export class CProgram implements IScope {
   public typeHelper: TypeHelper;
   public userStructs: { name: string; properties: CVariable[] }[];
   public variables: CVariable[] = [];
+  public gc: GarbageCollector;
+  public experimentalGCDestructors: any[] = null;
+  public experimentalGCVariables: CVariable[] = [];
 
   private resolvePreset(preset: Preset, collectedHeaders: Header[], collectedPlugins: Plugin[]) {
       for (let plugin of preset.getPlugins()) {
@@ -361,6 +363,7 @@ export class CProgram implements IScope {
     this.typeChecker = tsProgram.getTypeChecker();
     this.typeHelper = new TypeHelper(this.typeChecker);
     this.memoryManager = new MemoryManager(this.typeChecker, this.typeHelper);
+    this.gc = new GarbageCollector(this.typeChecker);
 
     const collectedPlugins: Plugin[] = [];
     const collectedHeaders: Header[] = [];
@@ -385,14 +388,14 @@ export class CProgram implements IScope {
         this.memoryManager.preprocessTemporaryVariables(source);
     }
 
-    this.gcVarNames = this.memoryManager.getGCVariablesForScope(null);
-    for (let gcVarName of this.gcVarNames) {
-      let gcType = "ARRAY(void *)";
-      if (gcVarName.indexOf("_arrays") > -1) gcType = "ARRAY(ARRAY(void *))";
-      if (gcVarName.indexOf("_arrays_c") > -1)
-        gcType = "ARRAY(ARRAY(ARRAY(void *)))";
-      this.variables.push(new CVariable(this, gcVarName, gcType));
-    }
+    // this.gcVarNames = this.memoryManager.getGCVariablesForScope(null);
+    // for (let gcVarName of this.gcVarNames) {
+    //   let gcType = "ARRAY(void *)";
+    //   if (gcVarName.indexOf("_arrays") > -1) gcType = "ARRAY(ARRAY(void *))";
+    //   if (gcVarName.indexOf("_arrays_c") > -1)
+    //     gcType = "ARRAY(ARRAY(ARRAY(void *)))";
+    //   this.variables.push(new CVariable(this, gcVarName, gcType));
+    // }
 
     for (let source of tsProgram.getSourceFiles()) {
       for (let s of source.statements) {
@@ -427,6 +430,8 @@ export class CProgram implements IScope {
 
     this.mains = MainRegistry.getDeclaredDependencies();
 
-    this.destructors = new CVariableDestructors(this, null);
+    this.experimentalGCVariables = this.gc.getTemporaryVariableDeclarators(this, null);
+
+    this.experimentalGCDestructors = this.gc.getTemporaryVariableDestructors(this, null);
   }
 }

@@ -58,7 +58,7 @@ export class CFunctionExpression {
 
   constructor(scope: IScope, expression: ts.FunctionExpression) {
     const dynamicFunction = new CFunction(scope.root, expression);
-    scope.root.functions.push(dynamicFunction);
+    scope.root.functions.unshift(dynamicFunction);
     this.name = dynamicFunction.name;
   }
 }
