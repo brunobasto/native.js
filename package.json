@@ -31,7 +31,8 @@
     "typescript": "global:ts"
   },
   "scripts": {
-    "build": "tsc && browserify ts2c.js -x typescript -s ts2c -o ts2c.bundle.js",
+    "build": "tsc",
+    "web": "browserify ts2c.js -x typescript -s ts2c -o ts2c.bundle.js",
     "clean": "cd tests && make clean",
     "cover": "cd tests && make -B cover",
     "format": "prettier --write 'src/**/*.ts'",
