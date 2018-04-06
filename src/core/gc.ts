@@ -121,6 +121,7 @@ export class GarbageCollector {
 					if (isInsideLoop) {
 						// scope.statements.push(`ARRAY_PUSH(gc_global, ${argumentTempVar.name})`);
 					}
+					console.log('[gc] dic key escapes to', declaredScope);
 					argumentTempVar.escapeTo(declaredScope);
 					argumentTempVar.setDisposeLater(isInsideLoop);
 				}
@@ -130,6 +131,7 @@ export class GarbageCollector {
 					if (isInsideLoop) {
 						// scope.statements.push(`ARRAY_PUSH(gc_global, ${valueTempVar.name})`);
 					}
+					console.log('[gc] dic value escapes');
 					argumentTempVar.escapeTo(declaredScope);
 					argumentTempVar.setDisposeLater(isInsideLoop);
 				}
