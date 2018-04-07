@@ -56,7 +56,7 @@ class CArrayLiteralExpression {
           );
           let gcVarName = scope.root.memoryManager.getGCVariableForNode(node);
           if (gcVarName) {
-            HeaderRegistry.declareDependency(ArrayPushHeaderType);
+            // HeaderRegistry.declareDependency(ArrayPushHeaderType);
             // scope.statements.push(
             //   "ARRAY_PUSH(" + gcVarName + ", (void *)" + varName + ");\n"
             // );

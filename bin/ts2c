@@ -34,7 +34,10 @@ if (yargs.argv['intermediate-transpile']) {
 	const codeTypeScript = fs.readFileSync(fileName);
 
 	let codeES3 = ts.transpileModule(codeTypeScript.toString('utf8'), {
-		compilerOptions: { target: ts.ScriptTarget.ES3 }
+		compilerOptions: {
+			target: ts.ScriptTarget.ES3,
+			noImplicitUseStrict: true
+		}
 	});
 
 	fileName = path.join(filePath, `${baseName}.es3.js`);

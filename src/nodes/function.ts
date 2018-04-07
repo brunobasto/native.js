@@ -33,7 +33,6 @@ export class CFunctionPrototype {
 {
     {variables  {    }=> {this};\n}
     {gcVarNames {    }=> ARRAY_CREATE({this}, 2, 0);\n}
-
     {statements {    }=> {this}}
 }`,
   ts.SyntaxKind.FunctionDeclaration

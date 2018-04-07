@@ -7,6 +7,7 @@ import { IScope } from "../../program";
 import { IResolver, StandardCallResolver } from "../../resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../template";
 import {
+  CType,
   ArrayType,
   NumberVarType,
   StringVarType,
@@ -64,10 +65,11 @@ class CArrayPush {
   constructor(scope: IScope, call: ts.CallExpression) {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     this.varAccess = new CElementAccess(scope, propAccess.expression);
+    const types = call.arguments.map(a => scope.root.typeHelper.getCType(a));
     const args = call.arguments.map(a =>
       CodeTemplateFactory.createForNode(scope, a)
     );
-    this.pushValues = args.map(a => new CPushValue(scope, this.varAccess, a));
+    this.pushValues = args.map((a, i) => new CPushValue(scope, this.varAccess, a, types[i]));
     this.topExpressionOfStatement =
       call.parent.kind == ts.SyntaxKind.ExpressionStatement;
     if (!this.topExpressionOfStatement) {
@@ -83,11 +85,30 @@ class CArrayPush {
   }
 }
 
-@CodeTemplate(`ARRAY_PUSH({varAccess}, {value});\n`)
+@CodeTemplate(`
+{#if isString}
+  do {
+    char * {tempStringName} = malloc(1 + strlen({value}));
+    strcpy({tempStringName}, {value});
+    ARRAY_PUSH({varAccess}, {tempStringName});
+  } while (0);\n
+{#else}
+  ARRAY_PUSH({varAccess}, {value});\n
+{/if}
+
+`)
 class CPushValue {
+  isString: boolean = false;
+  tempStringName: string;
   constructor(
     scope: IScope,
     public varAccess: CElementAccess,
-    public value: CExpression
-  ) {}
+    public value: CExpression,
+    public type: CType
+  ) {
+    if (type == StringVarType) {
+      this.isString = true;
+      this.tempStringName = scope.root.gc.getUniqueName();
+    }
+  }
 }

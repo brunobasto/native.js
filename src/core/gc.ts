@@ -54,6 +54,7 @@ export class TemporaryVariableDestructor {
 export class GarbageCollector {
 	private temporaryVariables: Map<number, TemporaryVariable> = new Map();
 	private typeChecker;
+	private uniqueCounter: number = 0;
 
 	constructor(typeChecker) {
 		this.typeChecker = typeChecker;
@@ -69,6 +70,10 @@ export class GarbageCollector {
 		// console.log('[gc] generated', name, 'at', temporaryVariable.scopeNode);
 		this.temporaryVariables.set(node.pos, temporaryVariable);
 		return name;
+	}
+
+	getUniqueName(): string {
+		return `temporary${this.uniqueCounter++}`;
 	}
 
 	getTemporaryVariable(node: ts.Node): TemporaryVariable {
@@ -132,8 +137,8 @@ export class GarbageCollector {
 						// scope.statements.push(`ARRAY_PUSH(gc_global, ${valueTempVar.name})`);
 					}
 					console.log('[gc] dic value escapes');
-					argumentTempVar.escapeTo(declaredScope);
-					argumentTempVar.setDisposeLater(isInsideLoop);
+					valueTempVar.escapeTo(declaredScope);
+					valueTempVar.setDisposeLater(isInsideLoop);
 				}
 			}
 		}
@@ -182,18 +187,12 @@ export class GarbageCollector {
 
 	getTemporaryVariableDestructors(scope: IScope, node: ts.Node): any[] {
 		const variables = Array.from(this.temporaryVariables.values())
-			.filter(variable => variable.escapeNode == node)
 			.filter((variable, index, list) => {
 				return list.indexOf(variable) == index;
 			});
 		const simpleDestructors = variables
-			.map((variable: TemporaryVariable) => {
-				let typeString = 'char *';
-				if (variable.type == NumberVarType) {
-					typeString = `${NumberVarType} *`;
-				}
-				return new CVariable(scope, variable.name, typeString, {});
-			});
+			.filter(variable => variable.scopeNode == ScopeUtil.getScopeNode(node))
+			.map((variable: TemporaryVariable) => `free(${variable.name});`);
 		const loopInitializers = variables
 			.filter(variable => variable.disposeLater === true)
 			.map((variable: TemporaryVariable) => {
@@ -201,6 +200,6 @@ export class GarbageCollector {
 				const name = `gc_${variable.name}`;
 				return new CVariable(scope, name, typeString, {});
 			});
-		return [];
+		return simpleDestructors;
 	}
 }

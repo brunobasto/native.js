@@ -317,11 +317,9 @@ class HeaderFlags {
 {functions => {this}\n}
 
 int main(void) {
-    {mains}
-
-    {statements {    }=> {this}}
-
-    return 0;
+  {mains}
+  {statements {    }=> {this}}
+  return 0;
 }
 `)
 export class CProgram implements IScope {
