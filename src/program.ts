@@ -329,8 +329,8 @@ export class CProgram implements IScope {
   public functions: any[] = [];
   public gcVarNames: string[];
   public headerFlags = new HeaderFlags();
-  public headers : any[] = [];
-  public mains : any[] = [];
+  public headers: any[] = [];
+  public mains: any[] = [];
   public memoryManager: MemoryManager;
   public parent: IScope = null;
   public root = this;
@@ -343,18 +343,22 @@ export class CProgram implements IScope {
   public experimentalGCDestructors: any[] = null;
   public experimentalGCVariables: CVariable[] = [];
 
-  private resolvePreset(preset: Preset, collectedHeaders: Header[], collectedPlugins: Plugin[]) {
-      for (let plugin of preset.getPlugins()) {
-          collectedPlugins.push(plugin);
-      }
+  private resolvePreset(
+    preset: Preset,
+    collectedHeaders: Header[],
+    collectedPlugins: Plugin[]
+  ) {
+    for (let plugin of preset.getPlugins()) {
+      collectedPlugins.push(plugin);
+    }
 
-      for (let header of preset.getHeaders()) {
-          collectedHeaders.push(header);
-      }
+    for (let header of preset.getHeaders()) {
+      collectedHeaders.push(header);
+    }
 
-      for (let p of preset.getPresets()) {
-          this.resolvePreset(p, collectedHeaders, collectedPlugins);
-      }
+    for (let p of preset.getPresets()) {
+      this.resolvePreset(p, collectedHeaders, collectedPlugins);
+    }
   }
 
   constructor(tsProgram: ts.Program, presets = []) {
@@ -367,15 +371,15 @@ export class CProgram implements IScope {
     const collectedHeaders: Header[] = [];
 
     for (let preset of presets) {
-        this.resolvePreset(preset, collectedHeaders, collectedPlugins);
+      this.resolvePreset(preset, collectedHeaders, collectedPlugins);
     }
 
     for (let header of collectedHeaders) {
-        HeaderRegistry.registerHeader(header.getType(), header);
+      HeaderRegistry.registerHeader(header.getType(), header);
     }
 
     for (let plugin of collectedPlugins) {
-        PluginRegistry.registerPlugin(plugin);
+      PluginRegistry.registerPlugin(plugin);
     }
 
     this.typeHelper.figureOutVariablesAndTypes(tsProgram.getSourceFiles());
@@ -383,7 +387,7 @@ export class CProgram implements IScope {
     this.memoryManager.preprocessVariables();
 
     for (let source of tsProgram.getSourceFiles()) {
-        this.memoryManager.preprocessTemporaryVariables(source);
+      this.memoryManager.preprocessTemporaryVariables(source);
     }
 
     // this.gcVarNames = this.memoryManager.getGCVariablesForScope(null);
@@ -428,8 +432,14 @@ export class CProgram implements IScope {
 
     this.mains = MainRegistry.getDeclaredDependencies();
 
-    this.experimentalGCVariables = this.gc.getTemporaryVariableDeclarators(this, null);
+    this.experimentalGCVariables = this.gc.getTemporaryVariableDeclarators(
+      this,
+      null
+    );
 
-    this.experimentalGCDestructors = this.gc.getTemporaryVariableDestructors(this, null);
+    this.experimentalGCDestructors = this.gc.getTemporaryVariableDestructors(
+      this,
+      null
+    );
   }
 }

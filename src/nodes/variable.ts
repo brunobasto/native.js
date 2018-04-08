@@ -12,9 +12,14 @@ import {
 } from "../types";
 import { AssignmentHelper, CAssignment } from "./assignment";
 import { CElementAccess, CSimpleElementAccess } from "./elementaccess";
-import { HeaderRegistry,
- Uint8HeaderType, Int16HeaderType, ArrayCreateHeaderType,
- ArrayPushHeaderType, DictCreateHeaderType } from "../core/header";
+import {
+  HeaderRegistry,
+  Uint8HeaderType,
+  Int16HeaderType,
+  ArrayCreateHeaderType,
+  ArrayPushHeaderType,
+  DictCreateHeaderType
+} from "../core/header";
 
 @CodeTemplate(`{declarations}`, ts.SyntaxKind.VariableStatement)
 export class CVariableStatement {
@@ -216,8 +221,7 @@ export class CVariable {
 
     if (typeString == NumberVarType) {
       HeaderRegistry.declareDependency(Int16HeaderType);
-    }
-    else if (typeString == BooleanVarType) {
+    } else if (typeString == BooleanVarType) {
       HeaderRegistry.declareDependency(Uint8HeaderType);
     }
     if (typeString.indexOf("{var}") > -1)

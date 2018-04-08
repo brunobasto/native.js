@@ -69,7 +69,9 @@ class CArrayPush {
     const args = call.arguments.map(a =>
       CodeTemplateFactory.createForNode(scope, a)
     );
-    this.pushValues = args.map((a, i) => new CPushValue(scope, this.varAccess, a, types[i]));
+    this.pushValues = args.map(
+      (a, i) => new CPushValue(scope, this.varAccess, a, types[i])
+    );
     this.topExpressionOfStatement =
       call.parent.kind == ts.SyntaxKind.ExpressionStatement;
     if (!this.topExpressionOfStatement) {

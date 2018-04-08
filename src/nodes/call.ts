@@ -7,7 +7,8 @@ import { CFunction, CFunctionPrototype } from "./function";
 import { PluginRegistry } from "../core/plugin";
 import { HeaderRegistry, Int16HeaderType } from "../core/header";
 
-@CodeTemplate(`
+@CodeTemplate(
+  `
 {#if pluginExpression}
     {pluginExpression}
 {#elseif standardCall}

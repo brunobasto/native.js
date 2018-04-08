@@ -309,13 +309,19 @@ export class CBlock implements IScope {
         this.statements.push(CodeTemplateFactory.createForNode(this, s))
       );
     } else {
-      this.statements.push(CodeTemplateFactory.createForNode(this, node))
+      this.statements.push(CodeTemplateFactory.createForNode(this, node));
     }
 
-    const {gc} = scope.root;
-    const temporaryVariableDestructors = gc.getTemporaryVariableDestructors(this, node);
+    const { gc } = scope.root;
+    const temporaryVariableDestructors = gc.getTemporaryVariableDestructors(
+      this,
+      node
+    );
     this.statements = this.statements.concat(temporaryVariableDestructors);
-    const temporaryVariableDeclarators = gc.getTemporaryVariableDeclarators(this, node);
+    const temporaryVariableDeclarators = gc.getTemporaryVariableDeclarators(
+      this,
+      node
+    );
     this.variables = temporaryVariableDeclarators.concat(this.variables);
   }
 }

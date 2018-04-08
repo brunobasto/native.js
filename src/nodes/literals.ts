@@ -5,7 +5,12 @@ import { ArrayType, StructType, DictType } from "../types";
 import { CVariable, CVariableAllocation } from "./variable";
 import { AssignmentHelper, CAssignment } from "./assignment";
 import { CRegexSearchFunction } from "./regexfunc";
-import { HeaderRegistry, ArrayCreateHeaderType, ArrayPushHeaderType, BooleanHeaderType } from "../core/header";
+import {
+  HeaderRegistry,
+  ArrayCreateHeaderType,
+  ArrayPushHeaderType,
+  BooleanHeaderType
+} from "../core/header";
 
 @CodeTemplate(`{expression}`, ts.SyntaxKind.ArrayLiteralExpression)
 class CArrayLiteralExpression {

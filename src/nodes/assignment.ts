@@ -1,7 +1,13 @@
 import * as ts from "typescript";
 import { CodeTemplate, CodeTemplateFactory } from "../template";
 import { IScope } from "../program";
-import { CType, ArrayType, StructType, DictType, StringVarType } from "../types";
+import {
+  CType,
+  ArrayType,
+  StructType,
+  DictType,
+  StringVarType
+} from "../types";
 import { CElementAccess, CSimpleElementAccess } from "./elementaccess";
 import { CExpression } from "./expressions";
 import { CVariable } from "./variable";
@@ -181,7 +187,8 @@ export class CAssignment {
       const elementAccess = <ts.ElementAccessExpression>left;
       // only do this when we have an argument expression
       if (<ts.Expression>elementAccess.argumentExpression) {
-        const isStringValue = scope.root.typeHelper.getCType(right) == StringVarType;
+        const isStringValue =
+          scope.root.typeHelper.getCType(right) == StringVarType;
         if (isStringValue) {
           this.isStringValue = 1;
         }

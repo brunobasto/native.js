@@ -31,7 +31,7 @@ export function CodeTemplate(
       const makeTarget = () => {
         const newTarget = <any>target;
         return new newTarget(...arguments);
-      }
+      };
       let retValue = makeTarget();
       let [code, statements] = processTemplate(tempString, retValue);
       if (statements) scope.statements.push(statements);

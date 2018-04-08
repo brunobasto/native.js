@@ -8,7 +8,12 @@ import {
   RegexStateTransition
 } from "../regex";
 import { CExpression } from "./expressions";
-import { HeaderRegistry, Uint8HeaderType, StringHeaderType, StdlibHeaderType } from "../core/header";
+import {
+  HeaderRegistry,
+  Uint8HeaderType,
+  StringHeaderType,
+  StdlibHeaderType
+} from "../core/header";
 
 @CodeTemplate(`
 struct regex_match_struct_t {regexName}_search(const char *str, int16_t capture) {

@@ -1,10 +1,15 @@
-import { ArrayTypeHeaderType, Header, HeaderRegistry, Int16HeaderType } from "../../core/header";
+import {
+  ArrayTypeHeaderType,
+  Header,
+  HeaderRegistry,
+  Int16HeaderType
+} from "../../core/header";
 import { CExpression } from "../../nodes/expressions";
 import { CodeTemplate } from "../../template";
 
 export class StandardArrayTypeHeader implements Header {
   constructor() {
-  	HeaderRegistry.declareDependency(Int16HeaderType);
+    HeaderRegistry.declareDependency(Int16HeaderType);
   }
 
   public getType() {

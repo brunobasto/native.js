@@ -1,7 +1,12 @@
 import { AssignmentHelper, CAssignment } from "./assignment";
 import * as ts from "typescript";
 import { CodeTemplate, CodeTemplateFactory } from "../template";
-import { HeaderRegistry, ArrayPushHeaderType, StringHeaderType, StdlibHeaderType } from "../core/header";
+import {
+  HeaderRegistry,
+  ArrayPushHeaderType,
+  StringHeaderType,
+  StdlibHeaderType
+} from "../core/header";
 import { IScope } from "../program";
 import {
   CType,
@@ -243,7 +248,12 @@ export class CSimpleBinaryExpression {
     operatorMap[ts.SyntaxKind.LessThanLessThanToken] = "<<";
   }
 
-  private replaceWithVar(scope: IScope, node: ts.Node, operatorKind, type: string) {
+  private replaceWithVar(
+    scope: IScope,
+    node: ts.Node,
+    operatorKind,
+    type: string
+  ) {
     // experimental gc
     const temporaryVariable = scope.root.gc.createTemporaryVariable(node, type);
     this.gcVarName = scope.root.memoryManager.getGCVariableForNode(node);
@@ -254,7 +264,8 @@ export class CSimpleBinaryExpression {
   }
 }
 
-@CodeTemplate(`
+@CodeTemplate(
+  `
 {#if isPostfix && operator}
     {operand}{operator}
 {#elseif !isPostfix && operator}
