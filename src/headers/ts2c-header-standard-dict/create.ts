@@ -1,8 +1,7 @@
 import {
   ArrayCreateHeaderType,
-  ArrayInsertHeaderType,
+  ArrayPushHeaderType,
   ArrayTypeHeaderType,
-  ArrayRemoveHeaderType,
   DictCreateHeaderType,
   Header,
   HeaderRegistry,
@@ -23,7 +22,7 @@ export class StandardDictCreateHeader implements Header {
     HeaderRegistry.declareDependency(StdlibHeaderType);
     HeaderRegistry.declareDependency(ArrayTypeHeaderType);
     HeaderRegistry.declareDependency(ArrayCreateHeaderType);
-    HeaderRegistry.declareDependency(ArrayInsertHeaderType);
+    HeaderRegistry.declareDependency(ArrayPushHeaderType);
   }
 
   public getTemplate(): CExpression {
@@ -43,39 +42,52 @@ export class StandardDictCreateHeader implements Header {
 }
 int16_t dict_find_pos(const char ** keys, int16_t keys_size, const char * key) {
     int16_t low = 0;
-    int16_t high = keys_size - 1;
-
     if (keys_size == 0 || key == NULL)
         return -1;
-
-    while (low <= high)
-    {
-        int mid = (low + high) / 2;
-        int res = strcmp(keys[mid], key);
-
-        if (res == 0)
-            return mid;
-        else if (res < 0)
-            low = mid + 1;
-        else
-            high = mid - 1;
+    while (low < keys_size) {
+        if (strcmp(keys[low], key) == 0)
+            return low;
+        low++;
     }
-
-    return -1 - low;
+    return -1;
 }
 int16_t tmp_dict_pos;
 #define DICT_GET(dict, prop) ((tmp_dict_pos = dict_find_pos(dict->index->data, dict->index->size, prop)) < 0 ? 0 : dict->values->data[tmp_dict_pos])
-#define DICT_SET(dict, prop, value) { \\
+#define DICT_SET_STR_INT(dict, prop, value) do { \\
     tmp_dict_pos = dict_find_pos(dict->index->data, dict->index->size, prop); \\
     if (tmp_dict_pos < 0) { \\
-      tmp_dict_pos = -tmp_dict_pos - 1; \\
-      ARRAY_INSERT(dict->index, tmp_dict_pos, prop); \\
-      ARRAY_INSERT(dict->values, tmp_dict_pos, value); \\
+        char * tempKey = malloc(1 + strlen(prop)); \\
+        strcpy(tempKey, prop); \\
+        ARRAY_PUSH(dict->index, tempKey); \\
+        ARRAY_PUSH(dict->values, value); \\
     } else { \\
-      free((void *)dict->index->data[tmp_dict_pos]); \\
-      dict->index->data[tmp_dict_pos] = prop; \\
-      dict->values->data[tmp_dict_pos] = value; \\
+        free((void *)dict->index->data[tmp_dict_pos]); \\
+        char * tempKey = malloc(1 + strlen(prop)); \\
+        strcpy(tempKey, prop); \\
+        dict->index->data[tmp_dict_pos] = tempKey; \\
+        dict->values->data[tmp_dict_pos] = value; \\
+    } \\
+} while(0)
+
+#define DICT_SET_STR_STR(dict, prop, value) do { \\
+    tmp_dict_pos = dict_find_pos(dict->index->data, dict->index->size, prop); \\
+    if (tmp_dict_pos < 0) { \\
+        char * tempKey = malloc(1 + strlen(prop)); \\
+        strcpy(tempKey, prop); \\
+        ARRAY_PUSH(dict->index, tempKey); \\
+        char * tempValue = malloc(1 + strlen(value)); \\
+        strcpy(tempValue, value); \\
+        ARRAY_PUSH(dict->values, tempValue); \\
+    } else { \\
+        free((void *)dict->index->data[tmp_dict_pos]); \\
+        char * tempKey = malloc(1 + strlen(prop)); \\
+        strcpy(tempKey, prop); \\
+        dict->index->data[tmp_dict_pos] = tempKey; \\
+        free((void *)dict->values->data[tmp_dict_pos]); \\
+        char * tempValue = malloc(1 + strlen(value)); \\
+        strcpy(tempValue, value); \\
+        dict->values->data[tmp_dict_pos] = tempValue; \\
     } \
-}
+} while(0)
 `)
 class Template {}

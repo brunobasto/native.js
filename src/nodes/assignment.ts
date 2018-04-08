@@ -1,7 +1,7 @@
 import * as ts from "typescript";
 import { CodeTemplate, CodeTemplateFactory } from "../template";
 import { IScope } from "../program";
-import { CType, ArrayType, StructType, DictType } from "../types";
+import { CType, ArrayType, StructType, DictType, StringVarType } from "../types";
 import { CElementAccess, CSimpleElementAccess } from "./elementaccess";
 import { CExpression } from "./expressions";
 import { CVariable } from "./variable";
@@ -69,8 +69,10 @@ export class AssignmentHelper {
     {accessor} = {expression}{CR}
 {#elseif isStruct}
     {accessor}->{argumentExpression} = {expression}{CR}
+{#elseif isDict && isStringValue}
+    DICT_SET_STR_STR({accessor}, {argumentExpression}, {expression}){CR}
 {#elseif isDict}
-    DICT_SET({accessor}, {argumentExpression}, {expression}){CR}
+    DICT_SET_STR_INT({accessor}, {argumentExpression}, {expression}){CR}
 {#elseif isDynamicArray}
     {accessor}->data[{argumentExpression}] = {expression}{CR}
 {#elseif isStaticArray}
@@ -93,6 +95,7 @@ export class CAssignment {
   public expression: CExpression;
   public nodeText: string;
   public CR: string;
+  public isStringValue: number = 0;
   constructor(
     scope: IScope,
     public accessor: CElementAccess | CSimpleElementAccess | string,
@@ -175,6 +178,15 @@ export class CAssignment {
     }
 
     if (this.isDict) {
+      const elementAccess = <ts.ElementAccessExpression>left;
+      // only do this when we have an argument expression
+      if (<ts.Expression>elementAccess.argumentExpression) {
+        const isStringValue = scope.root.typeHelper.getCType(right) == StringVarType;
+        if (isStringValue) {
+          this.isStringValue = 1;
+        }
+      }
+
       scope.root.gc.trackAssignmentToDict(scope, left, right);
     } else if (this.argumentExpression == null) {
       scope.root.gc.trackAssignmentToVariable(left, right);

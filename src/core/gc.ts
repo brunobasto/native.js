@@ -64,10 +64,8 @@ export class GarbageCollector {
 		if (this.temporaryVariables.has(node.pos)) {
 			return this.getTemporaryVariable(node).name;
 		}
-		const counter = Array.from(this.temporaryVariables.values()).length;
-		const name = `temporary${counter}`;
+		const name = this.getUniqueName();
 		const temporaryVariable = new TemporaryVariable(ScopeUtil.getScopeNode(node), name, type);
-		// console.log('[gc] generated', name, 'at', temporaryVariable.scopeNode);
 		this.temporaryVariables.set(node.pos, temporaryVariable);
 		return name;
 	}
@@ -182,7 +180,7 @@ export class GarbageCollector {
 				const name = `gc_${(node && node.pos || 'global')}`;
 				return new CVariable(scope, name, typeString, {});
 			});
-		return simpleInitializers.concat(loopInitializers);
+		return simpleInitializers;
 	}
 
 	getTemporaryVariableDestructors(scope: IScope, node: ts.Node): any[] {
