@@ -7,8 +7,6 @@ import { StandardCallResolver, IResolver } from "../resolver";
 import { CExpression } from "./expressions";
 import { StandardCallHelper } from "../resolver";
 
-let anonymousNameCounter = 0;
-
 @CodeTemplate(`{returnType} {name}({parameters {, }=> {this}});`)
 export class CFunctionPrototype {
   public returnType: string;
@@ -29,8 +27,7 @@ export class CFunctionPrototype {
 
 @CodeTemplate(
   `
-{returnType} {name}({parameters {, }=> {this}})
-{
+{returnType} {name}({parameters {, }=> {this}}) {
     {variables  {    }=> {this};\n}
     {gcVarNames {    }=> ARRAY_CREATE({this}, 2, 0);\n}
     {statements {    }=> {this}}
@@ -58,7 +55,8 @@ export class CFunction implements IScope {
     if (node.name) {
       this.name = node.name.getText();
     } else {
-      this.name = `anonymousFunction${anonymousNameCounter++}`;
+      const uniqueName = this.root.gc.getUniqueName();
+      this.name = `${uniqueName}AnonymousFunction`;
     }
 
     this.parameters = node.parameters.map(p => {
