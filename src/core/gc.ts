@@ -52,7 +52,7 @@ export class TemporaryVariableDestructor {
 }
 
 export class GarbageCollector {
-  private temporaryVariables: Map<number, TemporaryVariable> = new Map();
+  private temporaryVariables: Map<ts.Node, TemporaryVariable> = new Map();
   private typeChecker;
   private uniqueCounter: number = 0;
 
@@ -61,17 +61,31 @@ export class GarbageCollector {
   }
 
   createTemporaryVariable(node: ts.Node, type: string): string {
-    if (this.temporaryVariables.has(node.pos)) {
+    if (this.temporaryVariables.has(node)) {
       return this.getTemporaryVariable(node).name;
     }
     const name = this.getUniqueName();
+    const scopeNode = ScopeUtil.getScopeNode(node);
     const temporaryVariable = new TemporaryVariable(
-      ScopeUtil.getScopeNode(node),
+      scopeNode,
       name,
       type
     );
-    this.temporaryVariables.set(node.pos, temporaryVariable);
+    this.temporaryVariables.set(node, temporaryVariable);
     return name;
+  }
+
+  addScopeTemporaries(scope: IScope, node: ts.Node) {
+    const temporaryVariableDestructors = this.getTemporaryVariableDestructors(
+      scope,
+      node
+    );
+    scope.statements = scope.statements.concat(temporaryVariableDestructors);
+    const temporaryVariableDeclarators = this.getTemporaryVariableDeclarators(
+      scope,
+      node
+    );
+    scope.variables = temporaryVariableDeclarators.concat(scope.variables);
   }
 
   getUniqueName(): string {
@@ -79,7 +93,7 @@ export class GarbageCollector {
   }
 
   getTemporaryVariable(node: ts.Node): TemporaryVariable {
-    return this.temporaryVariables.get(node.pos);
+    return this.temporaryVariables.get(node);
   }
 
   getDeclaredScope(identifier: ts.Identifier) {
@@ -90,7 +104,7 @@ export class GarbageCollector {
   }
 
   resolveToTemporaryVariable(node: ts.Node) {
-    if (this.temporaryVariables.has(node.pos)) {
+    if (this.temporaryVariables.has(node)) {
       return this.getTemporaryVariable(node);
     }
     let symbol: ts.Symbol = this.typeChecker.getSymbolAtLocation(node);
@@ -133,9 +147,8 @@ export class GarbageCollector {
           if (isInsideLoop) {
             // scope.statements.push(`ARRAY_PUSH(gc_global, ${argumentTempVar.name})`);
           }
-          console.log("[gc] dic key escapes to", declaredScope);
-          argumentTempVar.escapeTo(declaredScope);
-          argumentTempVar.setDisposeLater(isInsideLoop);
+          // argumentTempVar.escapeTo(declaredScope);
+          // argumentTempVar.setDisposeLater(isInsideLoop);
         }
         const valueTempVar = this.resolveToTemporaryVariable(right);
         if (
@@ -147,8 +160,8 @@ export class GarbageCollector {
             // scope.statements.push(`ARRAY_PUSH(gc_global, ${valueTempVar.name})`);
           }
           console.log("[gc] dic value escapes");
-          valueTempVar.escapeTo(declaredScope);
-          valueTempVar.setDisposeLater(isInsideLoop);
+          // valueTempVar.escapeTo(declaredScope);
+          // valueTempVar.setDisposeLater(isInsideLoop);
         }
       }
     }
@@ -166,7 +179,7 @@ export class GarbageCollector {
       temporaryVariable &&
       ScopeUtil.isOutsideScope(temporaryVariable.scopeNode, declaredScope)
     ) {
-      this.temporaryVariables.set(left.pos, this.getTemporaryVariable(right));
+      this.temporaryVariables.set(left, this.getTemporaryVariable(right));
     }
   }
 
@@ -177,7 +190,7 @@ export class GarbageCollector {
       right.getText()
     );
     if (this.resolveToTemporaryVariable(right)) {
-      this.temporaryVariables.set(left.pos, this.getTemporaryVariable(right));
+      this.temporaryVariables.set(left, this.getTemporaryVariable(right));
     }
   }
 
@@ -187,8 +200,9 @@ export class GarbageCollector {
         return list.indexOf(variable) == index;
       }
     );
+    const scopeNode = ScopeUtil.getScopeNode(node);
     const simpleInitializers = variables
-      .filter(variable => variable.scopeNode == ScopeUtil.getScopeNode(node))
+      .filter(variable => variable.scopeNode == scopeNode)
       .map((variable: TemporaryVariable) => {
         let typeString = "char *";
         if (variable.type == NumberVarType) {
