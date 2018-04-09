@@ -256,7 +256,7 @@ export class CSimpleBinaryExpression {
   ) {
     // experimental gc
     const temporaryVariable = scope.root.gc.createTemporaryVariable(node, type);
-    this.gcVarName = scope.root.memoryManager.getGCVariableForNode(node);
+    // this.gcVarName = scope.root.memoryManager.getGCVariableForNode(node);
     this.replacedWithVar = true;
     this.replacedWithVarAssignment =
       operatorKind == ts.SyntaxKind.FirstCompoundAssignment;
