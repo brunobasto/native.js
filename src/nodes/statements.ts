@@ -194,6 +194,7 @@ export class CForOfStatement implements IScope {
   `
 for ({iteratorVarName} = 0; {iteratorVarName} < {varAccess}->index->size; {iteratorVarName}++)
 {
+    {variables {    }=> {this};\n}
     {init} = {varAccess}->index->data[{iteratorVarName}];
     {statements {    }=> {this}}
 }
@@ -238,8 +239,9 @@ export class CForInStatement implements IScope {
       this.statements.push(
         CodeTemplateFactory.createForNode(this, node.statement)
       );
-    scope.variables = scope.variables.concat(this.variables);
-    this.variables = [];
+    // scope.variables = scope.variables.concat(this.variables);
+
+    scope.root.gc.addScopeTemporaries(this, node);
   }
 }
 
@@ -276,8 +278,7 @@ export class CExpressionStatement {
   }
 }
 
-@CodeTemplate(
-  `
+@CodeTemplate(`
 {#if statements.length > 1 || variables.length > 0}
     {
         {variables {    }=> {this};\n}
@@ -311,17 +312,6 @@ export class CBlock implements IScope {
     } else {
       this.statements.push(CodeTemplateFactory.createForNode(this, node));
     }
-
-    const { gc } = scope.root;
-    const temporaryVariableDestructors = gc.getTemporaryVariableDestructors(
-      this,
-      node
-    );
-    this.statements = this.statements.concat(temporaryVariableDestructors);
-    const temporaryVariableDeclarators = gc.getTemporaryVariableDeclarators(
-      this,
-      node
-    );
-    this.variables = temporaryVariableDeclarators.concat(this.variables);
+    scope.root.gc.addScopeTemporaries(this, node);
   }
 }
