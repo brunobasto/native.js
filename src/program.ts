@@ -6,8 +6,9 @@ import { CFunction, CFunctionPrototype } from "./nodes/function";
 import { CVariable, CVariableDestructors } from "./nodes/variable";
 import { Preset } from "./core/preset";
 import { Plugin, PluginRegistry } from "./core/plugin";
-import { Header, HeaderRegistry } from "./core/header";
+import { Header, HeaderRegistry, BooleanHeaderType } from "./core/header";
 import { Main, MainRegistry } from "./core/main";
+import { Bottom, BottomRegistry } from "./core/bottom";
 import { GarbageCollector } from "./core/gc";
 
 // these imports are here only because it is necessary to run decorators
@@ -321,12 +322,18 @@ int main(void) {
   {statements {    }=> {this}}
   return 0;
 }
+
+{bottoms}
 `)
 export class CProgram implements IScope {
+  public bottoms: any[] = [];
   public destructors: CVariableDestructors;
+  public experimentalGCDestructors: any[] = null;
+  public experimentalGCVariables: CVariable[] = [];
   public func = this;
   public functionPrototypes: CFunctionPrototype[] = [];
   public functions: any[] = [];
+  public gc: GarbageCollector;
   public gcVarNames: string[];
   public headerFlags = new HeaderFlags();
   public headers: any[] = [];
@@ -339,9 +346,6 @@ export class CProgram implements IScope {
   public typeHelper: TypeHelper;
   public userStructs: { name: string; properties: CVariable[] }[];
   public variables: CVariable[] = [];
-  public gc: GarbageCollector;
-  public experimentalGCDestructors: any[] = null;
-  public experimentalGCVariables: CVariable[] = [];
 
   private resolvePreset(
     preset: Preset,
@@ -428,9 +432,16 @@ export class CProgram implements IScope {
       fp => new CFunctionPrototype(this, fp)
     );
 
+    HeaderRegistry.declareDependency(BooleanHeaderType);
+
     this.headers = HeaderRegistry.getDeclaredDependencies();
 
     this.mains = MainRegistry.getDeclaredDependencies();
+
+    this.bottoms = BottomRegistry.getDeclaredDependencies().map(
+      bottom => {
+        return (new bottom()).getTemplate();
+    });
 
     this.experimentalGCVariables = this.gc.getTemporaryVariableDeclarators(
       this,
