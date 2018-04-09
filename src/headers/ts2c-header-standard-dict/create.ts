@@ -55,15 +55,13 @@ int16_t tmp_dict_pos;
 #define DICT_GET(dict, prop) ((tmp_dict_pos = dict_find_pos(dict->index->data, dict->index->size, prop)) < 0 ? 0 : dict->values->data[tmp_dict_pos])
 #define DICT_SET_STR_INT(dict, prop, value) do { \\
     tmp_dict_pos = dict_find_pos(dict->index->data, dict->index->size, prop); \\
+    char * tempKey = malloc(1 + strlen(prop)); \\
+    strcpy(tempKey, prop); \\
     if (tmp_dict_pos < 0) { \\
-        char * tempKey = malloc(1 + strlen(prop)); \\
-        strcpy(tempKey, prop); \\
         ARRAY_PUSH(dict->index, tempKey); \\
         ARRAY_PUSH(dict->values, value); \\
     } else { \\
         free((void *)dict->index->data[tmp_dict_pos]); \\
-        char * tempKey = malloc(1 + strlen(prop)); \\
-        strcpy(tempKey, prop); \\
         dict->index->data[tmp_dict_pos] = tempKey; \\
         dict->values->data[tmp_dict_pos] = value; \\
     } \\
