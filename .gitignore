@@ -4,6 +4,8 @@
 *.js.map
 *.plist
 *.res
+*.sublime-project
+*.sublime-workspace
 .vscode/.browse.*
 .vscode/c_cpp_properties.json
 node_modules
