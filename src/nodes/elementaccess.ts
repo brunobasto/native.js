@@ -10,6 +10,7 @@ import {
   UniversalVarType,
   PointerVarType
 } from "../types";
+import { HeaderRegistry, StringLengthHeaderType } from "../core/header";
 import { CExpression } from "./expressions";
 
 @CodeTemplate(`{simpleAccessor}`, [
@@ -155,6 +156,6 @@ export class CSimpleElementAccess {
     this.isStruct = type instanceof StructType;
     this.isString = type === StringVarType;
     if (this.isString && this.argumentExpression == "length")
-      scope.root.headerFlags.str_len = true;
+      HeaderRegistry.declareDependency(StringLengthHeaderType);
   }
 }

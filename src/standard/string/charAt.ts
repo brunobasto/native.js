@@ -5,6 +5,7 @@ import { CVariable } from "../../nodes/variable";
 import { IScope } from "../../program";
 import { IResolver, StandardCallResolver } from "../../resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../template";
+import { HeaderRegistry, SubStringHeaderType } from "../../core/header";
 import {
   ArrayType,
   NumberVarType,
@@ -81,6 +82,6 @@ class CStringCharAt {
         );
       }
     }
-    scope.root.headerFlags.str_substring = true;
+    HeaderRegistry.declareDependency(SubStringHeaderType);
   }
 }

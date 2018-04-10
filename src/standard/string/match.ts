@@ -1,5 +1,10 @@
 import * as ts from "typescript";
-import { ArrayPushHeaderType, HeaderRegistry } from "../../core/header";
+import {
+  ArrayPushHeaderType,
+  HeaderRegistry,
+  SubStringHeaderType,
+  RegexMatchHeaderType
+} from "../../core/header";
 import { CElementAccess } from "../../nodes/elementaccess";
 import { CExpression } from "../../nodes/expressions";
 import { CVariable } from "../../nodes/variable";
@@ -59,7 +64,7 @@ class CStringMatch {
   public matchArrayVarName: string;
   public gcVarName: string = null;
   constructor(scope: IScope, call: ts.CallExpression) {
-    scope.root.headerFlags.str_substring = true;
+    HeaderRegistry.declareDependency(SubStringHeaderType);
     const propAccess = call.expression as ts.PropertyAccessExpression;
     this.topExpressionOfStatement =
       call.parent.kind == ts.SyntaxKind.ExpressionStatement;
@@ -84,8 +89,8 @@ class CStringMatch {
             )
           );
         }
-        scope.root.headerFlags.regex_match = true;
         HeaderRegistry.declareDependency(ArrayPushHeaderType);
+        HeaderRegistry.declareDependency(RegexMatchHeaderType);
         scope.root.headerFlags.gc_iterator = true;
       } else {
         console.log(

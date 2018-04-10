@@ -12,7 +12,12 @@ import { StandardDictCreateHeader } from "../headers/ts2c-header-standard-dict";
 import { StandardInt16Header } from "../headers/ts2c-header-standard-int16_t";
 import { StandardStdIoHeader } from "../headers/ts2c-header-standard-stdio";
 import { StandardStdLibHeader } from "../headers/ts2c-header-standard-stdlib";
-import { StandardStringHeader } from "../headers/ts2c-header-standard-string";
+import {
+  StandardStringHeader,
+  StandardSubStringHeader,
+  StandardStringLengthHeader,
+  StandardRegexMatchHeader
+} from "../headers/ts2c-header-standard-string";
 import { StandardUint8Header } from "../headers/ts2c-header-standard-uint8_t";
 
 import { ConsoleLogPlugin } from "../plugins/ts2c-plugin-standard-console";
@@ -36,7 +41,10 @@ export class StandardPreset implements Preset {
       new StandardInt16Header(),
       new StandardArrayTypeHeader(),
       new StandardAssertHeader(),
-      new StandardStdLibHeader()
+      new StandardStdLibHeader(),
+      new StandardSubStringHeader(),
+      new StandardStringLengthHeader(),
+      new StandardRegexMatchHeader()
     ];
   }
 

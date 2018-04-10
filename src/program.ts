@@ -51,8 +51,6 @@ export interface IScope {
 }
 
 class HeaderFlags {
-  malloc: boolean = false;
-  bool: boolean = false;
   js_var: boolean = false;
   array_int16_t_cmp: boolean = false;
   array_str_cmp: boolean = false;
@@ -62,14 +60,11 @@ class HeaderFlags {
   str_int16_t_cat: boolean = false;
   str_pos: boolean = false;
   str_rpos: boolean = false;
-  str_len: boolean = false;
   str_char_code_at: boolean = false;
-  str_substring: boolean = false;
   str_slice: boolean = false;
   atoi: boolean = false;
   parseInt: boolean = false;
   regex: boolean = false;
-  regex_match: boolean = false;
 }
 
 @CodeTemplate(`
@@ -162,21 +157,6 @@ class HeaderFlags {
         return pos;
     }
 {/if}
-{#if headerFlags.str_len || headerFlags.str_substring || headerFlags.str_slice}
-    int16_t str_len(const char * str) {
-        int16_t len = 0;
-        int16_t i = 0;
-        while (*str) {
-            i = 1;
-            if ((*str & 0xE0) == 0xC0) i=2;
-            else if ((*str & 0xF0) == 0xE0) i=3;
-            else if ((*str & 0xF8) == 0xF0) i=4;
-            str += i;
-            len += i == 4 ? 2 : 1;
-        }
-        return len;
-    }
-{/if}
 {#if headerFlags.str_char_code_at}
     int16_t str_char_code_at(const char * str, int16_t pos) {
         int16_t i, res = 0;
@@ -197,40 +177,6 @@ class HeaderFlags {
             pos -= i == 4 ? 2 : 1;
         }
         return -1;
-    }
-{/if}
-{#if headerFlags.str_substring || headerFlags.str_slice}
-    const char * str_substring(const char * str, int16_t start, int16_t end) {
-        int16_t i, tmp, pos, len = str_len(str), byte_start = -1;
-        char *p, *buf;
-        start = start < 0 ? 0 : (start > len ? len : start);
-        end = end < 0 ? 0 : (end > len ? len : end);
-        if (end < start) {
-            tmp = start;
-            start = end;
-            end = tmp;
-        }
-        i = 0;
-        pos = 0;
-        p = (char *)str;
-        while (*p) {
-            if (start == pos)
-                byte_start = p - str;
-            if (end == pos)
-                break;
-            i = 1;
-            if ((*p & 0xE0) == 0xC0) i=2;
-            else if ((*p & 0xF0) == 0xE0) i=3;
-            else if ((*p & 0xF8) == 0xF0) i=4;
-            p += i;
-            pos += i == 4 ? 2 : 1;
-        }
-        len = byte_start == -1 ? 0 : p - str - byte_start;
-        buf = malloc(len + 1);
-        assert(buf != NULL);
-        memcpy(buf, str + byte_start, len);
-        buf[len] = '\\0';
-        return buf;
     }
 {/if}
 {#if headerFlags.str_slice}
@@ -277,29 +223,6 @@ class HeaderFlags {
             match_info->matches[i].index = -1;
             match_info->matches[i].end = -1;
         }
-    }
-{/if}
-{#if headerFlags.regex_match}
-    struct array_string_t *regex_match(struct regex_struct_t regex, const char * s) {
-        struct regex_match_struct_t match_info;
-        struct array_string_t *match_array = NULL;
-        int16_t i;
-
-        match_info = regex.func(s, TRUE);
-        if (match_info.index != -1) {
-            ARRAY_CREATE(match_array, match_info.matches_count + 1, match_info.matches_count + 1);
-            match_array->data[0] = str_substring(s, match_info.index, match_info.end);
-            for (i = 0;i < match_info.matches_count; i++) {
-                if (match_info.matches[i].index != -1 && match_info.matches[i].end != -1)
-                    match_array->data[i + 1] = str_substring(s, match_info.matches[i].index, match_info.matches[i].end);
-                else
-                    match_array->data[i + 1] = str_substring(s, 0, 0);
-            }
-        }
-        if (match_info.matches_count)
-            free(match_info.matches);
-
-        return match_array;
     }
 {/if}
 {#if headerFlags.gc_iterator}
@@ -438,9 +361,8 @@ export class CProgram implements IScope {
 
     this.mains = MainRegistry.getDeclaredDependencies();
 
-    this.bottoms = BottomRegistry.getDeclaredDependencies().map(
-      bottom => {
-        return (new bottom()).getTemplate();
+    this.bottoms = BottomRegistry.getDeclaredDependencies().map(bottom => {
+      return new bottom().getTemplate();
     });
 
     this.experimentalGCVariables = this.gc.getTemporaryVariableDeclarators(

@@ -13,6 +13,18 @@ export interface HeaderType {
   NAME: string;
 }
 
+export class RegexMatchHeaderType implements HeaderType {
+  public NAME: string = "RegexMatchHeaderType";
+}
+
+export class StringLengthHeaderType implements HeaderType {
+  public NAME: string = "StringLengthHeaderType";
+}
+
+export class SubStringHeaderType implements HeaderType {
+  public NAME: string = "SubStringHeaderType";
+}
+
 export class AssertHeaderType implements HeaderType {
   public NAME: string = "AssertHeaderType";
 }

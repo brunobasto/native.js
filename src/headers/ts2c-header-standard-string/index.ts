@@ -1,19 +1,11 @@
-import * as ts from "typescript";
-import { Header, StringHeaderType } from "../../core/header";
-import { CExpression } from "../../nodes/expressions";
-import { IScope } from "../../program";
-import { CodeTemplate } from "../../template";
+import { StandardStringHeader } from "./header";
+import { StandardSubStringHeader } from "./substring";
+import { StandardStringLengthHeader } from "./strlen";
+import { StandardRegexMatchHeader } from "./regex";
 
-export class StandardStringHeader implements Header {
-  public getType() {
-    return StringHeaderType;
-  }
-  public getTemplate(): CExpression {
-    return new Template();
-  }
-}
-
-@CodeTemplate(`
-#include <string.h>
-`)
-class Template {}
+export {
+  StandardStringHeader,
+  StandardSubStringHeader,
+  StandardStringLengthHeader,
+  StandardRegexMatchHeader
+};

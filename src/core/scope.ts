@@ -26,13 +26,13 @@ export class ScopeUtil {
   static isInsideLoop(node: ts.Node) {
     let parent = node;
     while (
-      parent && (
-      parent.kind == ts.SyntaxKind.ForInStatement ||
-      parent.kind == ts.SyntaxKind.ForOfStatement ||
-      parent.kind == ts.SyntaxKind.ForStatement ||
-      parent.kind == ts.SyntaxKind.WhileStatement ||
-      parent.kind == ts.SyntaxKind.DoStatement
-    )) {
+      parent &&
+      (parent.kind == ts.SyntaxKind.ForInStatement ||
+        parent.kind == ts.SyntaxKind.ForOfStatement ||
+        parent.kind == ts.SyntaxKind.ForStatement ||
+        parent.kind == ts.SyntaxKind.WhileStatement ||
+        parent.kind == ts.SyntaxKind.DoStatement)
+    ) {
       parent = parent.parent;
     }
     return !!parent;

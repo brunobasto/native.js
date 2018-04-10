@@ -278,7 +278,8 @@ export class CExpressionStatement {
   }
 }
 
-@CodeTemplate(`
+@CodeTemplate(
+  `
 {#if statements.length > 1 || variables.length > 0}
     {
         {variables {    }=> {this};\n}

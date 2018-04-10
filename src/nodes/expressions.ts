@@ -5,7 +5,8 @@ import {
   HeaderRegistry,
   ArrayPushHeaderType,
   StringHeaderType,
-  StdlibHeaderType
+  StdlibHeaderType,
+  AssertHeaderType
 } from "../core/header";
 import { IScope } from "../program";
 import {
@@ -153,6 +154,8 @@ export class CSimpleBinaryExpression {
       callReplaceMap[ts.SyntaxKind.EqualsEqualsToken] = ["strcmp", " == 0"];
 
       if (callReplaceMap[operatorKind]) {
+        HeaderRegistry.declareDependency(AssertHeaderType);
+        HeaderRegistry.declareDependency(StdlibHeaderType);
         HeaderRegistry.declareDependency(StringHeaderType);
       }
 
@@ -162,8 +165,9 @@ export class CSimpleBinaryExpression {
       ) {
         this.replaceWithVar(scope, node, operatorKind, StringVarType);
         this.strPlusStr = true;
-        HeaderRegistry.declareDependency(StringHeaderType);
+        HeaderRegistry.declareDependency(AssertHeaderType);
         HeaderRegistry.declareDependency(StdlibHeaderType);
+        HeaderRegistry.declareDependency(StringHeaderType);
       }
     } else if (
       (leftType == NumberVarType && rightType == StringVarType) ||
@@ -201,10 +205,14 @@ export class CSimpleBinaryExpression {
         operatorKind == ts.SyntaxKind.FirstCompoundAssignment
       ) {
         this.replaceWithVar(scope, node, operatorKind, StringVarType);
-        if (leftType == NumberVarType) this.numberPlusStr = true;
-        else this.strPlusNumber = true;
-        HeaderRegistry.declareDependency(StringHeaderType);
+        if (leftType == NumberVarType) {
+          this.numberPlusStr = true;
+        } else {
+          this.strPlusNumber = true;
+        }
+        HeaderRegistry.declareDependency(AssertHeaderType);
         HeaderRegistry.declareDependency(StdlibHeaderType);
+        HeaderRegistry.declareDependency(StringHeaderType);
         scope.root.headerFlags.str_int16_t_cat = true;
       }
     }

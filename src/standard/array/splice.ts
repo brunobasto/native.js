@@ -91,6 +91,7 @@ class CArraySplice {
       call.parent.kind == ts.SyntaxKind.ExpressionStatement;
 
     if (!this.topExpressionOfStatement) {
+      HeaderRegistry.declareDependency(ArrayCreateHeaderType);
       this.tempVarName = scope.root.memoryManager.getReservedTemporaryVarName(
         call
       );
@@ -115,7 +116,6 @@ class CArraySplice {
     if (call.arguments[1].kind == ts.SyntaxKind.NumericLiteral) {
       this.needsRemove = call.arguments[1].getText() != "0";
     }
-    HeaderRegistry.declareDependency(ArrayCreateHeaderType);
     HeaderRegistry.declareDependency(ArrayRemoveHeaderType);
   }
 }

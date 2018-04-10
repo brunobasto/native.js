@@ -66,11 +66,7 @@ export class GarbageCollector {
     }
     const name = this.getUniqueName();
     const scopeNode = ScopeUtil.getScopeNode(node);
-    const temporaryVariable = new TemporaryVariable(
-      scopeNode,
-      name,
-      type
-    );
+    const temporaryVariable = new TemporaryVariable(scopeNode, name, type);
     this.temporaryVariables.set(node, temporaryVariable);
     return name;
   }
