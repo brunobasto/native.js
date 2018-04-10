@@ -214,16 +214,6 @@ export class CSimpleBinaryExpression {
       [this.call, this.callCondition] = callReplaceMap[operatorKind];
     }
     this.nodeText = node.getText();
-
-    if (this.gcVarName) {
-      // scope.root.headerFlags.gc_iterator = true;
-      // HeaderRegistry.declareDependency(ArrayPushHeaderType);
-    }
-
-    // experimental gc
-    if (this.replacedWithVar) {
-      // scope.root.gc.scheduleTempVarDisposal(node, this.replacementVarName);
-    }
   }
 
   private addNumberOperators(operatorMap) {

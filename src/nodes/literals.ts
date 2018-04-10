@@ -59,14 +59,6 @@ class CArrayLiteralExpression {
               arrSize +
               ");\n"
           );
-          let gcVarName = scope.root.memoryManager.getGCVariableForNode(node);
-          if (gcVarName) {
-            // HeaderRegistry.declareDependency(ArrayPushHeaderType);
-            // scope.statements.push(
-            //   "ARRAY_PUSH(" + gcVarName + ", (void *)" + varName + ");\n"
-            // );
-            scope.root.headerFlags.gc_iterator = true;
-          }
         } else {
           varName = scope.root.typeHelper.addNewTemporaryVariable(
             node,

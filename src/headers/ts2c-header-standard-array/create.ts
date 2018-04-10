@@ -16,7 +16,7 @@ export class StandardArrayCreateHeader implements Header {
     return ArrayCreateHeaderType;
   }
 
-  constructor() {
+  public getTemplate(): CExpression {
     HeaderRegistry.declareDependency(StdlibHeaderType);
     // sizeof depend on stdio.h
     HeaderRegistry.declareDependency(StdioHeaderType);
@@ -24,9 +24,7 @@ export class StandardArrayCreateHeader implements Header {
     HeaderRegistry.declareDependency(StringHeaderType);
     //
     HeaderRegistry.declareDependency(AssertHeaderType);
-  }
 
-  public getTemplate(): CExpression {
     return new Template();
   }
 }

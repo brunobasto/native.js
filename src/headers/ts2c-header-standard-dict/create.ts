@@ -8,7 +8,8 @@ import {
   HeaderType,
   StdioHeaderType,
   StdlibHeaderType,
-  StringHeaderType
+  StringHeaderType,
+  Int16HeaderType
 } from "../../core/header";
 import { CExpression } from "../../nodes/expressions";
 import { CodeTemplate } from "../../template";
@@ -18,14 +19,13 @@ export class StandardDictCreateHeader implements Header {
     return DictCreateHeaderType;
   }
 
-  constructor() {
+  public getTemplate(): CExpression {
     HeaderRegistry.declareDependency(StdlibHeaderType);
     HeaderRegistry.declareDependency(ArrayTypeHeaderType);
     HeaderRegistry.declareDependency(ArrayCreateHeaderType);
     HeaderRegistry.declareDependency(ArrayPushHeaderType);
-  }
+    HeaderRegistry.declareDependency(Int16HeaderType);
 
-  public getTemplate(): CExpression {
     return new Template();
   }
 }

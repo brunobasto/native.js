@@ -8,15 +8,13 @@ import { CExpression } from "../../nodes/expressions";
 import { CodeTemplate } from "../../template";
 
 export class StandardArrayTypeHeader implements Header {
-  constructor() {
-    HeaderRegistry.declareDependency(Int16HeaderType);
-  }
-
   public getType() {
     return ArrayTypeHeaderType;
   }
 
   public getTemplate(): CExpression {
+    HeaderRegistry.declareDependency(Int16HeaderType);
+
     return new Template();
   }
 }

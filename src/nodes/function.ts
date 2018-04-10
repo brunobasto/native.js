@@ -29,7 +29,6 @@ export class CFunctionPrototype {
   `
 {returnType} {name}({parameters {, }=> {this}}) {
     {variables  {    }=> {this};\n}
-    {gcVarNames {    }=> ARRAY_CREATE({this}, 2, 0);\n}
     {statements {    }=> {this}}
 }`,
   ts.SyntaxKind.FunctionDeclaration
@@ -58,28 +57,15 @@ export class CFunction implements IScope {
       const uniqueName = this.root.gc.getUniqueName();
       this.name = `${uniqueName}AnonymousFunction`;
     }
-
     this.parameters = node.parameters.map(p => {
       return new CVariable(this, p.name.getText(), p.name, {
         removeStorageSpecifier: true
       });
     });
     this.variables = [];
-
-    this.gcVarNames = root.memoryManager.getGCVariablesForScope(node);
-    for (let gcVarName of this.gcVarNames) {
-      if (root.variables.filter(v => v.name == gcVarName).length) continue;
-      let gcType =
-        gcVarName.indexOf("arrays") == -1
-          ? "ARRAY(void *)"
-          : "ARRAY(ARRAY(void *))";
-      root.variables.push(new CVariable(root, gcVarName, gcType));
-    }
-
     node.body.statements.forEach(s =>
       this.statements.push(CodeTemplateFactory.createForNode(this, s))
     );
-
     if (
       node.body.statements[node.body.statements.length - 1].kind !=
       ts.SyntaxKind.ReturnStatement

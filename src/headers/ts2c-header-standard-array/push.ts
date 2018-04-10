@@ -14,7 +14,8 @@ export class StandardArrayPushHeader implements Header {
   public getType() {
     return ArrayPushHeaderType;
   }
-  constructor() {
+
+  public getTemplate(): CExpression {
     HeaderRegistry.declareDependency(StdlibHeaderType);
     // sizeof depend on stdio.h
     HeaderRegistry.declareDependency(StdioHeaderType);
@@ -22,9 +23,7 @@ export class StandardArrayPushHeader implements Header {
     HeaderRegistry.declareDependency(StringHeaderType);
     //
     HeaderRegistry.declareDependency(AssertHeaderType);
-  }
 
-  public getTemplate(): CExpression {
     return new Template();
   }
 }

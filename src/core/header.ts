@@ -75,17 +75,24 @@ export class HeaderRegistry {
   public static getDeclaredDependencies(): CExpression[] {
     const templates: CExpression[] = [];
 
+    // first pass is to resolve dependencies and check for errors
+    // TODO: Improve dependency resolution architecture
     for (const type of declaredHeaders) {
       if (!headers.has(type)) {
         throw new Error(`Unregistered header of type '${new type().NAME}'`);
       }
-      templates.push(headers.get(type).getTemplate());
+      headers.get(type).getTemplate();
+    }
+
+    for (const type of declaredHeaders) {
+      templates.unshift(headers.get(type).getTemplate());
     }
 
     return templates;
   }
 
   public static declareDependency(type: new () => HeaderType) {
+    declaredHeaders.delete(type);
     declaredHeaders.add(type);
   }
 

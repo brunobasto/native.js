@@ -18,7 +18,9 @@ import {
   Int16HeaderType,
   ArrayCreateHeaderType,
   ArrayPushHeaderType,
-  DictCreateHeaderType
+  DictCreateHeaderType,
+  StdlibHeaderType,
+  AssertHeaderType
 } from "../core/header";
 
 @CodeTemplate(`{declarations}`, ts.SyntaxKind.VariableStatement)
@@ -81,9 +83,6 @@ export class CVariableDeclaration {
     {varName} = malloc(sizeof(*{varName}));
     assert({varName} != NULL);
 {/if}
-{#if gcVarName && (needAllocateStruct || needAllocateArray || needAllocateDict)}
-    
-{/if}
 `)
 export class CVariableAllocation {
   public isArray: boolean;
@@ -105,7 +104,6 @@ export class CVariableAllocation {
     this.needAllocateDict = varType instanceof DictType;
     this.initialCapacity = 4;
 
-    this.gcVarName = scope.root.memoryManager.getGCVariableForNode(refNode);
     if (varType instanceof ArrayType) {
       this.initialCapacity = Math.max(varType.capacity * 2, 4);
       this.size = varType.capacity;
@@ -115,16 +113,16 @@ export class CVariableAllocation {
       this.needAllocateStruct ||
       this.needAllocateArray ||
       this.needAllocateDict
-    )
-      scope.root.headerFlags.malloc = true;
-    if (this.gcVarName || this.needAllocateArray) {
+    ) {
+      HeaderRegistry.declareDependency(AssertHeaderType);
+      HeaderRegistry.declareDependency(StdlibHeaderType);
+    }
+
+    if (this.needAllocateArray) {
       HeaderRegistry.declareDependency(ArrayCreateHeaderType);
     }
     if (this.needAllocateDict) {
       HeaderRegistry.declareDependency(DictCreateHeaderType);
-    }
-    if (this.gcVarName) {
-      scope.root.headerFlags.gc_iterator = true;
     }
   }
 }
