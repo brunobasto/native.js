@@ -1316,14 +1316,14 @@ export class TypeHelper {
   }
 }
 
-const typesMap = new Map<ts.Node, CType>();
+const typesMap = new Map<number, CType>();
 
 export class TypeRegistry {
   static getNodeType(node: ts.Node) {
-    return typesMap.get(node);
+    return typesMap.get(node.pos);
   }
 
   static declareNodeType(node: ts.Node, type: CType) {
-    typesMap.set(node, type);
+    typesMap.set(node.pos, type);
   }
 }
