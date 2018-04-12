@@ -1,6 +1,11 @@
-jdk: oraclejdk8
+language: node_js
 
-language: node
+before_script:
+  - npm install
 
-script:
-  - npm test
+node_js:
+  - "8"
+
+cache:
+  directories:
+    - "node_modules"
