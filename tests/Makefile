@@ -7,17 +7,17 @@ COVER = $(TS:%.ts=coverage/%)
 .PHONY: all clean cover
 
 %.c: %.ts
-	node ../bin/ts2c $<
+	@../bin/compile $<
 %.elf: %.c
-	gcc $< -ansi -pedantic -Wall -g -o $@
+	@gcc $< -ansi -pedantic -Wall -g -o $@
 %.res: %.elf
-	./$< > $@
-	diff $@.expect $@
+	@./$< > $@
+	@diff $@.expect $@
 
 all: $(RES) $(ELF) $(C)
 
 coverage/%: %.ts
-	cd .. && istanbul cover --print none --report=json --dir tests/$@ ts2c.js -- tests/$<
+	cd .. && istanbul cover --print none --report=json --dir tests/$@ bin/compile -- tests/$<
 coverage/coverage-final.json: $(COVER)
 	istanbul report json
 coverage/html/index.html: coverage/coverage-final.json
