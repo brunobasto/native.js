@@ -10,6 +10,9 @@ export const UniversalVarType = "struct js_var *";
 export const PointerVarType = "void *";
 export const StringVarType = "const char *";
 export const NumberVarType = "int16_t";
+export const LongVarType = "unsigned long";
+export const SignedLongVarType = "long";
+export const FloatVarType = "float";
 export const BooleanVarType = "uint8_t";
 export const RegexVarType = "struct regex_struct_t";
 export const RegexMatchVarType = "struct regex_match_struct_t";
@@ -180,6 +183,108 @@ export class TypeHelper {
     return [structs, functionPrototypes];
   }
 
+  public isFloatExpression(binaryExpression: ts.BinaryExpression): boolean {
+    // if expression is a division
+    if (binaryExpression.operatorToken.kind == ts.SyntaxKind.SlashToken) {
+      log(`Expression ${binaryExpression.getText()} evaluates to float`);
+      return true;
+    }
+    // if left or right is float identifier
+    if (
+      binaryExpression.left.kind == ts.SyntaxKind.Identifier &&
+      this.getVariableInfo(<ts.Identifier>binaryExpression.left).type ==
+        FloatVarType
+    ) {
+      return true;
+    }
+    if (
+      binaryExpression.left.kind == ts.SyntaxKind.Identifier &&
+      this.getVariableInfo(<ts.Identifier>binaryExpression.left).type ==
+        FloatVarType
+    ) {
+      return true;
+    }
+    // check for each binary expression inside the given expression
+    if (
+      binaryExpression.right.kind == ts.SyntaxKind.BinaryExpression &&
+      this.isFloatExpression(<ts.BinaryExpression>binaryExpression.right)
+    ) {
+      return true;
+    }
+    if (
+      binaryExpression.left.kind == ts.SyntaxKind.BinaryExpression &&
+      this.isFloatExpression(<ts.BinaryExpression>binaryExpression.left)
+    ) {
+      return true;
+    }
+    // check if parenthesized expression
+    if (binaryExpression.left.kind == ts.SyntaxKind.ParenthesizedExpression) {
+      const parenthesizedExpression = <ts.ParenthesizedExpression>binaryExpression.left;
+      if (
+        parenthesizedExpression.expression.kind ==
+          ts.SyntaxKind.BinaryExpression &&
+        this.isFloatExpression(
+          <ts.BinaryExpression>parenthesizedExpression.expression
+        )
+      ) {
+        return true;
+      }
+    }
+    if (binaryExpression.right.kind == ts.SyntaxKind.ParenthesizedExpression) {
+      const parenthesizedExpression = <ts.ParenthesizedExpression>binaryExpression.right;
+      if (
+        parenthesizedExpression.expression.kind ==
+          ts.SyntaxKind.BinaryExpression &&
+        this.isFloatExpression(
+          <ts.BinaryExpression>parenthesizedExpression.expression
+        )
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public isFloatLiteral(node: ts.NumericLiteral): boolean {
+    // if it contains a floating point, return true
+    const literalText = node.getText();
+    if (literalText.indexOf(".") > -1) {
+      return true;
+    }
+    // if it's a variable declaration
+    let parent = this.findParentWithKind(
+      node,
+      ts.SyntaxKind.VariableDeclaration
+    );
+    if (parent) {
+      const declaration = <ts.VariableDeclaration>parent;
+      let varInfo = this.getVariableInfo(declaration.name);
+      for (let ref of varInfo.references) {
+        // and one of its references is a binary expression
+        const binary = this.findParentWithKind(
+          ref,
+          ts.SyntaxKind.BinaryExpression
+        );
+        if (binary) {
+          if (this.isFloatExpression(<ts.BinaryExpression>binary)) {
+            log(`so [${declaration.name.getText()}] evaluates to float`);
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  public findParentWithKind(node: ts.Node, kind: ts.SyntaxKind) {
+    let parent = node;
+    while (parent && parent.kind != kind) {
+      parent = parent.parent;
+    }
+    return parent;
+  }
+
   public getCType(node: ts.Node): CType {
     if (!node.kind) return null;
     // Look for known registered types
@@ -189,7 +294,35 @@ export class TypeHelper {
     }
     switch (node.kind) {
       case ts.SyntaxKind.NumericLiteral:
+        // if it's. a float, return float
+        if (this.isFloatLiteral(<ts.NumericLiteral>node)) {
+          return FloatVarType;
+        }
+        // if it's a big number, return long
+        const literalText = node.getText();
+        if (literalText.indexOf("-") === 0) {
+          return SignedLongVarType;
+        }
+        if (parseInt(literalText, 10) > 1023) {
+          return LongVarType;
+        }
+        // else return int
         return NumberVarType;
+      case ts.SyntaxKind.BinaryExpression: {
+        const parentBinary = this.findParentWithKind(
+          node,
+          ts.SyntaxKind.BinaryExpression
+        );
+        if (this.isFloatExpression(<ts.BinaryExpression>parentBinary)) {
+          return FloatVarType;
+        } else {
+          let tsType = this.typeChecker.getTypeAtLocation(node);
+          let type = tsType && this.convertType(tsType);
+          if (type != UniversalVarType && type != PointerVarType) {
+            return type;
+          }
+        }
+      }
       case ts.SyntaxKind.TrueKeyword:
       case ts.SyntaxKind.FalseKeyword:
         return BooleanVarType;
@@ -433,8 +566,9 @@ export class TypeHelper {
     if (
       tsType.flags == ts.TypeFlags.Number ||
       tsType.flags == ts.TypeFlags.NumberLiteral
-    )
+    ) {
       return NumberVarType;
+    }
     if (
       tsType.flags == ts.TypeFlags.Boolean ||
       tsType.flags == ts.TypeFlags.Boolean + ts.TypeFlags.Union
@@ -1000,6 +1134,12 @@ export class TypeHelper {
     for (let k of Object.keys(this.variables).map(k => +k)) {
       let varInfo = this.variables[k];
       for (let ref of varInfo.references) {
+        if (ref.parent.kind == ts.SyntaxKind.BinaryExpression) {
+          const binaryExpression = <ts.BinaryExpression>ref.parent;
+          if (binaryExpression.operatorToken.kind == ts.SyntaxKind.SlashToken) {
+            varInfo.type = FloatVarType;
+          }
+        }
         if (ref.parent.kind == ts.SyntaxKind.PropertyAssignment) {
           let propAssignment = <ts.PropertyAssignment>ref.parent;
           if (
@@ -1259,6 +1399,10 @@ export class TypeHelper {
     else if (newType == PointerVarType) return currentResult;
     else if (currentType == UniversalVarType) return newResult;
     else if (newType == UniversalVarType) return currentResult;
+    else if (currentType == NumberVarType && newType == FloatVarType)
+      return newResult;
+    else if (currentType == FloatVarType && newType == NumberVarType)
+      return currentResult;
     else if (currentType instanceof ArrayType && newType instanceof ArrayType) {
       let cap = Math.max(newType.capacity, currentType.capacity);
       newType.capacity = cap;
@@ -1316,6 +1460,15 @@ export class TypeHelper {
         this.getTypeString(newType)
     );
     return currentResult;
+  }
+
+  public isNumericType(type: CType) {
+    return (
+      type === NumberVarType ||
+      type === LongVarType ||
+      type === FloatVarType ||
+      type === SignedLongVarType
+    );
   }
 }
 

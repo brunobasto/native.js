@@ -23,7 +23,6 @@ import {
 import { CVariable } from "./variable";
 import { CElementAccess } from "./elementaccess";
 import { CRegexAsString } from "./regexfunc";
-
 export interface CExpression {}
 
 @CodeTemplate(`{expression}`, ts.SyntaxKind.BinaryExpression)
@@ -136,7 +135,11 @@ export class CSimpleBinaryExpression {
 
     operatorMap[ts.SyntaxKind.AmpersandAmpersandToken] = "&&";
     operatorMap[ts.SyntaxKind.BarBarToken] = "||";
-    if (leftType == NumberVarType && rightType == NumberVarType) {
+    const typeHelper = scope.root.typeHelper;
+    if (
+      typeHelper.isNumericType(leftType) &&
+      typeHelper.isNumericType(rightType)
+    ) {
       this.addNumberOperators(operatorMap);
     } else if (leftType == StringVarType && rightType == StringVarType) {
       callReplaceMap[ts.SyntaxKind.ExclamationEqualsEqualsToken] = [
@@ -239,11 +242,14 @@ export class CSimpleBinaryExpression {
     operatorMap[ts.SyntaxKind.PlusToken] = "+";
     operatorMap[ts.SyntaxKind.MinusToken] = "-";
     operatorMap[ts.SyntaxKind.FirstCompoundAssignment] = "+=";
+    operatorMap[ts.SyntaxKind.MinusEqualsToken] = "-=";
     operatorMap[ts.SyntaxKind.AmpersandToken] = "&";
     operatorMap[ts.SyntaxKind.BarToken] = "|";
     operatorMap[ts.SyntaxKind.CaretToken] = "^";
     operatorMap[ts.SyntaxKind.GreaterThanGreaterThanToken] = ">>";
     operatorMap[ts.SyntaxKind.LessThanLessThanToken] = "<<";
+    operatorMap[ts.SyntaxKind.SlashEqualsToken] = "/=";
+    operatorMap[ts.SyntaxKind.AsteriskEqualsToken] = "*=";
   }
 
   private replaceWithVar(
@@ -291,7 +297,8 @@ class CUnaryExpression {
     let callReplaceMap: { [token: number]: [string, string] } = {};
     let type = scope.root.typeHelper.getCType(node.operand);
     operatorMap[ts.SyntaxKind.ExclamationToken] = "!";
-    if (type == NumberVarType) {
+    const typeHelper = scope.root.typeHelper;
+    if (typeHelper.isNumericType(type)) {
       operatorMap[ts.SyntaxKind.PlusPlusToken] = "++";
       operatorMap[ts.SyntaxKind.MinusMinusToken] = "--";
       operatorMap[ts.SyntaxKind.MinusToken] = "-";

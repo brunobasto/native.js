@@ -184,7 +184,18 @@ export class CString {
 export class CNumber {
   public value: string;
   constructor(scope: IScope, value: ts.Node) {
-    this.value = value.getText();
+    // look for parent binary expressions
+    let parent = value;
+    while (parent && parent.kind != ts.SyntaxKind.BinaryExpression) {
+      parent = parent.parent;
+    }
+    // if it's inside a binary expression
+    const { typeHelper } = scope.root;
+    if (parent && typeHelper.isFloatExpression(<ts.BinaryExpression>parent)) {
+      this.value = `((float)${value.getText()})`;
+    } else {
+      this.value = value.getText();
+    }
   }
 }
 
