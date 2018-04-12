@@ -8,6 +8,9 @@ import {
 } from "./types";
 import { StandardCallHelper } from "./resolver";
 import { StringMatchResolver } from "./standard/string/match";
+import debug from "debug";
+
+const log = debug("memory");
 
 type VariableScopeInfo = {
   node: ts.Node;
@@ -253,7 +256,7 @@ export class MemoryManager {
         let varIdent = <ts.Identifier>node;
         let nodeVarInfo = this.typeHelper.getVariableInfo(varIdent);
         if (!nodeVarInfo) {
-          console.log("WARNING: Cannot find references for " + node.getText());
+          log("WARNING: Cannot find references for " + node.getText());
           continue;
         }
         refs = this.typeHelper.getVariableInfo(varIdent).references;
@@ -271,7 +274,7 @@ export class MemoryManager {
           )
             elemAccess = <ts.PropertyAccessExpression>elemAccess.expression;
           if (elemAccess.expression.kind == ts.SyntaxKind.Identifier) {
-            console.log(
+            log(
               heapNode.getText() +
                 " -> Tracking parent variable: " +
                 elemAccess.expression.getText() +
@@ -287,7 +290,7 @@ export class MemoryManager {
             binaryExpr.operatorToken.kind == ts.SyntaxKind.EqualsToken &&
             binaryExpr.left.getText() == heapNode.getText()
           ) {
-            console.log(
+            log(
               heapNode.getText() +
                 " -> Detected assignment: " +
                 binaryExpr.getText() +
@@ -298,7 +301,7 @@ export class MemoryManager {
         }
 
         if (ref.parent && ref.parent.kind == ts.SyntaxKind.PropertyAssignment) {
-          console.log(
+          log(
             heapNode.getText() +
               " -> Detected passing to object literal: " +
               ref.parent.getText() +
@@ -310,7 +313,7 @@ export class MemoryManager {
           ref.parent &&
           ref.parent.kind == ts.SyntaxKind.ArrayLiteralExpression
         ) {
-          console.log(
+          log(
             heapNode.getText() +
               " -> Detected passing to array literal: " +
               ref.parent.getText() +
@@ -325,7 +328,7 @@ export class MemoryManager {
             call.expression.kind == ts.SyntaxKind.Identifier &&
             call.expression.pos == ref.pos
           ) {
-            console.log(heapNode.getText() + " -> Found function call!");
+            log(heapNode.getText() + " -> Found function call!");
             if (topScope !== "main") {
               let funcNode = this.findParentFunctionNode(call);
               topScope = (funcNode && funcNode.pos + 1) || "main";
@@ -340,7 +343,7 @@ export class MemoryManager {
             if (!symbol) {
               let isStandardCall =
                 StandardCallHelper.isStandardCall(this.typeHelper, call) ||
-                call.expression.getText() == "console.log";
+                call.expression.getText() == "log";
 
               if (isStandardCall) {
                 let standardCallEscapeNode = StandardCallHelper.getEscapeNode(
@@ -348,7 +351,7 @@ export class MemoryManager {
                   call
                 );
                 if (standardCallEscapeNode) {
-                  console.log(
+                  log(
                     heapNode.getText() +
                       " escapes to '" +
                       standardCallEscapeNode.getText() +
@@ -359,7 +362,7 @@ export class MemoryManager {
                   queue.push(standardCallEscapeNode);
                 }
               } else {
-                console.log(
+                log(
                   heapNode.getText() +
                     " -> Detected passing to external function " +
                     call.expression.getText() +
@@ -376,14 +379,14 @@ export class MemoryManager {
                   call.arguments[i].end >= ref.end
                 ) {
                   if (funcDecl.pos + 1 == topScope) {
-                    console.log(
+                    log(
                       heapNode.getText() +
                         " -> Found recursive call with parameter " +
                         funcDecl.parameters[i].name.getText()
                     );
                     queue.push(funcDecl.name);
                   } else {
-                    console.log(
+                    log(
                       heapNode.getText() +
                         " -> Found passing to function " +
                         call.expression.getText() +
@@ -404,7 +407,7 @@ export class MemoryManager {
         ) {
           returned = true;
           queue.push(parentNode.name);
-          console.log(
+          log(
             heapNode.getText() +
               " -> Found variable returned from the function!"
           );
@@ -473,7 +476,7 @@ export class MemoryManager {
       let varDecl = <ts.VariableDeclaration>ref.parent;
       if (varDecl.initializer && varDecl.initializer.pos == ref.pos) {
         queue.push(varDecl.name);
-        console.log(
+        log(
           varIdent.getText() +
             " -> Found initializer-assignment to variable " +
             varDecl.name.getText()
@@ -490,7 +493,7 @@ export class MemoryManager {
         binaryExpr.right.pos == ref.pos
       ) {
         queue.push(binaryExpr.left);
-        console.log(
+        log(
           varIdent.getText() +
             " -> Found assignment to variable " +
             binaryExpr.left.getText()

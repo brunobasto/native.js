@@ -16,6 +16,9 @@ import {
   PointerVarType
 } from "../types";
 
+import debug from "debug";
+const log = debug("gc");
+
 class TemporaryVariable {
   escapeNode: ts.Node;
   name: string;
@@ -116,7 +119,7 @@ export class GarbageCollector {
   }
 
   trackAssignmentToDict(scope: IScope, left: ts.Node, right: ts.Node) {
-    console.log("[gc] trackAssignmentToDict", left.getText(), right.getText());
+    log("trackAssignmentToDict", left.getText(), right.getText());
     const elementAccess = <ts.ElementAccessExpression>left;
 
     const argument = <ts.Expression>elementAccess.argumentExpression;
@@ -155,7 +158,7 @@ export class GarbageCollector {
           if (isInsideLoop) {
             // scope.statements.push(`ARRAY_PUSH(gc_global, ${valueTempVar.name})`);
           }
-          console.log("[gc] dic value escapes");
+          log("dic value escapes");
           // valueTempVar.escapeTo(declaredScope);
           // valueTempVar.setDisposeLater(isInsideLoop);
         }
@@ -164,11 +167,7 @@ export class GarbageCollector {
   }
 
   trackAssignmentToTemporaryVariable(left: ts.Node, right: ts.Node) {
-    console.log(
-      "[gc] trackAssignmentToTemporaryVariable",
-      left.getText(),
-      right.getText()
-    );
+    log("trackAssignmentToTemporaryVariable", left.getText(), right.getText());
     const declaredScope = this.getDeclaredScope(<ts.Identifier>right);
     const temporaryVariable = this.resolveToTemporaryVariable(right);
     if (
@@ -180,11 +179,7 @@ export class GarbageCollector {
   }
 
   trackAssignmentToVariable(left: ts.Node, right: ts.Node) {
-    console.log(
-      "[gc] trackAssignmentToVariable",
-      left.getText(),
-      right.getText()
-    );
+    log("trackAssignmentToVariable", left.getText(), right.getText());
     if (this.resolveToTemporaryVariable(right)) {
       this.temporaryVariables.set(left, this.getTemporaryVariable(right));
     }

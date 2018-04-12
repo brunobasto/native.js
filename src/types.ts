@@ -1,6 +1,9 @@
 import * as ts from "typescript";
 import { StandardCallHelper } from "./resolver";
 import { PluginRegistry } from "./core/plugin";
+import debug from "debug";
+
+const log = debug("types");
 
 export type CType = string | StructType | ArrayType | DictType;
 export const UniversalVarType = "struct js_var *";
@@ -447,7 +450,7 @@ export class TypeHelper {
 
     if (tsType.flags == ts.TypeFlags.Any) return PointerVarType;
 
-    console.log("Non-standard type: " + this.typeChecker.typeToString(tsType));
+    log("Non-standard type: " + this.typeChecker.typeToString(tsType));
     return PointerVarType;
   }
 
@@ -1306,7 +1309,7 @@ export class TypeHelper {
       return currentResult;
     }
 
-    console.log(
+    log(
       "WARNING: candidate for UniversalVarType! Current: " +
         this.getTypeString(currentType) +
         ", new: " +
