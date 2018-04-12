@@ -13,6 +13,10 @@ export interface HeaderType {
   NAME: string;
 }
 
+export class MathHeaderType implements HeaderType {
+  public NAME: string = "MathHeaderType";
+}
+
 export class RegexMatchHeaderType implements HeaderType {
   public NAME: string = "RegexMatchHeaderType";
 }

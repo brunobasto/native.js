@@ -12,6 +12,7 @@ import { StandardDictCreateHeader } from "../headers/ts2c-header-standard-dict";
 import { StandardInt16Header } from "../headers/ts2c-header-standard-int16_t";
 import { StandardStdIoHeader } from "../headers/ts2c-header-standard-stdio";
 import { StandardStdLibHeader } from "../headers/ts2c-header-standard-stdlib";
+import { StandardMathHeader } from "../headers/ts2c-header-standard-math";
 import {
   StandardStringHeader,
   StandardSubStringHeader,
@@ -21,6 +22,7 @@ import {
 import { StandardUint8Header } from "../headers/ts2c-header-standard-uint8_t";
 
 import { ConsoleLogPlugin } from "../plugins/ts2c-plugin-standard-console";
+import { MathLogPlugin } from "../plugins/ts2c-plugin-standard-math";
 
 import { Plugin } from "../core/plugin";
 import { Preset } from "../core/preset";
@@ -44,12 +46,13 @@ export class StandardPreset implements Preset {
       new StandardStdLibHeader(),
       new StandardSubStringHeader(),
       new StandardStringLengthHeader(),
-      new StandardRegexMatchHeader()
+      new StandardRegexMatchHeader(),
+      new StandardMathHeader()
     ];
   }
 
   public getPlugins(): Plugin[] {
-    return [new ConsoleLogPlugin()];
+    return [new ConsoleLogPlugin(), new MathLogPlugin()];
   }
 
   public getPresets() {

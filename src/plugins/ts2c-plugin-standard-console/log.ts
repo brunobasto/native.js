@@ -11,6 +11,8 @@ import {
   DictType,
   NumberVarType,
   RegexVarType,
+  LongVarType,
+  FloatVarType,
   StringVarType,
   StructType,
   VariableInfo
@@ -112,6 +114,10 @@ interface PrintfOptions {
     printf("{PREFIX}%s{POSTFIX}", {accessor}.str);
 {#elseif isInteger}
     printf("{PREFIX}%d{POSTFIX}", {accessor});
+{#elseif isFloat}
+    printf("{PREFIX}%f{POSTFIX}", {accessor});
+{#elseif isLong}
+    printf("{PREFIX}%lu{POSTFIX}", {accessor});
 {#elseif isBoolean && !PREFIX && !POSTFIX}
     printf({accessor} ? "true" : "false");
 {#elseif isBoolean && (PREFIX || POSTFIX)}
@@ -141,23 +147,25 @@ interface PrintfOptions {
     printf(/* Unsupported printf expression */);
 {/if}`)
 class CPrintf {
-  public isStringLiteral: boolean = false;
-  public isQuotedCString: boolean = false;
-  public isCString: boolean = false;
-  public isRegex: boolean = false;
-  public isInteger: boolean = false;
-  public isBoolean: boolean = false;
-  public isDict: boolean = false;
-  public isStruct: boolean = false;
   public isArray: boolean = false;
+  public isBoolean: boolean = false;
+  public isCString: boolean = false;
+  public isDict: boolean = false;
+  public isFloat: boolean = false;
+  public isInteger: boolean = false;
+  public isLong: boolean = false;
+  public isQuotedCString: boolean = false;
+  public isRegex: boolean = false;
+  public isStringLiteral: boolean = false;
+  public isStruct: boolean = false;
 
-  public iteratorVarName: string;
   public arraySize: string;
   public elementPrintfs: CPrintf[] = [];
-  public propPrefix: string = "";
-  public PREFIX: string;
-  public POSTFIX: string;
   public INDENT: string = "";
+  public iteratorVarName: string;
+  public POSTFIX: string;
+  public PREFIX: string;
+  public propPrefix: string = "";
 
   constructor(
     scope: IScope,
@@ -168,11 +176,13 @@ class CPrintf {
   ) {
     this.isStringLiteral =
       varType == StringVarType && printNode.kind == ts.SyntaxKind.StringLiteral;
-    this.isQuotedCString = varType == StringVarType && options.quotedString;
-    this.isCString = varType == StringVarType && !options.quotedString;
-    this.isRegex = varType == RegexVarType;
-    this.isInteger = varType == NumberVarType;
     this.isBoolean = varType == BooleanVarType;
+    this.isCString = varType == StringVarType && !options.quotedString;
+    this.isFloat = varType == FloatVarType;
+    this.isInteger = varType == NumberVarType;
+    this.isLong = varType == LongVarType;
+    this.isQuotedCString = varType == StringVarType && options.quotedString;
+    this.isRegex = varType == RegexVarType;
 
     this.PREFIX = options.prefix || "";
     this.POSTFIX = options.postfix || "";
