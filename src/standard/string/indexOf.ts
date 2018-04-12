@@ -12,6 +12,7 @@ import {
   StringVarType,
   TypeHelper
 } from "../../types";
+import { HeaderRegistry, StringHeaderType } from "../../core/header";
 
 @StandardCallResolver
 class StringIndexOfResolver implements IResolver {
@@ -49,6 +50,7 @@ class CStringIndexOf {
   public arg1: CExpression;
   public stringAccess: CElementAccess;
   constructor(scope: IScope, call: ts.CallExpression) {
+    HeaderRegistry.declareDependency(StringHeaderType);
     const propAccess = call.expression as ts.PropertyAccessExpression;
     this.topExpressionOfStatement =
       call.parent.kind == ts.SyntaxKind.ExpressionStatement;

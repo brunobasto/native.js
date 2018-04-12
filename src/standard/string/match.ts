@@ -76,7 +76,6 @@ class CStringMatch {
           scope,
           call.arguments[0]
         );
-        // this.gcVarName = scope.root.memoryManager.getGCVariableForNode(call);
         this.matchArrayVarName = scope.root.memoryManager.getReservedTemporaryVarName(
           call
         );
@@ -89,7 +88,6 @@ class CStringMatch {
             )
           );
         }
-        HeaderRegistry.declareDependency(ArrayPushHeaderType);
         HeaderRegistry.declareDependency(RegexMatchHeaderType);
         scope.root.headerFlags.gc_iterator = true;
       } else {
