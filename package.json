@@ -4,7 +4,7 @@
   "description": "Write JavaScript software for your hardware.",
   "main": "hjs.js",
   "bin": {
-    "hjs": "./bin/compile"
+    "hardware.js": "./bin/compile"
   },
   "directories": {
     "test": "tests"
