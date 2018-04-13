@@ -1,7 +1,10 @@
 language: node_js
 
 before_script:
-  - npm install
+  - lerna bootstrap
+
+script:
+  - lerna run test
 
 node_js:
   - "8"
