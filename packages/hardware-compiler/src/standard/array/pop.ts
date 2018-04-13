@@ -2,6 +2,7 @@ import * as ts from "typescript";
 import { ArrayPopHeaderType, HeaderRegistry } from "../../core/header";
 import { CElementAccess } from "../../nodes/elementaccess";
 import { CExpression } from "../../nodes/expressions";
+import { ScopeUtil } from "../../core/scope";
 import { CVariable } from "../../nodes/variable";
 import { IScope } from "../../core/program";
 import { IResolver, StandardCallResolver } from "../../core/resolver";
@@ -46,14 +47,19 @@ class ArrayPopResolver implements IResolver {
   }
 }
 
-@CodeTemplate(`ARRAY_POP({varAccess})`)
+@CodeTemplate(`ARRAY_POP({varAccess}, {useReturnValue})`)
 class CArrayPop {
-  public topExpressionOfStatement: boolean;
-  public tempVarName: string = "";
+  public useReturnValue: number = 1;
   public varAccess: CElementAccess = null;
+
   constructor(scope: IScope, call: ts.CallExpression) {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     this.varAccess = new CElementAccess(scope, propAccess.expression);
+    call.parent.kind == ts.SyntaxKind.Block
+    // do not use returned value if it's a direct statement
+    if (call.parent.kind === ts.SyntaxKind.ExpressionStatement) {
+      this.useReturnValue = 0;
+    }
     HeaderRegistry.declareDependency(ArrayPopHeaderType);
   }
 }
