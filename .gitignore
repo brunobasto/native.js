@@ -12,3 +12,5 @@ node_modules
 tests/coverage
 tests_esp
 ts2c.bundle.js
+lerna-debug.log
+yarn-error.log
