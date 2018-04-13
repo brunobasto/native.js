@@ -58,7 +58,6 @@ class HeaderFlags {
   gc_iterator2: boolean = false;
   str_int16_t_cmp: boolean = false;
   str_int16_t_cat: boolean = false;
-  str_pos: boolean = false;
   str_rpos: boolean = false;
   str_char_code_at: boolean = false;
   str_slice: boolean = false;
@@ -96,24 +95,6 @@ class HeaderFlags {
         char numstr[STR_INT16_T_BUFLEN];
         sprintf(numstr, "%d", num);
         return strcmp(str, numstr);
-    }
-{/if}
-{#if headerFlags.str_pos}
-    int16_t str_pos(const char * str, const char *search) {
-        int16_t i;
-        const char * found = strstr(str, search);
-        int16_t pos = 0;
-        if (found == 0)
-            return -1;
-        while (*str && str < found) {
-            i = 1;
-            if ((*str & 0xE0) == 0xC0) i=2;
-            else if ((*str & 0xF0) == 0xE0) i=3;
-            else if ((*str & 0xF8) == 0xF0) i=4;
-            str += i;
-            pos += i == 4 ? 2 : 1;
-        }
-        return pos;
     }
 {/if}
 {#if headerFlags.str_rpos}

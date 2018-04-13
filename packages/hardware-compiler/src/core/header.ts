@@ -29,6 +29,11 @@ export class StringLengthHeaderType implements HeaderType {
   public UNIQUE: boolean = true;
 }
 
+export class StringPositionHeaderType implements HeaderType {
+  public NAME: string = "StringPositionHeaderType";
+  public UNIQUE: boolean = true;
+}
+
 export class SubStringHeaderType implements HeaderType {
   public NAME: string = "SubStringHeaderType";
   public UNIQUE: boolean = true;

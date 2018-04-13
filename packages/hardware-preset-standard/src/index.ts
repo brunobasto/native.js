@@ -18,7 +18,8 @@ import {
   StandardStringHeader,
   StandardSubStringHeader,
   StandardStringLengthHeader,
-  StandardRegexMatchHeader
+  StandardRegexMatchHeader,
+  StandardStringPositionHeader
 } from "hardware-header-standard-string";
 import { StandardUint8Header } from "hardware-header-standard-uint8_t";
 
@@ -49,7 +50,8 @@ export class StandardPreset implements Preset {
       new StandardStringLengthHeader(),
       new StandardRegexMatchHeader(),
       new StandardMathHeader(),
-      new StandardStructHeader()
+      new StandardStructHeader(),
+      new StandardStringPositionHeader()
     ];
   }
 

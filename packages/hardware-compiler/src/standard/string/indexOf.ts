@@ -12,7 +12,7 @@ import {
   StringVarType,
   TypeHelper
 } from "../../core/types";
-import { HeaderRegistry, StringHeaderType } from "../../core/header";
+import { HeaderRegistry, StringHeaderType, StringPositionHeaderType } from "../../core/header";
 
 @StandardCallResolver
 class StringIndexOfResolver implements IResolver {
@@ -58,7 +58,7 @@ class CStringIndexOf {
       if (call.arguments.length == 1) {
         this.stringAccess = new CElementAccess(scope, propAccess.expression);
         this.arg1 = CodeTemplateFactory.createForNode(scope, call.arguments[0]);
-        scope.root.headerFlags.str_pos = true;
+        HeaderRegistry.declareDependency(StringPositionHeaderType);
       } else {
         console.log(
           "Unsupported number of parameters in " +
