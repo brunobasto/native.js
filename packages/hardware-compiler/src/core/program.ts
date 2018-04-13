@@ -1,12 +1,12 @@
 import * as ts from "typescript";
 import { MemoryManager } from "./memory";
-import { TypeHelper, ArrayType } from "./types";
+import { TypeHelper, ArrayType, StructType } from "./types";
 import { CodeTemplate, CodeTemplateFactory } from "./template";
 import { CFunction, CFunctionPrototype } from "../nodes/function";
 import { CVariable, CVariableDestructors } from "../nodes/variable";
 import { Preset } from "./preset";
 import { Plugin, PluginRegistry } from "./plugin";
-import { Header, HeaderRegistry, BooleanHeaderType } from "./header";
+import { Header, HeaderRegistry, BooleanHeaderType, StructHeaderType } from "./header";
 import { Main, MainRegistry } from "./main";
 import { Bottom, BottomRegistry } from "./bottom";
 import { GarbageCollector } from "./gc";
@@ -64,31 +64,12 @@ class HeaderFlags {
   str_slice: boolean = false;
   atoi: boolean = false;
   parseInt: boolean = false;
-  regex: boolean = false;
 }
 
 @CodeTemplate(`
 {headers}
-
 {#if headerFlags.str_int16_t_cmp || headerFlags.str_int16_t_cat}
     #include <limits.h>
-{/if}
-{#if headerFlags.regex}
-    struct regex_indices_struct_t {
-        int16_t index;
-        int16_t end;
-    };
-    struct regex_match_struct_t {
-        int16_t index;
-        int16_t end;
-        struct regex_indices_struct_t *matches;
-        int16_t matches_count;
-    };
-    typedef struct regex_match_struct_t regex_func_t(const char*, int16_t);
-    struct regex_struct_t {
-        const char * str;
-        regex_func_t * func;
-    };
 {/if}
 {#if headerFlags.js_var}
     enum js_var_type {JS_VAR_BOOL, JS_VAR_INT, JS_VAR_STRING, JS_VAR_ARRAY, JS_VAR_STRUCT, JS_VAR_DICT};
@@ -214,17 +195,6 @@ class HeaderFlags {
     }
 {/if}
 
-{userStructs => struct {name} {\n    {properties {    }=> {this};\n}};\n}
-
-{#if headerFlags.regex}
-    void regex_clear_matches(struct regex_match_struct_t *match_info, int16_t groupN) {
-        int16_t i;
-        for (i = 0; i < groupN; i++) {
-            match_info->matches[i].index = -1;
-            match_info->matches[i].end = -1;
-        }
-    }
-{/if}
 {#if headerFlags.gc_iterator}
     int16_t gc_i;
 {/if}
@@ -294,6 +264,8 @@ export class CProgram implements IScope {
     this.memoryManager = new MemoryManager(this.typeChecker, this.typeHelper);
     this.gc = new GarbageCollector(this.typeChecker);
 
+    HeaderRegistry.setProgramScope(this);
+
     const collectedPlugins: Plugin[] = [];
     const collectedHeaders: Header[] = [];
 
@@ -330,16 +302,11 @@ export class CProgram implements IScope {
       functionPrototypes
     ] = this.typeHelper.getStructsAndFunctionPrototypes();
 
-    this.userStructs = structs.map(s => {
-      return {
+    structs.forEach((s: any) => {
+      HeaderRegistry.declareDependency(StructHeaderType, {
         name: s.name,
-        properties: s.properties.map(
-          p =>
-            new CVariable(this, p.name, p.type, {
-              removeStorageSpecifier: true
-            })
-        )
-      };
+        properties: s.properties
+      })
     });
 
     this.functionPrototypes = functionPrototypes.map(

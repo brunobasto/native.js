@@ -13,6 +13,7 @@ import { StandardInt16Header } from "hardware-header-standard-int16_t";
 import { StandardStdIoHeader } from "hardware-header-standard-stdio";
 import { StandardStdLibHeader } from "hardware-header-standard-stdlib";
 import { StandardMathHeader } from "hardware-header-standard-math";
+import { StandardStructHeader } from "hardware-header-standard-struct";
 import {
   StandardStringHeader,
   StandardSubStringHeader,
@@ -47,7 +48,8 @@ export class StandardPreset implements Preset {
       new StandardSubStringHeader(),
       new StandardStringLengthHeader(),
       new StandardRegexMatchHeader(),
-      new StandardMathHeader()
+      new StandardMathHeader(),
+      new StandardStructHeader()
     ];
   }
 
