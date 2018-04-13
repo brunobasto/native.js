@@ -1372,7 +1372,7 @@ export class TypeHelper {
     return type;
   }
 
-  private ensureArrayStruct(elementType: CType) {
+  public ensureArrayStruct(elementType: CType) {
     let elementTypeText = this.getTypeString(elementType);
     let structName = ArrayType.getArrayStructName(elementTypeText);
     this.userStructs[structName] = new StructType(structName, {

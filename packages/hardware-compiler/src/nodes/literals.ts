@@ -9,8 +9,12 @@ import {
   HeaderRegistry,
   ArrayCreateHeaderType,
   ArrayPushHeaderType,
-  BooleanHeaderType
+  BooleanHeaderType,
+  RegexMatchHeaderType
 } from "../core/header";
+import debug from "debug";
+
+const log = debug('nodes');
 
 @CodeTemplate(`{expression}`, ts.SyntaxKind.ArrayLiteralExpression)
 class CArrayLiteralExpression {
@@ -156,7 +160,7 @@ class CRegexLiteralExpression {
       );
     }
     this.expression = regexNames[template];
-    scope.root.headerFlags.regex = true;
+    HeaderRegistry.declareDependency(RegexMatchHeaderType)
   }
 }
 

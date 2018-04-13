@@ -1,30 +1,31 @@
 import * as ts from "typescript";
 import {
+  ArrayCreateHeaderType,
+  BooleanHeaderType,
   Header,
   HeaderRegistry,
   Int16HeaderType,
   RegexMatchHeaderType,
-  ArrayCreateHeaderType,
-  SubStringHeaderType
+  SubStringHeaderType,
+  StructHeaderType,
+  ArrayType,
+  StringVarType,
+  NumberVarType
 } from "hardware-compiler";
 import { CExpression } from "hardware-compiler";
 import { IScope } from "hardware-compiler";
 import { CodeTemplate } from "hardware-compiler";
 
-export class StandardRegexMatchHeader implements Header {
-  public getType() {
-    return RegexMatchHeaderType;
-  }
-  public getTemplate(): CExpression {
-    HeaderRegistry.declareDependency(ArrayCreateHeaderType);
-    HeaderRegistry.declareDependency(Int16HeaderType);
-    HeaderRegistry.declareDependency(SubStringHeaderType);
-
-    return new RegexMatchTemplate();
-  }
+const regexClearMatches = `
+void regex_clear_matches(struct regex_match_struct_t *match_info, int16_t groupN) {
+    int16_t i;
+    for (i = 0; i < groupN; i++) {
+        match_info->matches[i].index = -1;
+        match_info->matches[i].end = -1;
+    }
 }
-
-@CodeTemplate(`
+`;
+const regexMatch = `
 struct array_string_t *regex_match(struct regex_struct_t regex, const char * s) {
     struct regex_match_struct_t match_info;
     struct array_string_t *match_array = NULL;
@@ -46,5 +47,45 @@ struct array_string_t *regex_match(struct regex_struct_t regex, const char * s) 
 
     return match_array;
 }
+`;
+
+export class StandardRegexMatchHeader implements Header {
+  public getType() {
+    return RegexMatchHeaderType;
+  }
+
+  public getTemplate(): CExpression {
+    HeaderRegistry.declareDependency(ArrayCreateHeaderType);
+    HeaderRegistry.declareDependency(BooleanHeaderType);
+    HeaderRegistry.declareDependency(Int16HeaderType);
+    HeaderRegistry.declareDependency(SubStringHeaderType);
+
+    const scope: IScope = HeaderRegistry.getProgramScope();
+
+    scope.root.functions.push(regexClearMatches);
+    scope.root.functions.push(regexMatch);
+
+    scope.root.typeHelper.ensureArrayStruct(StringVarType);
+
+    return new RegexMatchTemplate();
+  }
+}
+
+@CodeTemplate(`
+struct regex_indices_struct_t {
+    int16_t index;
+    int16_t end;
+};
+struct regex_match_struct_t {
+    int16_t index;
+    int16_t end;
+    struct regex_indices_struct_t *matches;
+    int16_t matches_count;
+};
+typedef struct regex_match_struct_t regex_func_t(const char*, int16_t);
+struct regex_struct_t {
+    const char * str;
+    regex_func_t * func;
+};
 `)
 class RegexMatchTemplate {}
