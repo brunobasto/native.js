@@ -188,13 +188,10 @@ export class CString {
 export class CNumber {
   public value: string;
   constructor(scope: IScope, value: ts.Node) {
-    // look for parent binary expressions
-    let parent = value;
-    while (parent && parent.kind != ts.SyntaxKind.BinaryExpression) {
-      parent = parent.parent;
-    }
-    // if it's inside a binary expression
     const { typeHelper } = scope.root;
+    // look for parent binary expressions
+    let parent = typeHelper.findParentWithKind(value, ts.SyntaxKind.BinaryExpression);
+    // if it's inside a float expression
     if (parent && typeHelper.isFloatExpression(<ts.BinaryExpression>parent)) {
       this.value = `((float)${value.getText()})`;
     } else {
