@@ -183,7 +183,23 @@ export class TypeHelper {
     return [structs, functionPrototypes];
   }
 
+  public isChildOfBitwiseOperation(node: ts.Node) {
+    let parent = this.findParentWithKind(node, ts.SyntaxKind.BinaryExpression);
+    while (parent) {
+      const parentBinary = <ts.BinaryExpression>parent;
+      if (parentBinary.operatorToken.kind == ts.SyntaxKind.AmpersandToken) {
+        return true;
+      }
+      parent = this.findParentWithKind(parent.parent, ts.SyntaxKind.BinaryExpression);
+    }
+    return false;
+  }
+
   public isFloatExpression(binaryExpression: ts.BinaryExpression): boolean {
+    // bitwise operators are excluded from this
+    if (this.isChildOfBitwiseOperation(binaryExpression)) {
+      return false;
+    }
     // if expression is a division
     if (binaryExpression.operatorToken.kind == ts.SyntaxKind.SlashToken) {
       log(`Expression ${binaryExpression.getText()} evaluates to float`);
