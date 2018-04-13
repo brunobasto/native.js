@@ -2,6 +2,7 @@ import { StandardStringHeader } from "./header";
 import { StandardSubStringHeader } from "./substring";
 import { StandardStringLengthHeader } from "./strlen";
 import { StandardStringPositionHeader } from "./strpos";
+import { StandardStringRightPositionHeader } from "./str_rpos";
 import { StandardRegexMatchHeader } from "./regex";
 
 export {
@@ -9,5 +10,6 @@ export {
   StandardSubStringHeader,
   StandardStringLengthHeader,
   StandardRegexMatchHeader,
-  StandardStringPositionHeader
+  StandardStringPositionHeader,
+  StandardStringRightPositionHeader
 };

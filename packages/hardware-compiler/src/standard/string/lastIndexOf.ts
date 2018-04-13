@@ -3,6 +3,7 @@ import { CElementAccess } from "../../nodes/elementaccess";
 import { CExpression } from "../../nodes/expressions";
 import { CVariable } from "../../nodes/variable";
 import { IScope } from "../../core/program";
+import { HeaderRegistry, StringRightPositionHeaderType } from "../../core/header";
 import { RegexBuilder, RegexMachine, RegexState } from "../../util/regex";
 import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
@@ -58,7 +59,7 @@ class CStringIndexOf {
       if (call.arguments.length == 1) {
         this.stringAccess = new CElementAccess(scope, propAccess.expression);
         this.arg1 = CodeTemplateFactory.createForNode(scope, call.arguments[0]);
-        scope.root.headerFlags.str_rpos = true;
+        HeaderRegistry.declareDependency(StringRightPositionHeaderType);
       } else {
         console.log(
           "Unsupported number of parameters in " +
