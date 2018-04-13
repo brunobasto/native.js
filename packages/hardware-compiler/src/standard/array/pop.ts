@@ -47,9 +47,15 @@ class ArrayPopResolver implements IResolver {
   }
 }
 
-@CodeTemplate(`ARRAY_POP({varAccess}, {useReturnValue})`)
+@CodeTemplate(`
+{#if useReturnValue}
+  ARRAY_POP_WITH_RETURN({varAccess})
+{#else}
+  ARRAY_POP({varAccess})
+{/if}
+`)
 class CArrayPop {
-  public useReturnValue: number = 1;
+  public useReturnValue: boolean = true;
   public varAccess: CElementAccess = null;
 
   constructor(scope: IScope, call: ts.CallExpression) {
@@ -58,7 +64,7 @@ class CArrayPop {
     call.parent.kind == ts.SyntaxKind.Block
     // do not use returned value if it's a direct statement
     if (call.parent.kind === ts.SyntaxKind.ExpressionStatement) {
-      this.useReturnValue = 0;
+      this.useReturnValue = false;
     }
     HeaderRegistry.declareDependency(ArrayPopHeaderType);
   }

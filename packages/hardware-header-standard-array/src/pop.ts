@@ -12,6 +12,7 @@ export class StandardArrayPopHeader implements Header {
 }
 
 @CodeTemplate(`
-#define ARRAY_POP(array, useReturnValue) ((useReturnValue) == 0 ? (--array->size) : ((array->size != 0 ? array->data[--array->size] : 0)))
+#define ARRAY_POP_WITH_RETURN(array) (array->size != 0 ? array->data[--array->size] : 0)
+#define ARRAY_POP(array) (--array->size)
 `)
 class Template {}

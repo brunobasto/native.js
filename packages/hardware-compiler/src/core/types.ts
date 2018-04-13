@@ -261,6 +261,67 @@ export class TypeHelper {
     return false;
   }
 
+  public isLongExpression(binaryExpression: ts.BinaryExpression) {
+    // bitwise operators are excluded from this
+    if (this.isChildOfBitwiseOperation(binaryExpression)) {
+      return false;
+    }
+    // if left or right is float identifier
+    if (
+      binaryExpression.left.kind == ts.SyntaxKind.Identifier &&
+      this.getVariableInfo(<ts.Identifier>binaryExpression.left).type ==
+        LongVarType
+    ) {
+      return true;
+    }
+    if (
+      binaryExpression.left.kind == ts.SyntaxKind.Identifier &&
+      this.getVariableInfo(<ts.Identifier>binaryExpression.left).type ==
+        LongVarType
+    ) {
+      return true;
+    }
+    // check for each binary expression inside the given expression
+    if (
+      binaryExpression.right.kind == ts.SyntaxKind.BinaryExpression &&
+      this.isLongExpression(<ts.BinaryExpression>binaryExpression.right)
+    ) {
+      return true;
+    }
+    if (
+      binaryExpression.left.kind == ts.SyntaxKind.BinaryExpression &&
+      this.isLongExpression(<ts.BinaryExpression>binaryExpression.left)
+    ) {
+      return true;
+    }
+    // check if parenthesized expression
+    if (binaryExpression.left.kind == ts.SyntaxKind.ParenthesizedExpression) {
+      const parenthesizedExpression = <ts.ParenthesizedExpression>binaryExpression.left;
+      if (
+        parenthesizedExpression.expression.kind ==
+          ts.SyntaxKind.BinaryExpression &&
+        this.isLongExpression(
+          <ts.BinaryExpression>parenthesizedExpression.expression
+        )
+      ) {
+        return true;
+      }
+    }
+    if (binaryExpression.right.kind == ts.SyntaxKind.ParenthesizedExpression) {
+      const parenthesizedExpression = <ts.ParenthesizedExpression>binaryExpression.right;
+      if (
+        parenthesizedExpression.expression.kind ==
+          ts.SyntaxKind.BinaryExpression &&
+        this.isLongExpression(
+          <ts.BinaryExpression>parenthesizedExpression.expression
+        )
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public isFloatLiteral(node: ts.NumericLiteral): boolean {
     // if it contains a floating point, return true
     const literalText = node.getText();
@@ -331,6 +392,8 @@ export class TypeHelper {
         );
         if (this.isFloatExpression(<ts.BinaryExpression>parentBinary)) {
           return FloatVarType;
+        } else if (this.isLongExpression(<ts.BinaryExpression>parentBinary)) {
+          return LongVarType;
         } else {
           let tsType = this.typeChecker.getTypeAtLocation(node);
           let type = tsType && this.convertType(tsType);
