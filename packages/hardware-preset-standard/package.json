@@ -1,0 +1,15 @@
+{
+  "name": "hardware-preset-standard",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "scripts": {
+    "prepare": "tsc -p tsconfig.build.json"
+  },
+  "author": "Bruno Basto",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^2.1.6"
+  }
+}

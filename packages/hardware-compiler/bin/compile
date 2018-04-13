@@ -1,0 +1,72 @@
+#!/usr/bin/env node
+var path = require('path');
+var fs = require('fs');
+var ts = require('typescript');
+var ts2cprogram = require(path.join(__dirname, "../lib/core", "program.js"));
+
+const findUp = require('find-up');
+const configPath = findUp.sync(['.hardware.js', '.hardware.js.json'])
+let config = configPath ? JSON.parse(fs.readFileSync(configPath)) : {}
+
+const yargs = require('yargs')
+  .usage('Usage: ts2c [options] <fileName>')
+  .boolean('intermediate-transpile')
+  .alias('i', 'intermediate-transpile')
+  .describe('intermediate-transpile', 'Transpiles from typescript to ES3 before transpiling to C')
+  .alias('v', 'version')
+  .describe('version', 'Prints current version')
+  .help('h')
+  .epilog('Copyright 2018')
+  .version(true, require('../package').version);
+
+if (yargs.argv._.length === 0) {
+	yargs.showHelp();
+	process.exit();
+}
+
+let fileName = yargs.argv._[0];
+let baseName = path.basename(fileName, path.extname(fileName));
+let filePath = fileName.split(path.sep);
+filePath.pop();
+filePath = filePath.join(path.sep);
+
+if (yargs.argv['intermediate-transpile']) {
+	const codeTypeScript = fs.readFileSync(fileName);
+
+	let codeES3 = ts.transpileModule(codeTypeScript.toString('utf8'), {
+		compilerOptions: {
+			target: ts.ScriptTarget.ES3,
+			noImplicitUseStrict: true
+		}
+	});
+
+	fileName = path.join(filePath, `${baseName}.es3.js`);
+
+	fs.writeFileSync(fileName, codeES3.outputText);
+}
+
+var program = ts.createProgram([fileName], {
+	allowJs: true,
+	noLib: true,
+	pretty: true
+});
+
+config = Object.assign({}, {
+	presets: ['./packages/hardware-preset-standard']
+}, config);
+
+const presets = config.presets.map((presetPath) => {
+	let preset;
+	if (presetPath.indexOf('.') === 0) {
+		preset = require(path.resolve(configPath, '../', presetPath));
+	}
+	else {
+		preset = require(presetPath);
+	}
+	return new preset.default();
+});
+
+var output = new ts2cprogram.CProgram(program, presets)["resolve"]();
+fs.writeFileSync(path.join(filePath, `${baseName}.c`), output);
+
+process.exit();

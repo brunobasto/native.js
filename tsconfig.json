@@ -1,11 +1,10 @@
 {
+    "extends": "./tsconfig.base.json",
     "compilerOptions": {
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "target": "es6",
-        "noImplicitAny": false,
-        "sourceMap": true,
-        "experimentalDecorators": true
+        "baseUrl": "./packages",
+        "paths": {
+          "*": ["./*/src"]
+        }
     },
     "exclude": [
         "node_modules",

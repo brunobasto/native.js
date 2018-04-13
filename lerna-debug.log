@@ -1,0 +1,162 @@
+0 silly input [ 'test' ]
+1 silly flags { _: [ 'run' ],
+1 silly flags   'reject-cycles': false,
+1 silly flags   rejectCycles: false,
+1 silly flags   stream: true,
+1 silly flags   script: 'test',
+1 silly flags   args: [] }
+2 verbose rootPath /Users/brunobasto/Projects/Embedded/hardware.js
+3 info version 2.10.1
+4 silly existsSync /Users/brunobasto/Projects/Embedded/hardware.js/VERSION
+5 silly initialize attempt
+6 silly initialize success
+7 silly execute attempt
+8 silly runScriptInPackageStreaming [ 'test', [], 'hardware-compiler' ]
+9 silly getExecOpts { cwd: '/Users/brunobasto/Projects/Embedded/hardware.js/packages/hardware-compiler' }
+10 error execute callback with error
+11 error Error: Command failed: yarn run test
+11 error arrays/array.forEach.c:19:1: warning: control reaches end of non-void function [-Wreturn-type]
+11 error }
+11 error ^
+11 error 1 warning generated.
+11 error arrays/array11.c:102:5: warning: expression result unused [-Wunused-value]
+11 error     ARRAY_POP(arr2);
+11 error     ^~~~~~~~~~~~~~~
+11 error arrays/array11.c:8:55: note: expanded from macro 'ARRAY_POP'
+11 error #define ARRAY_POP(a) (a->size != 0 ? a->data[--a->size] : 0)
+11 error                                      ~~~~~~~ ~~~~~~~~~^
+11 error 1 warning generated.
+11 error arrays/array12.c:77:5: warning: expression result unused [-Wunused-value]
+11 error     ARRAY_POP(arr);
+11 error     ^~~~~~~~~~~~~~
+11 error arrays/array12.c:24:55: note: expanded from macro 'ARRAY_POP'
+11 error #define ARRAY_POP(a) (a->size != 0 ? a->data[--a->size] : 0)
+11 error                                      ~~~~~~~ ~~~~~~~~~^
+11 error 1 warning generated.
+11 error arrays/array17.c:84:5: warning: expression result unused [-Wunused-value]
+11 error     ARRAY_POP(arr2);
+11 error     ^~~~~~~~~~~~~~~
+11 error arrays/array17.c:15:55: note: expanded from macro 'ARRAY_POP'
+11 error #define ARRAY_POP(a) (a->size != 0 ? a->data[--a->size] : 0)
+11 error                                      ~~~~~~~ ~~~~~~~~~^
+11 error 1 warning generated.
+11 error arrays/array3.c:45:5: warning: expression result unused [-Wunused-value]
+11 error     ARRAY_POP(int_arr);
+11 error     ^~~~~~~~~~~~~~~~~~
+11 error arrays/array3.c:8:55: note: expanded from macro 'ARRAY_POP'
+11 error #define ARRAY_POP(a) (a->size != 0 ? a->data[--a->size] : 0)
+11 error                                      ~~~~~~~ ~~~~~~~~~^
+11 error arrays/array3.c:56:5: warning: expression result unused [-Wunused-value]
+11 error     ARRAY_POP(int_arr);
+11 error     ^~~~~~~~~~~~~~~~~~
+11 error arrays/array3.c:8:55: note: expanded from macro 'ARRAY_POP'
+11 error #define ARRAY_POP(a) (a->size != 0 ? a->data[--a->size] : 0)
+11 error                                      ~~~~~~~ ~~~~~~~~~^
+11 error arrays/array3.c:57:5: warning: expression result unused [-Wunused-value]
+11 error     ARRAY_POP(int_arr);
+11 error     ^~~~~~~~~~~~~~~~~~
+11 error arrays/array3.c:8:55: note: expanded from macro 'ARRAY_POP'
+11 error #define ARRAY_POP(a) (a->size != 0 ? a->data[--a->size] : 0)
+11 error                                      ~~~~~~~ ~~~~~~~~~^
+11 error arrays/array3.c:58:5: warning: expression result unused [-Wunused-value]
+11 error     ARRAY_POP(int_arr);
+11 error     ^~~~~~~~~~~~~~~~~~
+11 error arrays/array3.c:8:55: note: expanded from macro 'ARRAY_POP'
+11 error #define ARRAY_POP(a) (a->size != 0 ? a->data[--a->size] : 0)
+11 error                                      ~~~~~~~ ~~~~~~~~~^
+11 error arrays/array3.c:59:5: warning: expression result unused [-Wunused-value]
+11 error     ARRAY_POP(int_arr);
+11 error     ^~~~~~~~~~~~~~~~~~
+11 error arrays/array3.c:8:55: note: expanded from macro 'ARRAY_POP'
+11 error #define ARRAY_POP(a) (a->size != 0 ? a->data[--a->size] : 0)
+11 error                                      ~~~~~~~ ~~~~~~~~~^
+11 error arrays/array3.c:60:5: warning: expression result unused [-Wunused-value]
+11 error     ARRAY_POP(int_arr);
+11 error     ^~~~~~~~~~~~~~~~~~
+11 error arrays/array3.c:8:55: note: expanded from macro 'ARRAY_POP'
+11 error #define ARRAY_POP(a) (a->size != 0 ? a->data[--a->size] : 0)
+11 error                                      ~~~~~~~ ~~~~~~~~~^
+11 error arrays/array3.c:61:5: warning: expression result unused [-Wunused-value]
+11 error     ARRAY_POP(int_arr);
+11 error     ^~~~~~~~~~~~~~~~~~
+11 error arrays/array3.c:8:55: note: expanded from macro 'ARRAY_POP'
+11 error #define ARRAY_POP(a) (a->size != 0 ? a->data[--a->size] : 0)
+11 error                                      ~~~~~~~ ~~~~~~~~~^
+11 error 7 warnings generated.
+11 error mem/mem7.c:121:13: warning: ISO C90 forbids mixing declarations and code [-Wdeclaration-after-statement]
+11 error             DICT_SET_STR_INT(map, key1, value);
+11 error             ^
+11 error mem/mem7.c:56:12: note: expanded from macro 'DICT_SET_STR_INT'
+11 error     char * tempKey = malloc(1 + strlen(prop)); \
+11 error            ^
+11 error mem/mem7.c:129:13: warning: ISO C90 forbids mixing declarations and code [-Wdeclaration-after-statement]
+11 error             DICT_SET_STR_INT(insideMap, key2, value);
+11 error             ^
+11 error mem/mem7.c:56:12: note: expanded from macro 'DICT_SET_STR_INT'
+11 error     char * tempKey = malloc(1 + strlen(prop)); \
+11 error            ^
+11 error 2 warnings generated.
+11 error numbers/numbers1.c:16:20: warning: format specifies type 'int' but the argument has type 'unsigned long' [-Wformat]
+11 error     printf("%d\n", a + b);
+11 error             ~~     ^~~~~
+11 error             %lu
+11 error numbers/numbers1.c:17:20: warning: format specifies type 'int' but the argument has type 'unsigned long' [-Wformat]
+11 error     printf("%d\n", a - 10000);
+11 error             ~~     ^~~~~~~~~
+11 error             %lu
+11 error 2 warnings generated.
+11 error objs/obj4.c:113:9: warning: ISO C90 forbids mixing declarations and code [-Wdeclaration-after-statement]
+11 error         DICT_SET_STR_INT(obj, temporary0, x * 2);
+11 error         ^
+11 error objs/obj4.c:56:12: note: expanded from macro 'DICT_SET_STR_INT'
+11 error     char * tempKey = malloc(1 + strlen(prop)); \
+11 error            ^
+11 error objs/obj4.c:116:5: warning: ISO C90 forbids mixing declarations and code [-Wdeclaration-after-statement]
+11 error     DICT_SET_STR_INT(obj, "a", 50);
+11 error     ^
+11 error objs/obj4.c:56:12: note: expanded from macro 'DICT_SET_STR_INT'
+11 error     char * tempKey = malloc(1 + strlen(prop)); \
+11 error            ^
+11 error objs/obj4.c:117:5: warning: ISO C90 forbids mixing declarations and code [-Wdeclaration-after-statement]
+11 error     DICT_SET_STR_INT(obj, "k3", 99);
+11 error     ^
+11 error objs/obj4.c:56:12: note: expanded from macro 'DICT_SET_STR_INT'
+11 error     char * tempKey = malloc(1 + strlen(prop)); \
+11 error            ^
+11 error objs/obj4.c:118:5: warning: ISO C90 forbids mixing declarations and code [-Wdeclaration-after-statement]
+11 error     DICT_SET_STR_INT(obj, "z", 100);
+11 error     ^
+11 error objs/obj4.c:56:12: note: expanded from macro 'DICT_SET_STR_INT'
+11 error     char * tempKey = malloc(1 + strlen(prop)); \
+11 error            ^
+11 error 4 warnings generated.
+11 error objs/obj5.c:111:9: warning: ISO C90 forbids mixing declarations and code [-Wdeclaration-after-statement]
+11 error         DICT_SET_STR_INT(dict, temporary0, i * i);
+11 error         ^
+11 error objs/obj5.c:56:12: note: expanded from macro 'DICT_SET_STR_INT'
+11 error     char * tempKey = malloc(1 + strlen(prop)); \
+11 error            ^
+11 error 1 warning generated.
+11 error realworld/gray.c:67:146: error: invalid operands to binary expression ('float' and 'float')
+11 error           ARRAY_PUSH(imageDst->data, (imageSrc->data[i] * 299 + imageSrc->data[i + 1] * 587 + imageSrc->data[i + 2] * 114 + 500) / ((float)1000) & ((float)0xff));
+11 error                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~~~~~~~~~~~~
+11 error realworld/gray.c:14:34: note: expanded from macro 'ARRAY_PUSH'
+11 error     array->data[array->size++] = item; \
+11 error                                  ^~~~
+11 error 1 error generated.
+11 error make: *** [realworld/gray.elf] Error 1
+11 error error An unexpected error occurred: "Command failed.
+11 error Exit code: 2
+11 error Command: sh
+11 error Arguments: -c cd tests && make -B all
+11 error Directory: /Users/brunobasto/Projects/Embedded/hardware.js/packages/hardware-compiler
+11 error Output:
+11 error ".
+11 error
+11 error yarn run v1.5.1
+11 error $ cd tests && make -B all
+11 error info If you think this is a bug, please open a bug report with the information provided in "/Users/brunobasto/Projects/Embedded/hardware.js/packages/hardware-compiler/yarn-error.log".
+11 error info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+11 error
+11 error     at Promise.all.then.arr (/Users/brunobasto/.nvm/versions/node/v8.4.0/lib/node_modules/lerna/node_modules/execa/index.js:236:11)
+11 error     at <anonymous>
