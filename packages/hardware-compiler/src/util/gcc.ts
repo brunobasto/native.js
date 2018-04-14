@@ -1,6 +1,7 @@
+import * as fs from "fs";
+import * as path from "path";
 import { exec } from "child_process";
 import { fileSync as createTempFile } from "tmp";
-import * as fs from "fs";
 
 const gcc = (source, callback) => {
   const sourceTempFile = createTempFile({ postfix: ".c" });
@@ -8,7 +9,14 @@ const gcc = (source, callback) => {
 
   fs.writeFileSync(sourceFileName, source);
 
-  const hexTempFile = createTempFile({ keep: true, mode: 0o777, postfix: ".hex" });
+  const tempDir = fs.mkdtempSync(path.resolve(process.cwd(), "temp"));
+
+  const hexTempFile = createTempFile({
+    dir: tempDir,
+    keep: true,
+    mode: 0o777,
+    postfix: ".hex"
+  });
   let hexFileName = hexTempFile.name;
   const args = [
     sourceFileName,
