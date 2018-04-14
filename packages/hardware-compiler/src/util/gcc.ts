@@ -1,8 +1,8 @@
-import { spawnSync } from "child_process";
+import { spawn } from "child_process";
 import { fileSync as createTempFile } from "tmp";
 import * as fs from "fs";
 
-const gcc = source => {
+const gcc = (source, callback) => {
   const sourceTempFile = createTempFile({ postfix: ".c" });
   let sourceFileName = sourceTempFile.name;
 
@@ -11,7 +11,7 @@ const gcc = source => {
   const hexTempFile = createTempFile({ mode: 0o777, postfix: ".hex" });
   let hexFileName = hexTempFile.name;
 
-  const output = spawnSync("gcc", [
+  const output = spawn("gcc", [
     sourceFileName,
     "-ansi",
     "-pedantic",
@@ -21,11 +21,13 @@ const gcc = source => {
     hexFileName
   ]);
 
-  if (output.error) {
-    throw output.error;
-  }
-
-  return hexFileName;
+  output.stderr.on("data", data => console.log(data));
+  output.on("close", code => {
+    if (code > 0) {
+      throw new Error("Program execution failed.");
+    }
+    callback(hexFileName);
+  });
 };
 
 export { gcc };

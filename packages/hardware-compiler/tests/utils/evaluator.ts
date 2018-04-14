@@ -10,28 +10,29 @@ const compileToC = jsSource => {
   });
 };
 
-const compileToExecutable = cSource => {
+const compileToExecutable = (cSource, callback) => {
   // executes gcc and returns path to executable
-  return gcc(cSource);
+  gcc(cSource, callback);
 };
 
 const execute = executablePath => {
   const output = spawnSync(executablePath, []);
   if (output.error) {
-    throw output.error.message;
+    throw output.error;
   }
   return output.stdout.toString();
 };
 
-const evaluator = jsSource => {
+const evaluator = (jsSource, callback: Function) => {
   // compile source to c
   const cSource = compileToC(jsSource);
   // compile c to executable
-  const executablePath = compileToExecutable(cSource);
-  // execute
-  const result = execute(executablePath);
-  // return result
-  return result;
+  compileToExecutable(cSource, executablePath => {
+    // execute
+    const result = execute(executablePath);
+    // return result
+    callback(result);
+  });
 };
 
 export { evaluator };
