@@ -12,7 +12,11 @@ import {
   StringVarType,
   TypeHelper
 } from "../../core/types";
-import { HeaderRegistry, StringHeaderType, StringPositionHeaderType } from "../../core/header";
+import {
+  HeaderRegistry,
+  StringHeaderType,
+  StringPositionHeaderType
+} from "../../core/header";
 
 @StandardCallResolver
 class StringIndexOfResolver implements IResolver {

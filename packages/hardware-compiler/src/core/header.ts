@@ -138,7 +138,10 @@ export class HeaderRegistry {
     return templates;
   }
 
-  public static declareDependency(type: new () => HeaderType, params: any = {}) {
+  public static declareDependency(
+    type: new () => HeaderType,
+    params: any = {}
+  ) {
     const typeInstance = new type();
     if (!headers.has(type)) {
       throw new Error(`Unregistered header of type ${typeInstance.NAME}`);

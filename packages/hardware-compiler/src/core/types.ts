@@ -190,7 +190,10 @@ export class TypeHelper {
       if (parentBinary.operatorToken.kind == ts.SyntaxKind.AmpersandToken) {
         return true;
       }
-      parent = this.findParentWithKind(parent.parent, ts.SyntaxKind.BinaryExpression);
+      parent = this.findParentWithKind(
+        parent.parent,
+        ts.SyntaxKind.BinaryExpression
+      );
     }
     return false;
   }

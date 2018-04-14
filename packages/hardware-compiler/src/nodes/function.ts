@@ -1,5 +1,10 @@
 import * as ts from "typescript";
-import { ArrayType, StringVarType, NumberVarType, TypeHelper } from "../core/types";
+import {
+  ArrayType,
+  StringVarType,
+  NumberVarType,
+  TypeHelper
+} from "../core/types";
 import { CodeTemplate, CodeTemplateFactory } from "../core/template";
 import { CVariable, CVariableDestructors } from "./variable";
 import { IScope, CProgram } from "../core/program";

@@ -1,12 +1,20 @@
 var matched = 0;
 var count = 0;
 function print(string, regex, expect) {
-    count++;
-    var pos = string.search(regex);
-    if (pos != expect)
-        console.log("\"" + string + "\".search(" + regex + ") -> FAIL, returned " + pos + ", expected " + expect);
-    else
-        matched++;
+  count++;
+  var pos = string.search(regex);
+  if (pos != expect)
+    console.log(
+      '"' +
+        string +
+        '".search(' +
+        regex +
+        ") -> FAIL, returned " +
+        pos +
+        ", expected " +
+        expect
+    );
+  else matched++;
 }
 
 print("nnda", /n*.a/, 0);

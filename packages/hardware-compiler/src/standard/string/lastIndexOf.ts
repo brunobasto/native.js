@@ -3,7 +3,10 @@ import { CElementAccess } from "../../nodes/elementaccess";
 import { CExpression } from "../../nodes/expressions";
 import { CVariable } from "../../nodes/variable";
 import { IScope } from "../../core/program";
-import { HeaderRegistry, StringRightPositionHeaderType } from "../../core/header";
+import {
+  HeaderRegistry,
+  StringRightPositionHeaderType
+} from "../../core/header";
 import { RegexBuilder, RegexMachine, RegexState } from "../../util/regex";
 import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";

@@ -7,5 +7,5 @@ console.log(arrOfArrays1);
 
 let ari;
 for (ari of arrOfArrays1) {
-    console.log(ari);
+  console.log(ari);
 }

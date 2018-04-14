@@ -14,7 +14,7 @@ import {
 } from "../core/header";
 import debug from "debug";
 
-const log = debug('nodes');
+const log = debug("nodes");
 
 @CodeTemplate(`{expression}`, ts.SyntaxKind.ArrayLiteralExpression)
 class CArrayLiteralExpression {
@@ -160,7 +160,7 @@ class CRegexLiteralExpression {
       );
     }
     this.expression = regexNames[template];
-    HeaderRegistry.declareDependency(RegexMatchHeaderType)
+    HeaderRegistry.declareDependency(RegexMatchHeaderType);
   }
 }
 
@@ -190,7 +190,10 @@ export class CNumber {
   constructor(scope: IScope, value: ts.Node) {
     const { typeHelper } = scope.root;
     // look for parent binary expressions
-    let parent = typeHelper.findParentWithKind(value, ts.SyntaxKind.BinaryExpression);
+    let parent = typeHelper.findParentWithKind(
+      value,
+      ts.SyntaxKind.BinaryExpression
+    );
     // if it's inside a float expression
     if (parent && typeHelper.isFloatExpression(<ts.BinaryExpression>parent)) {
       this.value = `((float)${value.getText()})`;

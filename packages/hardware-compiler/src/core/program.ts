@@ -6,7 +6,12 @@ import { CFunction, CFunctionPrototype } from "../nodes/function";
 import { CVariable, CVariableDestructors } from "../nodes/variable";
 import { Preset } from "./preset";
 import { Plugin, PluginRegistry } from "./plugin";
-import { Header, HeaderRegistry, BooleanHeaderType, StructHeaderType } from "./header";
+import {
+  Header,
+  HeaderRegistry,
+  BooleanHeaderType,
+  StructHeaderType
+} from "./header";
 import { Main, MainRegistry } from "./main";
 import { Bottom, BottomRegistry } from "./bottom";
 import { GarbageCollector } from "./gc";
@@ -271,7 +276,7 @@ export class CProgram implements IScope {
       HeaderRegistry.declareDependency(StructHeaderType, {
         name: s.name,
         properties: s.properties
-      })
+      });
     });
 
     this.functionPrototypes = functionPrototypes.map(
