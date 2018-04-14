@@ -261,6 +261,18 @@ export class TypeHelper {
         return true;
       }
     }
+    if (
+        binaryExpression.left.kind == ts.SyntaxKind.NumericLiteral &&
+        this.isFloatLiteral(<ts.NumericLiteral>binaryExpression.left)
+    ) {
+        return true;
+    }
+    if (
+        binaryExpression.right.kind == ts.SyntaxKind.NumericLiteral &&
+        this.isFloatLiteral(<ts.NumericLiteral>binaryExpression.right)
+    ) {
+        return true;
+    }
     return false;
   }
 
@@ -393,6 +405,7 @@ export class TypeHelper {
           node,
           ts.SyntaxKind.BinaryExpression
         );
+        log(parentBinary.getText(), this.isFloatExpression(<ts.BinaryExpression>parentBinary));
         if (this.isFloatExpression(<ts.BinaryExpression>parentBinary)) {
           return FloatVarType;
         } else if (this.isLongExpression(<ts.BinaryExpression>parentBinary)) {

@@ -45,7 +45,8 @@ describe("Numbers Expression Evaluator", () => {
         const result = 45.97 + 4.32;
       `;
       evaluator(buildExpression(expression), actual => {
-        assert(expression, actual);
+        // close enough?
+        assert(expression, actual, '50.290001');
         done();
       });
     });
