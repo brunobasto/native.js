@@ -1,4 +1,4 @@
-import { spawn } from "child_process";
+import { exec } from "child_process";
 import { fileSync as createTempFile } from "tmp";
 import * as fs from "fs";
 
@@ -10,8 +10,7 @@ const gcc = (source, callback) => {
 
   const hexTempFile = createTempFile({ mode: 0o777, postfix: ".hex" });
   let hexFileName = hexTempFile.name;
-
-  const output = spawn("gcc", [
+  const args = [
     sourceFileName,
     "-ansi",
     "-pedantic",
@@ -19,12 +18,10 @@ const gcc = (source, callback) => {
     "-g",
     "-o",
     hexFileName
-  ]);
-
-  output.stderr.on("data", data => console.log(data));
-  output.on("close", code => {
-    if (code > 0) {
-      throw new Error("Program execution failed.");
+  ];
+  exec(`gcc ${args.join(" ")}`, (error, stdout) => {
+    if (error) {
+      throw error;
     }
     callback(hexFileName);
   });

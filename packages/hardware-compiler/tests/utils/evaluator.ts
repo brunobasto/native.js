@@ -1,4 +1,4 @@
-import { spawnSync } from "child_process";
+import { execFile } from "child_process";
 import { compile } from "../../src/util/compile";
 import { gcc } from "../../src/util/gcc";
 
@@ -15,12 +15,13 @@ const compileToExecutable = (cSource, callback) => {
   gcc(cSource, callback);
 };
 
-const execute = executablePath => {
-  const output = spawnSync(executablePath, []);
-  if (output.error) {
-    throw output.error;
-  }
-  return output.stdout.toString();
+const execute = (executablePath, callback) => {
+  execFile(executablePath, [], (error, stdout) => {
+    if (error) {
+      throw error;
+    }
+    callback(stdout.toString());
+  });
 };
 
 const evaluator = (jsSource, callback: Function) => {
@@ -28,10 +29,8 @@ const evaluator = (jsSource, callback: Function) => {
   const cSource = compileToC(jsSource);
   // compile c to executable
   compileToExecutable(cSource, executablePath => {
-    // execute
-    const result = execute(executablePath);
-    // return result
-    callback(result);
+    // execute and return result
+    execute(executablePath, result => callback(result));
   });
 };
 
