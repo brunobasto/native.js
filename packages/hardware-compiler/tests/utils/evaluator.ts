@@ -5,7 +5,7 @@ import { gcc } from "../../src/util/gcc";
 const compileToC = jsSource => {
   // returns c output code
   return compile(jsSource, {
-    downTranspileToES3: false,
+    downTranspileToES3: true,
     presets: ["hardware-preset-standard"]
   });
 };
