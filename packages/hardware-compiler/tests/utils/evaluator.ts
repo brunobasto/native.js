@@ -17,6 +17,9 @@ const compileToExecutable = cSource => {
 
 const execute = executablePath => {
   const output = spawnSync(executablePath, []);
+  if (output.error) {
+    throw output.error;
+  }
   return output.stdout.toString();
 };
 
