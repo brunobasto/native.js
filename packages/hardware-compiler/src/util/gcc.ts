@@ -15,7 +15,7 @@ const gcc = (source, callback) => {
     dir: tempDir,
     keep: true,
     mode: 0o777,
-    postfix: ".hex"
+    postfix: ".out"
   });
   let hexFileName = hexTempFile.name;
   const args = [
