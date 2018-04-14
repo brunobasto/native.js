@@ -29,7 +29,10 @@
   "author": "Bruno Basto",
   "license": "ISC",
   "workspaces": [
-    "packages/*"
+    "packages/hardware-compiler",
+    "packages/hardware-standard-headers/*",
+    "packages/hardware-standard-plugins/*",
+    "packages/hardware-standard-preset"
   ],
   "dependencies": {
   }
