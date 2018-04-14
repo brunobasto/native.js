@@ -262,16 +262,16 @@ export class TypeHelper {
       }
     }
     if (
-        binaryExpression.left.kind == ts.SyntaxKind.NumericLiteral &&
-        this.isFloatLiteral(<ts.NumericLiteral>binaryExpression.left)
+      binaryExpression.left.kind == ts.SyntaxKind.NumericLiteral &&
+      this.isFloatLiteral(<ts.NumericLiteral>binaryExpression.left)
     ) {
-        return true;
+      return true;
     }
     if (
-        binaryExpression.right.kind == ts.SyntaxKind.NumericLiteral &&
-        this.isFloatLiteral(<ts.NumericLiteral>binaryExpression.right)
+      binaryExpression.right.kind == ts.SyntaxKind.NumericLiteral &&
+      this.isFloatLiteral(<ts.NumericLiteral>binaryExpression.right)
     ) {
-        return true;
+      return true;
     }
     return false;
   }
@@ -405,7 +405,10 @@ export class TypeHelper {
           node,
           ts.SyntaxKind.BinaryExpression
         );
-        log(parentBinary.getText(), this.isFloatExpression(<ts.BinaryExpression>parentBinary));
+        log(
+          parentBinary.getText(),
+          this.isFloatExpression(<ts.BinaryExpression>parentBinary)
+        );
         if (this.isFloatExpression(<ts.BinaryExpression>parentBinary)) {
           return FloatVarType;
         } else if (this.isLongExpression(<ts.BinaryExpression>parentBinary)) {
