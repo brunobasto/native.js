@@ -27,13 +27,11 @@
     "tslint-plugin-prettier": "^1.3.0"
   },
   "scripts": {
-    "format": "prettier --write 'packages/**/*.ts'",
-    "lint": "tslint -c tslint.json 'packages/**/*.ts'",
+    "format": "yarn --cwd ../../ format",
+    "lint": "yarn --cwd ../../ lint",
     "prepare": "yarn --cwd ../../ prepare",
     "test": "nyc mocha --opts tests/mocha.opts",
-    "test-legacy": "cd tests && make -B all",
-    "test-run-single": "bash -c 'gcc tests/${1}.c -ansi -pedantic -Wall -g -o  tests/${1}.elf && ./tests/${1}.elf' -- ",
-    "test-single": "lerna run prepare && bash -c './bin/compile tests/${1}.ts && gcc tests/${1}.c -ansi -pedantic -Wall -g -o  tests/${1}.elf && ./tests/${1}.elf' -- "
+    "test-legacy": "cd tests && make -B all"
   },
   "nyc": {
     "extension": [
