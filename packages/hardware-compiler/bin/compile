@@ -2,7 +2,7 @@
 var path = require('path');
 var fs = require('fs');
 var ts = require('typescript');
-var ts2cprogram = require(path.join(__dirname, "../lib/core", "program.js"));
+var ts2cprogram = require(path.join(__dirname, "../src/core", "program.js"));
 
 const findUp = require('find-up');
 const configPath = findUp.sync(['.hardware.js', '.hardware.js.json'])

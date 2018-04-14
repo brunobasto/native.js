@@ -5,10 +5,14 @@
 		"target": "es6",
 		"noImplicitAny": false,
 		"sourceMap": true,
-		"experimentalDecorators": true
+		"experimentalDecorators": true,
+		"baseUrl": "./packages",
+        "paths": {
+          "*": ["./*/src"]
+        }
 	},
 	"exclude": [
         "node_modules",
-        "tests"
+        "./packages/hardware-compiler/tests"
     ]
 }

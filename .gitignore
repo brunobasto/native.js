@@ -10,6 +10,7 @@
 .vscode/c_cpp_properties.json
 node_modules
 tests/coverage
+lib
 tests_esp
 ts2c.bundle.js
 lerna-debug.log

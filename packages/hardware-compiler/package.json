@@ -2,8 +2,8 @@
   "name": "hardware-compiler",
   "version": "0.0.1",
   "description": "Write JavaScript software for your hardware.",
-  "main": "lib/index.js",
-  "typings": "lib/index.d.ts",
+  "main": "src/index.js",
+  "typings": "src/index.d.ts",
   "bin": {
     "hardware.js": "./bin/compile"
   },
@@ -26,7 +26,7 @@
   "scripts": {
     "format": "prettier --write 'packages/**/*.ts'",
     "lint": "tslint -c tslint.json 'packages/**/*.ts'",
-    "prepare": "tsc -p tsconfig.build.json",
+    "prepare": "yarn --cwd ../../ prepare",
     "test": "cd tests && make -B all",
     "test-run-single": "bash -c 'gcc tests/${1}.c -ansi -pedantic -Wall -g -o  tests/${1}.elf && ./tests/${1}.elf' -- ",
     "test-single": "lerna run prepare && bash -c './bin/compile tests/${1}.ts && gcc tests/${1}.c -ansi -pedantic -Wall -g -o  tests/${1}.elf && ./tests/${1}.elf' -- "

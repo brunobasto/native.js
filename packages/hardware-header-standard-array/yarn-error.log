@@ -2,7 +2,7 @@ Arguments:
   /Users/brunobasto/.nvm/versions/node/v8.4.0/bin/node /Users/brunobasto/Projects/Embedded/hardware.js/node_modules/.bin/yarn run prepare
 
 PATH: 
-  /Users/brunobasto/Projects/Embedded/hardware.js/packages/hardware-header-standard-array/node_modules/.bin:/Users/brunobasto/Projects/Embedded/hardware.js/packages/node_modules/.bin:/Users/brunobasto/Projects/Embedded/hardware.js/node_modules/.bin:/Users/brunobasto/Projects/Embedded/node_modules/.bin:/Users/brunobasto/Projects/node_modules/.bin:/Users/brunobasto/node_modules/.bin:/Users/node_modules/.bin:/node_modules/.bin:/Users/brunobasto/.nvm/versions/node/v8.4.0/bin:/Users/brunobasto/Projects/Embedded/hardware.js/node_modules/.bin:/Users/brunobasto/.config/yarn/link/node_modules/.bin:/Users/brunobasto/Projects/Embedded/hardware.js/node_modules/.bin:/Users/brunobasto/Projects/Embedded/hardware.js/node_modules/.bin:/Users/brunobasto/.config/yarn/link/node_modules/.bin:/Users/brunobasto/Projects/Embedded/hardware.js/node_modules/.bin:/Users/brunobasto/.nvm/versions/node/v8.4.0/libexec/lib/node_modules/npm/bin/node-gyp-bin:/Users/brunobasto/.nvm/versions/node/v8.4.0/lib/node_modules/npm/bin/node-gyp-bin:/Users/brunobasto/.nvm/versions/node/v8.4.0/bin/node_modules/npm/bin/node-gyp-bin:/Users/brunobasto/Projects/Embedded/hardware.js/node_modules/.bin:/Users/brunobasto/Projects/Embedded/node_modules/.bin:/Users/brunobasto/Projects/node_modules/.bin:/Users/brunobasto/node_modules/.bin:/Users/node_modules/.bin:/node_modules/.bin:/Users/brunobasto/.nvm/versions/node/v8.4.0/bin:/usr/local/opt/python/libexec/bin:/Users/brunobasto/.nvm/versions/node/v8.4.0/bin:/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/bin:/opt/local/bin:/opt/local/sbin:/Applications/XAMPP/bin:/Users/brunobasto/DevApps/protoc-3.2.0-osx-x86_64/bin:/Applications/cmake-3.7.1/bin:/usr/local/heroku/bin:/Users/brunobasto/.rbenv/bin:/opt/local/bin:/opt/local/sbin:/Applications/XAMPP/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/usr/local/CrossPack-AVR/bin:/Users/brunobasto/DevApps/sonar-runner-2.4/bin:/Users/brunobasto/Downloads/BCPL64/cintcode/bin:/Users/brunobasto/DevApps/sonar-runner-2.4/bin:/Applications/microchip/xc8/v1.38/bin:/Users/brunobasto/Projects/gerb2etch:/Users/brunobasto/Downloads/BCPL64/cintcode/bin:/Users/brunobasto/Library/PackageManager/bin
+  /Users/brunobasto/Projects/Embedded/hardware.js/packages/hardware-header-standard-array/node_modules/.bin:/Users/brunobasto/Projects/Embedded/hardware.js/packages/node_modules/.bin:/Users/brunobasto/Projects/Embedded/hardware.js/node_modules/.bin:/Users/brunobasto/Projects/Embedded/node_modules/.bin:/Users/brunobasto/Projects/node_modules/.bin:/Users/brunobasto/node_modules/.bin:/Users/node_modules/.bin:/node_modules/.bin:/Users/brunobasto/.nvm/versions/node/v8.4.0/bin:/usr/local/opt/python/libexec/bin:/Users/brunobasto/.nvm/versions/node/v8.4.0/bin:/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/bin:/opt/local/bin:/opt/local/sbin:/Applications/XAMPP/bin:/Users/brunobasto/DevApps/protoc-3.2.0-osx-x86_64/bin:/Applications/cmake-3.7.1/bin:/usr/local/heroku/bin:/Users/brunobasto/.rbenv/bin:/opt/local/bin:/opt/local/sbin:/Applications/XAMPP/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/usr/local/CrossPack-AVR/bin:/Users/brunobasto/DevApps/sonar-runner-2.4/bin:/Users/brunobasto/Downloads/BCPL64/cintcode/bin:/Users/brunobasto/DevApps/sonar-runner-2.4/bin:/Applications/microchip/xc8/v1.38/bin:/Users/brunobasto/Projects/gerb2etch:/Users/brunobasto/Downloads/BCPL64/cintcode/bin:/Users/brunobasto/Library/PackageManager/bin
 
 Yarn version: 
   1.5.1
@@ -18,15 +18,15 @@ npm manifest:
     "name": "hardware-header-standard-array",
     "version": "1.0.0",
     "description": "",
-    "main": "lib/index.js",
-    "typings": "lib/index.d.ts",
+    "main": "src/index.js",
+    "typings": "src/index.d.ts",
     "scripts": {
       "prepare": "tsc -p tsconfig.build.json"
     },
     "author": "Bruno Basto",
     "license": "ISC",
     "devDependencies": {
-      "typescript": "^2.1.6"
+      "typescript": "2.1.6"
     }
   }
 
@@ -2227,10 +2227,6 @@ Lockfile:
   typescript@2.1.6:
     version "2.1.6"
     resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.1.6.tgz#40c7e6e9e5da7961b7718b55505f9cac9487a607"
-  
-  typescript@^2.1.6:
-    version "2.8.1"
-    resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.8.1.tgz#6160e4f8f195d5ba81d4876f9c0cc1fbc0820624"
   
   uglify-js@^2.6:
     version "2.8.29"

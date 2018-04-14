@@ -16,7 +16,7 @@
   "scripts": {
     "clean": "rimraf packages/**/lib packages/**/node_modules",
     "bootstrap": "lerna bootstrap",
-    "prepare": "lerna run prepare",
+    "prepare": "tsc -p tsconfig.base.json",
     "format": "prettier --write './packages/**/*.ts'",
     "lint": "tslint -c tslint.json './packages/**/*.ts'",
     "test": "lerna run test"
