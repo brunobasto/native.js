@@ -6,6 +6,7 @@ import { IScope } from "../../core/program";
 import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
+  TypeRegistry,
   ArrayType,
   NumberVarType,
   StringVarType,
@@ -79,6 +80,8 @@ class CArrayForEach {
     if (call.arguments.length == 0) {
       throw Error("Array.forEach needs an argument.");
     }
+
+    TypeRegistry.declareNodeType(call.arguments[0], "void");
 
     const args = call.arguments.map(a =>
       CodeTemplateFactory.createForNode(scope, a)
