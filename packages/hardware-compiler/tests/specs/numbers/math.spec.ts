@@ -14,6 +14,16 @@ const assertExpression = (expression, actual, expected = undefined) => {
 };
 
 describe("Numbers Expression Evaluator", () => {
+  it("should be able to add two literal integers", done => {
+    const expression = `
+      const result = 3 + 4;
+    `;
+    evaluator(logResult(expression), actual => {
+      assertExpression(expression, actual);
+      done();
+    });
+  });
+
   it("should be able to add two integers", done => {
     const expression = `
       const a = 3;
@@ -59,6 +69,16 @@ describe("Numbers Expression Evaluator", () => {
     evaluator(logResult(expression), actual => {
       // we need to override expected float numbers since
       // printf outputs trailing zeros
+      assertExpression(expression, actual, "0.750000");
+      done();
+    });
+  });
+
+  it("should be able to divide two literal integers", done => {
+    const expression = `
+      const result = 3 / 4;
+    `;
+    evaluator(logResult(expression), actual => {
       assertExpression(expression, actual, "0.750000");
       done();
     });
