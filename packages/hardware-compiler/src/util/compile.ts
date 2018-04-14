@@ -33,22 +33,3 @@ const compile = (source, options: any = {}) => {
 };
 
 export { compile };
-
-// fs.writeFileSync(fileName, codeES3.outputText);
-
-// config = Object.assign({}, {
-// 	presets: ['./packages/hardware-preset-standard']
-// }, config);
-
-// const presets = config.presets.map((presetPath) => {
-// 	let preset;
-// 	if (presetPath.indexOf('.') === 0) {
-// 		preset = require(path.resolve(configPath, '../', presetPath));
-// 	}
-// 	else {
-// 		preset = require(presetPath);
-// 	}
-// 	return new preset.default();
-// });
-
-// const output = new ts2cprogram.CProgram(program, presets)["resolve"]();
