@@ -115,7 +115,7 @@ interface PrintfOptions {
 {#elseif isInteger}
     printf("{PREFIX}%d{POSTFIX}", {accessor});
 {#elseif isFloat}
-    printf("{PREFIX}%f{POSTFIX}", {accessor});
+    printf("{PREFIX}%.6f{POSTFIX}", {accessor});
 {#elseif isLong}
     printf("{PREFIX}%lu{POSTFIX}", {accessor});
 {#elseif isBoolean && !PREFIX && !POSTFIX}

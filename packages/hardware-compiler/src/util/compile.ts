@@ -5,6 +5,9 @@ import { fileSync as createTempFile } from "tmp";
 import * as fs from "fs";
 import { CProgram } from "../core/program";
 import { resolvePresets } from "./resolvePresets";
+import debug from "debug";
+
+const log = debug("compile");
 
 const compile = (source, options: any = {}) => {
   if (options.downTranspileToES3) {
@@ -29,7 +32,9 @@ const compile = (source, options: any = {}) => {
 
   const presets = resolvePresets(options.presets);
 
-  return new CProgram(program, presets)["resolve"]();
+  const output = new CProgram(program, presets)["resolve"]();
+  log(output);
+  return output;
 };
 
 export { compile };
