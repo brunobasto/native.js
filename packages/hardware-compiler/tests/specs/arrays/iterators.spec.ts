@@ -5,7 +5,7 @@ import { expect, use } from "chai";
 
 describe("Array Iterators", () => {
   describe("forEach", () => {
-    it("should to summ all elements in an Array", done => {
+    it("should summ all elements in an Array", done => {
       const expression = `
         const array = [5, 10, 15, 20];
         let result = 0;
