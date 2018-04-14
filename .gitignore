@@ -6,12 +6,14 @@
 *.res
 *.sublime-project
 *.sublime-workspace
+.nyc_output
 .vscode/.browse.*
 .vscode/c_cpp_properties.json
+coverage
+lerna-debug.log
+lib
 node_modules
 tests/coverage
-lib
 tests_esp
 ts2c.bundle.js
-lerna-debug.log
 yarn-error.log

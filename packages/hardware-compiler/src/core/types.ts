@@ -803,9 +803,13 @@ export class TypeHelper {
               varPos = nextVarPos;
             }
             varInfo = this.variables[varPos];
-            varData = this.variablesData[varPos];
-            varInfo.references.push(propAccess.expression);
-            varNode = propAccess.expression;
+            // TODO - handle variables outside program
+            // like console
+            if (varInfo) {
+              varData = this.variablesData[varPos];
+              varInfo.references.push(propAccess.expression);
+              varNode = propAccess.expression;
+            }
           }
         }
       } else if (node.kind == ts.SyntaxKind.Identifier) {

@@ -216,7 +216,7 @@ export class CProgram implements IScope {
     }
   }
 
-  constructor(tsProgram: ts.Program, presets = []) {
+  constructor(tsProgram: ts.Program, presets: Preset[] = []) {
     this.typeChecker = tsProgram.getTypeChecker();
     this.typeHelper = new TypeHelper(this.typeChecker);
     this.memoryManager = new MemoryManager(this.typeChecker, this.typeHelper);
@@ -239,15 +239,22 @@ export class CProgram implements IScope {
       PluginRegistry.registerPlugin(plugin);
     }
 
-    this.typeHelper.figureOutVariablesAndTypes(tsProgram.getSourceFiles());
+    const sourceFiles = [];
+    for (const sourceFile of tsProgram.getSourceFiles()) {
+      if (!sourceFile.isDeclarationFile) {
+        sourceFiles.push(sourceFile);
+      }
+    }
+
+    this.typeHelper.figureOutVariablesAndTypes(sourceFiles);
 
     this.memoryManager.preprocessVariables();
 
-    for (let source of tsProgram.getSourceFiles()) {
+    for (let source of sourceFiles) {
       this.memoryManager.preprocessTemporaryVariables(source);
     }
 
-    for (let source of tsProgram.getSourceFiles()) {
+    for (let source of sourceFiles) {
       for (let s of source.statements) {
         if (s.kind == ts.SyntaxKind.FunctionDeclaration)
           this.functions.push(new CFunction(this, <any>s));

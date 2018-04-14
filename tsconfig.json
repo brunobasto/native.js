@@ -1,13 +1,18 @@
 {
-    "extends": "./tsconfig.base.json",
-    "compilerOptions": {
-        "baseUrl": "./packages",
-        "paths": {
-          "*": ["./*/src"]
-        }
-    },
-    "exclude": [
+	"compilerOptions": {
+		"module": "commonjs",
+		"target": "es6",
+		"noImplicitAny": false,
+		"sourceMap": true,
+		"experimentalDecorators": true,
+		"allowJs": false,
+		"baseUrl": "./packages",
+        "typeRoots": [
+            "./node_modules/@types"
+        ]
+	},
+	"exclude": [
         "node_modules",
-        "tests"
+        "./packages/hardware-compiler/tests-legacy"
     ]
 }

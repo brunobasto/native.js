@@ -4,19 +4,26 @@
   "description": "Write JavaScript software for your hardware.",
   "private": true,
   "devDependencies": {
+    "@types/chai": "^4.1.1",
+    "@types/mocha": "^2.2.46",
+    "@types/node": "^8.5.8",
+    "chai": "^4.1.2",
     "lerna": "^2.10.1",
+    "mocha": "^5.0.0",
     "prettier": "^1.11.1",
     "remap-istanbul": "^0.6.4",
     "rimraf": "^2.6.2",
+    "ts-node": "^4.1.0",
+    "tslint": "^5.9.1",
     "tslint": "^5.9.1",
     "tslint-config-prettier": "^1.10.0",
     "tslint-plugin-prettier": "^1.3.0",
     "yarn": "^1.5.1"
   },
   "scripts": {
-    "clean": "rimraf packages/**/lib packages/**/node_modules",
+    "clean": "rimraf yarn.lock packages/**/node_modules",
     "bootstrap": "lerna bootstrap",
-    "prepare": "tsc -p tsconfig.base.json",
+    "prepare": "tsc",
     "format": "prettier --write './packages/**/*.ts'",
     "lint": "tslint -c tslint.json './packages/**/*.ts'",
     "test": "lerna run test"
@@ -29,5 +36,7 @@
   "license": "ISC",
   "workspaces": [
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+  }
 }
