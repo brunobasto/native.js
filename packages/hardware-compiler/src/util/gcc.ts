@@ -8,7 +8,7 @@ const gcc = (source, callback) => {
 
   fs.writeFileSync(sourceFileName, source);
 
-  const hexTempFile = createTempFile({ mode: 0o777, postfix: ".hex" });
+  const hexTempFile = createTempFile({ keep: true, mode: 0o777, postfix: ".hex" });
   let hexFileName = hexTempFile.name;
   const args = [
     sourceFileName,
