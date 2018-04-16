@@ -40,4 +40,17 @@ describe("Object Properties", () => {
   `;
     assertObjectResult(expression, done);
   });
+
+  it("should allow assigning property values with expressions", done => {
+    const expression = `
+    const result = {};
+    for (var x = 5; x > 0; x--) {
+      result["k" + x] = x * 2;
+    }
+    result["a"] = 50;
+    result["k3"] = 99;
+    result["z"] = 100;
+  `;
+    assertObjectResult(expression, done);
+  });
 });
