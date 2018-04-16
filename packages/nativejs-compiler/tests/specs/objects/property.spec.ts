@@ -53,4 +53,14 @@ describe("Object Properties", () => {
   `;
     assertObjectResult(expression, done);
   });
+
+  it("should allow override existing properties", done => {
+    const expression = `
+    const result = {};
+    for (var x = 5; x > 0; x--) {
+      result["test"] = "test";
+    }
+  `;
+    assertObjectResult(expression, done);
+  });
 });
