@@ -1,7 +1,7 @@
 {
-  "name": "hardwarejs",
+  "name": "native.js",
   "version": "0.0.3",
-  "description": "Write JavaScript software for your hardware.",
+  "description": "Write native JavaScript code.",
   "private": true,
   "devDependencies": {
     "@types/chai": "^4.1.1",
@@ -24,15 +24,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/brunobasto/hardware.js.git"
+    "url": "git://github.com/brunobasto/native.js.git"
   },
   "author": "Bruno Basto",
   "license": "ISC",
   "workspaces": [
-    "packages/hardware-compiler",
-    "packages/hardware-standard-headers/*",
-    "packages/hardware-standard-plugins/*",
-    "packages/hardware-standard-preset"
+    "packages/nativejs-compiler",
+    "packages/nativejs-standard-headers/*",
+    "packages/nativejs-standard-plugins/*",
+    "packages/nativejs-standard-preset"
   ],
   "dependencies": {
   }
