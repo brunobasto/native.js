@@ -2,12 +2,16 @@ import { execFile } from "child_process";
 import { compile } from "../../src/util/compile";
 import { gcc } from "../../src/util/gcc";
 
-const compileToC = jsSource => {
+const compileToC = (jsSource, callback) => {
   // returns c output code
-  return compile(jsSource, {
-    downTranspileToES3: true,
-    presets: ["nativejs-preset-standard"]
-  });
+  compile(
+    jsSource,
+    {
+      downTranspileToES3: true,
+      presets: ["nativejs-preset-standard"]
+    },
+    callback
+  );
 };
 
 const compileToExecutable = (cSource, callback) => {
@@ -26,11 +30,14 @@ const execute = (executablePath, callback) => {
 
 const evaluator = (jsSource, callback: Function) => {
   // compile source to c
-  const cSource = compileToC(jsSource);
-  // compile c to executable
-  compileToExecutable(cSource, executablePath => {
-    // execute and return result
-    execute(executablePath, result => callback(result));
+  compileToC(jsSource, cSource => {
+    // compile c to executable
+    compileToExecutable(cSource, executablePath => {
+      // execute and return result
+      execute(executablePath, result => {
+        callback(result);
+      });
+    });
   });
 };
 

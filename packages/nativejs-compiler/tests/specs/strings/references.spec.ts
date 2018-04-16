@@ -1,5 +1,5 @@
 import "mocha";
-import { assert, buildExpression } from "../../utils/assert";
+import { assertStringResult } from "../../utils/assert";
 import { evaluator } from "../../utils/evaluator";
 
 describe("String References", () => {
@@ -8,10 +8,7 @@ describe("String References", () => {
 	var s = "10";
 	const result = s == "10";
 	`;
-    evaluator(buildExpression(expression), actual => {
-      assert(expression, actual);
-      done();
-    });
+    assertStringResult(expression, done);
   });
 
   it("should return true when comparing return of .toString with '=='", done => {
@@ -19,10 +16,7 @@ describe("String References", () => {
 	var s = "10";
 	const result = s.toString() == "10";
 	`;
-    evaluator(buildExpression(expression), actual => {
-      assert(expression, actual);
-      done();
-    });
+    assertStringResult(expression, done);
   });
 
   it("should return true when comparing int of same value with '=='", done => {
@@ -30,10 +24,7 @@ describe("String References", () => {
 	var s = "10";
 	const result = s == 10;
 	`;
-    evaluator(buildExpression(expression), actual => {
-      assert(expression, actual);
-      done();
-    });
+    assertStringResult(expression, done);
   });
 
   it("should return true when comparing int expression of same value with '=='", done => {
@@ -41,10 +32,7 @@ describe("String References", () => {
   var s = "10";
   const result = s == 2 * 5;
   `;
-    evaluator(buildExpression(expression), actual => {
-      assert(expression, actual);
-      done();
-    });
+    assertStringResult(expression, done);
   });
 
   it("should return false when comparing int expression of different value with '=='", done => {
@@ -52,9 +40,6 @@ describe("String References", () => {
   var s = "10";
   const result = s == 2 * 5 + 1;
   `;
-    evaluator(buildExpression(expression), actual => {
-      assert(expression, actual);
-      done();
-    });
+    assertStringResult(expression, done);
   });
 });

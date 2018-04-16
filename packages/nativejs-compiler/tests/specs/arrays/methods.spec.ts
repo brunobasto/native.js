@@ -1,5 +1,5 @@
 import "mocha";
-import { assert, buildExpression } from "../../utils/assert";
+import { assertArrayResult } from "../../utils/assert";
 import { evaluator } from "../../utils/evaluator";
 import { expect, use } from "chai";
 
@@ -11,10 +11,7 @@ describe("Array Methods", () => {
 			array.push(10);
 			const result = array.push(2);
 			`;
-      evaluator(buildExpression(expression), actual => {
-        assert(expression, actual);
-        done();
-      });
+      assertArrayResult(expression, done);
     });
 
     it("should increase array length by 1", done => {
@@ -23,10 +20,7 @@ describe("Array Methods", () => {
 			array.push(10);
 			const result = array.length;
 			`;
-      evaluator(buildExpression(expression), actual => {
-        assert(expression, actual);
-        done();
-      });
+      assertArrayResult(expression, done);
     });
   });
 
@@ -37,10 +31,7 @@ describe("Array Methods", () => {
 			array.shift();
 			const result = array.length;
 			`;
-      evaluator(buildExpression(expression), actual => {
-        assert(expression, actual);
-        done();
-      });
+      assertArrayResult(expression, done);
     });
 
     it("should return the first element from the array", done => {
@@ -48,10 +39,7 @@ describe("Array Methods", () => {
 			let array = [1, 2, 3];
 			const result = array.shift();
 			`;
-      evaluator(buildExpression(expression), actual => {
-        assert(expression, actual);
-        done();
-      });
+      assertArrayResult(expression, done);
     });
   });
 
@@ -62,10 +50,7 @@ describe("Array Methods", () => {
 			array.unshift(0);
 			const result = array.length;
 			`;
-      evaluator(buildExpression(expression), actual => {
-        assert(expression, actual);
-        done();
-      });
+      assertArrayResult(expression, done);
     });
 
     it("should return the new length of the array", done => {
@@ -73,10 +58,7 @@ describe("Array Methods", () => {
 			let array = [1, 2, 3];
 			const result = array.unshift(0);
 			`;
-      evaluator(buildExpression(expression), actual => {
-        assert(expression, actual);
-        done();
-      });
+      assertArrayResult(expression, done);
     });
   });
 
@@ -87,10 +69,7 @@ describe("Array Methods", () => {
 			array.pop();
 			const result = array.length;
 			`;
-      evaluator(buildExpression(expression), actual => {
-        assert(expression, actual);
-        done();
-      });
+      assertArrayResult(expression, done);
     });
 
     it("should return the last element of the array", done => {
@@ -98,10 +77,7 @@ describe("Array Methods", () => {
 			let array = [1, 2, 3];
 			const result = array.pop();
 			`;
-      evaluator(buildExpression(expression), actual => {
-        assert(expression, actual);
-        done();
-      });
+      assertArrayResult(expression, done);
     });
   });
 
@@ -111,10 +87,7 @@ describe("Array Methods", () => {
 			var array = [1, 2, 3];
 			const result = array.indexOf(1);
 			`;
-      evaluator(buildExpression(expression), actual => {
-        assert(expression, actual);
-        done();
-      });
+      assertArrayResult(expression, done);
     });
 
     it("should return 1 for the for the second element", done => {
@@ -122,10 +95,7 @@ describe("Array Methods", () => {
 			var array = [1, 2, 3];
 			const result = array.indexOf(2);
 			`;
-      evaluator(buildExpression(expression), actual => {
-        assert(expression, actual);
-        done();
-      });
+      assertArrayResult(expression, done);
     });
 
     it("should return 2 for the for the third element", done => {
@@ -133,10 +103,7 @@ describe("Array Methods", () => {
 			var array = [1, 2, 3];
 			const result = array.indexOf(3);
 			`;
-      evaluator(buildExpression(expression), actual => {
-        assert(expression, actual);
-        done();
-      });
+      assertArrayResult(expression, done);
     });
 
     it("should find elements added later", done => {
@@ -145,10 +112,7 @@ describe("Array Methods", () => {
 			array.push(4);
 			const result = array.indexOf(4);
 			`;
-      evaluator(buildExpression(expression), actual => {
-        assert(expression, actual);
-        done();
-      });
+      assertArrayResult(expression, done);
     });
 
     it("should not find removed elements", done => {
@@ -157,10 +121,7 @@ describe("Array Methods", () => {
 			array.pop();
 			const result = array.indexOf(3);
 			`;
-      evaluator(buildExpression(expression), actual => {
-        assert(expression, actual);
-        done();
-      });
+      assertArrayResult(expression, done);
     });
 
     it("should return -1 when element not found", done => {
@@ -168,10 +129,7 @@ describe("Array Methods", () => {
 			var array = [1, 2, 3];
 			const result = array.indexOf(4);
 			`;
-      evaluator(buildExpression(expression), actual => {
-        assert(expression, actual);
-        done();
-      });
+      assertArrayResult(expression, done);
     });
   });
 });

@@ -1,15 +1,15 @@
 /// <reference path="../../../../node_modules/@types/node/index.d.ts" />
 
-import * as ts from "typescript";
-import { fileSync as createTempFile } from "tmp";
 import * as fs from "fs";
-import { CProgram } from "../core/program";
-import { resolvePresets } from "./resolvePresets";
+import * as ts from "typescript";
 import debug from "debug";
+import { CProgram } from "../core/program";
+import { fileSync as createTempFile } from "tmp";
+import { resolvePresets } from "./resolvePresets";
 
 const log = debug("compile");
 
-const compile = (source, options: any = {}) => {
+const compile = (source, options: any = {}, callback: Function) => {
   if (options.downTranspileToES3) {
     source = ts.transpileModule(source.toString("utf8"), {
       compilerOptions: {
@@ -19,22 +19,21 @@ const compile = (source, options: any = {}) => {
     }).outputText;
   }
 
-  const tmpobj = createTempFile({ postfix: ".ts" });
-  let fileName = tmpobj.name;
+  const tempFile = createTempFile({ postfix: ".ts" });
+  let fileName = tempFile.name;
 
-  fs.writeFileSync(fileName, source);
+  fs.writeFile(fileName, source, () => {
+    const program = ts.createProgram([fileName], {
+      allowJs: false,
+      noLib: true,
+      pretty: true
+    });
+    const presets = resolvePresets(options.presets);
+    const output = new CProgram(program, presets)["resolve"]();
 
-  const program = ts.createProgram([fileName], {
-    allowJs: false,
-    noLib: true,
-    pretty: true
+    log(output);
+    callback(output);
   });
-
-  const presets = resolvePresets(options.presets);
-
-  const output = new CProgram(program, presets)["resolve"]();
-  log(output);
-  return output;
 };
 
 export { compile };

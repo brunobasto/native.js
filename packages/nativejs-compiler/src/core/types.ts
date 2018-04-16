@@ -1,21 +1,22 @@
 import * as ts from "typescript";
-import { StandardCallHelper } from "./resolver";
-import { PluginRegistry } from "./plugin";
 import debug from "debug";
+import { PluginRegistry } from "./plugin";
+import { StandardCallHelper } from "./resolver";
 
 const log = debug("types");
 
 export type CType = string | StructType | ArrayType | DictType;
+
 export const UniversalVarType = "struct js_var *";
-export const PointerVarType = "void *";
-export const StringVarType = "const char *";
-export const NumberVarType = "int16_t";
-export const LongVarType = "unsigned long";
-export const SignedLongVarType = "long";
-export const FloatVarType = "float";
 export const BooleanVarType = "uint8_t";
-export const RegexVarType = "struct regex_struct_t";
+export const FloatVarType = "float";
+export const LongVarType = "unsigned long";
+export const NumberVarType = "int16_t";
+export const PointerVarType = "void *";
 export const RegexMatchVarType = "struct regex_match_struct_t";
+export const RegexVarType = "struct regex_struct_t";
+export const SignedLongVarType = "long";
+export const StringVarType = "const char *";
 
 /** Type that represents static or dynamic array */
 export class ArrayType {
@@ -1574,14 +1575,18 @@ export class TypeHelper {
   }
 }
 
-const typesMap = new Map<number, CType>();
-
 export class TypeRegistry {
+  private typesMap = new Map<number, CType>();
+  private static _instance: TypeRegistry;
+
+  public static init() {
+    this._instance = new TypeRegistry();
+  }
   static getNodeType(node: ts.Node) {
-    return typesMap.get(node.pos);
+    return this._instance.typesMap.get(node.pos);
   }
 
   static declareNodeType(node: ts.Node, type: CType) {
-    typesMap.set(node.pos, type);
+    this._instance.typesMap.set(node.pos, type);
   }
 }

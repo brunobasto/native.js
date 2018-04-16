@@ -1,5 +1,5 @@
 import "mocha";
-import { assert, buildExpression } from "../../utils/assert";
+import { assertStringResult } from "../../utils/assert";
 import { evaluator } from "../../utils/evaluator";
 import { expect, use } from "chai";
 
@@ -13,10 +13,7 @@ describe("Array Iterators", () => {
           result += item;
         });
       `;
-      evaluator(buildExpression(expression), actual => {
-        assert(expression, actual);
-        done();
-      });
+      assertStringResult(expression, done);
     });
   });
 });

@@ -1,6 +1,6 @@
 import * as ts from "typescript";
 import { MemoryManager } from "./memory";
-import { TypeHelper, ArrayType, StructType } from "./types";
+import { TypeHelper, ArrayType, StructType, TypeRegistry } from "./types";
 import { CodeTemplate, CodeTemplateFactory } from "./template";
 import { CFunction, CFunctionPrototype } from "../nodes/function";
 import { CVariable, CVariableDestructors } from "../nodes/variable";
@@ -205,6 +205,7 @@ export class CProgram implements IScope {
     this.memoryManager = new MemoryManager(this.typeChecker, this.typeHelper);
     this.gc = new GarbageCollector(this.typeChecker);
 
+    TypeRegistry.init();
     HeaderRegistry.init();
     HeaderRegistry.setProgramScope(this);
 
