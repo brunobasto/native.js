@@ -17,4 +17,12 @@ describe("Object Properties", () => {
 	`;
     assertObjectResult(expression, done);
   });
+
+  it("should allow setting a property and keep initial properties", done => {
+    const expression = `
+  const result = {initial: true};
+  result.added2 = "property 3";
+  `;
+    assertObjectResult(expression, done);
+  });
 });
