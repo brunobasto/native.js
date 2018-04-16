@@ -1,0 +1,1 @@
+[![Build Status](https://travis-ci.com/brunobasto/native.js.svg?token=xJk9QBEXwmfGQ2wUKfXF&branch=master)](https://travis-ci.com/brunobasto/native.js)
