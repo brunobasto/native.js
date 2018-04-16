@@ -16,7 +16,7 @@ export class StandardStringAndIntConcatHeader implements Header {
     return StringAndIntConcatHeaderType;
   }
   public getTemplate(): CExpression {
-  	HeaderRegistry.declareDependency(StringAndIntBufferLengthHeaderType);
+    HeaderRegistry.declareDependency(StringAndIntBufferLengthHeaderType);
     HeaderRegistry.declareDependency(Int16HeaderType);
     HeaderRegistry.declareDependency(StdioHeaderType);
     HeaderRegistry.declareDependency(StringHeaderType);
