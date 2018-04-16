@@ -188,7 +188,7 @@ class CPrintf {
     this.POSTFIX = options.postfix || "";
 
     if (options.propName) {
-      this.PREFIX = this.PREFIX + options.propName + ": ";
+      this.PREFIX = `${this.PREFIX}\\"${options.propName}\\": `;
     }
 
     if (options.indent) {

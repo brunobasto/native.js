@@ -41,6 +41,9 @@
     "include": [
       "src/"
     ],
+    "exclude": [
+      "src/util"
+    ],
     "reporter": [
       "html"
     ],

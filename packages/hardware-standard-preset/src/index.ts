@@ -6,6 +6,7 @@ import {
   StandardArrayRemoveHeader,
   StandardArrayTypeHeader
 } from "hardware-header-standard-array";
+import { StandardLimitsHeader } from "hardware-header-standard-limits";
 import { StandardAssertHeader } from "hardware-header-standard-assert";
 import { StandardBooleanHeader } from "hardware-header-standard-boolean";
 import { StandardDictCreateHeader } from "hardware-header-standard-dict";
@@ -20,7 +21,10 @@ import {
   StandardStringLengthHeader,
   StandardRegexMatchHeader,
   StandardStringPositionHeader,
-  StandardStringRightPositionHeader
+  StandardStringRightPositionHeader,
+  StandardStringAndIntCompareHeader,
+  StandardStringAndIntBufferLengthHeader,
+  StandardStringAndIntConcatHeader
 } from "hardware-header-standard-string";
 import { StandardUint8Header } from "hardware-header-standard-uint8_t";
 
@@ -53,7 +57,11 @@ export class StandardPreset implements Preset {
       new StandardMathHeader(),
       new StandardStructHeader(),
       new StandardStringPositionHeader(),
-      new StandardStringRightPositionHeader()
+      new StandardStringRightPositionHeader(),
+      new StandardStringAndIntCompareHeader(),
+      new StandardStringAndIntBufferLengthHeader(),
+      new StandardLimitsHeader(),
+      new StandardStringAndIntConcatHeader()
     ];
   }
 

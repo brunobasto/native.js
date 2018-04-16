@@ -1,8 +1,10 @@
 import * as ts from "typescript";
 import {
+  AssertHeaderType,
   HeaderRegistry,
   StdlibHeaderType,
-  StringHeaderType
+  StringHeaderType,
+  StringAndIntConcatHeaderType
 } from "../../core/header";
 import { CElementAccess } from "../../nodes/elementaccess";
 import { CExpression } from "../../nodes/expressions";
@@ -93,8 +95,9 @@ class CStringConcat {
       );
     }
     HeaderRegistry.declareDependency(StdlibHeaderType);
+    HeaderRegistry.declareDependency(AssertHeaderType);
     HeaderRegistry.declareDependency(StringHeaderType);
-    scope.root.headerFlags.str_int16_t_cat = true;
+    HeaderRegistry.declareDependency(StringAndIntConcatHeaderType);
   }
 }
 

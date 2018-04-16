@@ -46,7 +46,7 @@ describe("Numbers Expression Evaluator", () => {
       `;
       evaluator(buildExpression(expression), actual => {
         // close enough?
-        assert(expression, actual, '50.290001');
+        assert(expression, actual, "50.290001");
         done();
       });
     });

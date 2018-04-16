@@ -2,8 +2,6 @@ import * as ts from "typescript";
 import { CExpression } from "../nodes/expressions";
 import { IScope } from "../core/program";
 
-const declaredHeaders = new Set<new () => HeaderType>();
-
 export interface Header {
   getType(): new () => HeaderType;
   getTemplate(params: any): CExpression;
@@ -12,6 +10,26 @@ export interface Header {
 export interface HeaderType {
   NAME: string;
   UNIQUE: boolean;
+}
+
+export class StringAndIntConcatHeaderType implements HeaderType {
+  public NAME: string = "StringAndIntConcatHeaderType";
+  public UNIQUE: boolean = true;
+}
+
+export class LimitsHeaderType implements HeaderType {
+  public NAME: string = "LimitsHeaderType";
+  public UNIQUE: boolean = true;
+}
+
+export class StringAndIntBufferLengthHeaderType implements HeaderType {
+  public NAME: string = "StringAndIntBufferLengthHeaderType";
+  public UNIQUE: boolean = true;
+}
+
+export class StringAndIntCompareHeaderType implements HeaderType {
+  public NAME: string = "StringAndIntCompareHeaderType";
+  public UNIQUE: boolean = true;
 }
 
 export class MathHeaderType implements HeaderType {
@@ -119,23 +137,27 @@ export class StructHeaderType implements HeaderType {
   public UNIQUE: boolean = false;
 }
 
-const headers = new Map<new () => HeaderType, Header>();
-
-const templates: CExpression[] = [];
-
-let programScope: IScope = null;
-
 export class HeaderRegistry {
+  private declaredHeaders = new Set<new () => HeaderType>();
+  private headers = new Map<new () => HeaderType, Header>();
+  private programScope: IScope = null;
+  private static _instance: HeaderRegistry;
+  private templates: CExpression[] = [];
+
   public static setProgramScope(scope: IScope) {
-    programScope = scope;
+    this._instance.programScope = scope;
+  }
+
+  public static init() {
+    this._instance = new HeaderRegistry();
   }
 
   public static getProgramScope() {
-    return programScope;
+    return this._instance.programScope;
   }
 
   public static getDeclaredDependencies(): CExpression[] {
-    return templates;
+    return this._instance.templates;
   }
 
   public static declareDependency(
@@ -143,18 +165,18 @@ export class HeaderRegistry {
     params: any = {}
   ) {
     const typeInstance = new type();
-    if (!headers.has(type)) {
+    if (!this._instance.headers.has(type)) {
       throw new Error(`Unregistered header of type ${typeInstance.NAME}`);
     }
-    const header = headers.get(type);
-    if (!typeInstance.UNIQUE || !declaredHeaders.has(type)) {
-      templates.push(header.getTemplate(params));
+    const header = this._instance.headers.get(type);
+    if (!typeInstance.UNIQUE || !this._instance.declaredHeaders.has(type)) {
+      this._instance.templates.push(header.getTemplate(params));
     }
-    declaredHeaders.delete(type);
-    declaredHeaders.add(type);
+    this._instance.declaredHeaders.delete(type);
+    this._instance.declaredHeaders.add(type);
   }
 
   public static registerHeader(type: new () => HeaderType, header: Header) {
-    headers.set(type, header);
+    this._instance.headers.set(type, header);
   }
 }

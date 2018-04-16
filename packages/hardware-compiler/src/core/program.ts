@@ -61,8 +61,6 @@ class HeaderFlags {
   array_str_cmp: boolean = false;
   gc_iterator: boolean = false;
   gc_iterator2: boolean = false;
-  str_int16_t_cmp: boolean = false;
-  str_int16_t_cat: boolean = false;
   str_char_code_at: boolean = false;
   str_slice: boolean = false;
   atoi: boolean = false;
@@ -71,9 +69,7 @@ class HeaderFlags {
 
 @CodeTemplate(`
 {headers}
-{#if headerFlags.str_int16_t_cmp || headerFlags.str_int16_t_cat}
-    #include <limits.h>
-{/if}
+
 {#if headerFlags.js_var}
     enum js_var_type {JS_VAR_BOOL, JS_VAR_INT, JS_VAR_STRING, JS_VAR_ARRAY, JS_VAR_STRUCT, JS_VAR_DICT};
 	struct js_var {
@@ -90,16 +86,6 @@ class HeaderFlags {
         int16_t capacity;\\
         T *data;\\
     } *
-{/if}
-{#if headerFlags.str_int16_t_cmp || headerFlags.str_int16_t_cat}
-    #define STR_INT16_T_BUFLEN ((CHAR_BIT * sizeof(int16_t) - 1) / 3 + 2)
-{/if}
-{#if headerFlags.str_int16_t_cmp}
-    int str_int16_t_cmp(const char * str, int16_t num) {
-        char numstr[STR_INT16_T_BUFLEN];
-        sprintf(numstr, "%d", num);
-        return strcmp(str, numstr);
-    }
 {/if}
 {#if headerFlags.str_char_code_at}
     int16_t str_char_code_at(const char * str, int16_t pos) {
@@ -131,13 +117,6 @@ class HeaderFlags {
         if (end - start < 0)
             end = start;
         return str_substring(str, start, end);
-    }
-{/if}
-{#if headerFlags.str_int16_t_cat}
-    void str_int16_t_cat(char *str, int16_t num) {
-        char numstr[STR_INT16_T_BUFLEN];
-        sprintf(numstr, "%d", num);
-        strcat(str, numstr);
     }
 {/if}
 {#if headerFlags.array_int16_t_cmp}
@@ -200,7 +179,6 @@ export class CProgram implements IScope {
   public statements: any[] = [];
   public typeChecker: ts.TypeChecker;
   public typeHelper: TypeHelper;
-  public userStructs: { name: string; properties: CVariable[] }[];
   public variables: CVariable[] = [];
 
   private resolvePreset(
@@ -227,6 +205,7 @@ export class CProgram implements IScope {
     this.memoryManager = new MemoryManager(this.typeChecker, this.typeHelper);
     this.gc = new GarbageCollector(this.typeChecker);
 
+    HeaderRegistry.init();
     HeaderRegistry.setProgramScope(this);
 
     const collectedPlugins: Plugin[] = [];

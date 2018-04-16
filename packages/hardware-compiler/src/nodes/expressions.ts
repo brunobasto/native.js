@@ -6,7 +6,9 @@ import {
   ArrayPushHeaderType,
   StringHeaderType,
   StdlibHeaderType,
-  AssertHeaderType
+  AssertHeaderType,
+  StringAndIntCompareHeaderType,
+  StringAndIntConcatHeaderType
 } from "../core/header";
 import { IScope } from "../core/program";
 import {
@@ -194,7 +196,9 @@ export class CSimpleBinaryExpression {
       ];
 
       if (callReplaceMap[operatorKind]) {
-        scope.root.headerFlags.str_int16_t_cmp = true;
+        HeaderRegistry.declareDependency(StdlibHeaderType);
+        HeaderRegistry.declareDependency(AssertHeaderType);
+        HeaderRegistry.declareDependency(StringAndIntCompareHeaderType);
         // str_int16_t_cmp expects certain order of arguments (string, number)
         if (leftType == NumberVarType) {
           let tmp = this.left;
@@ -216,7 +220,7 @@ export class CSimpleBinaryExpression {
         HeaderRegistry.declareDependency(AssertHeaderType);
         HeaderRegistry.declareDependency(StdlibHeaderType);
         HeaderRegistry.declareDependency(StringHeaderType);
-        scope.root.headerFlags.str_int16_t_cat = true;
+        HeaderRegistry.declareDependency(StringAndIntConcatHeaderType);
       }
     }
     this.operator = operatorMap[operatorKind];

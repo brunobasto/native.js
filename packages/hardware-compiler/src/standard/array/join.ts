@@ -2,7 +2,8 @@ import * as ts from "typescript";
 import {
   HeaderRegistry,
   StdlibHeaderType,
-  StringHeaderType
+  StringHeaderType,
+  StringAndIntConcatHeaderType
 } from "../../core/header";
 import { CElementAccess } from "../../nodes/elementaccess";
 import { CExpression } from "../../nodes/expressions";
@@ -121,7 +122,7 @@ class CArrayJoin {
       HeaderRegistry.declareDependency(StringHeaderType);
 
       if (type.elementType == NumberVarType) {
-        scope.root.headerFlags.str_int16_t_cat = true;
+        HeaderRegistry.declareDependency(StringAndIntConcatHeaderType);
       }
     }
   }

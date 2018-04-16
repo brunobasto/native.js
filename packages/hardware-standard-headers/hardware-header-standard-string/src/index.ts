@@ -3,6 +3,9 @@ import { StandardSubStringHeader } from "./substring";
 import { StandardStringLengthHeader } from "./strlen";
 import { StandardStringPositionHeader } from "./strpos";
 import { StandardStringRightPositionHeader } from "./str_rpos";
+import { StandardStringAndIntCompareHeader } from "./str_int16_t_cmp";
+import { StandardStringAndIntConcatHeader } from "./str_int16_t_cat";
+import { StandardStringAndIntBufferLengthHeader } from "./str_int16_t_buflen";
 import { StandardRegexMatchHeader } from "./regex";
 
 export {
@@ -11,5 +14,8 @@ export {
   StandardStringLengthHeader,
   StandardRegexMatchHeader,
   StandardStringPositionHeader,
-  StandardStringRightPositionHeader
+  StandardStringRightPositionHeader,
+  StandardStringAndIntCompareHeader,
+  StandardStringAndIntBufferLengthHeader,
+  StandardStringAndIntConcatHeader
 };
