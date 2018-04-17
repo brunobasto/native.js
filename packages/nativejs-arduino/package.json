@@ -5,7 +5,7 @@
   },
   "main": "src/index.js",
   "typings": "src/index.d.ts",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Example of AVR Firmaware writtin in Typescript",
   "dependencies": {
     "avrgirl-arduino": "https://github.com/brunobasto/avrgirl-arduino.git",
