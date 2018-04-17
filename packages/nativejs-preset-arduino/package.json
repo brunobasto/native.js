@@ -1,8 +1,5 @@
 {
   "name": "nativejs-preset-arduino",
-  "bin": {
-    "arduino.js": "./src/bin/flash.js"
-  },
   "main": "src/index.js",
   "typings": "src/index.d.ts",
   "version": "0.1.2",
