@@ -1,6 +1,6 @@
 {
   "name": "nativejs-compiler",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "Write JavaScript software for your hardware.",
   "main": "src/index.js",
   "typings": "src/index.d.ts",
