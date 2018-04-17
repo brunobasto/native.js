@@ -2,12 +2,5 @@
   "lerna": "2.10.1",
   "version": "independent",
   "npmClient": "yarn",
-  "useWorkspaces": true,
-  "packages": [
-    "packages/nativejs-arduino",
-    "packages/nativejs-compiler",
-    "packages/nativejs-standard-headers/*",
-    "packages/nativejs-standard-plugins/*",
-    "packages/nativejs-standard-preset"
-  ]
+  "useWorkspaces": true
 }
