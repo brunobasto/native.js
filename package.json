@@ -15,7 +15,7 @@
     "yarn": "^1.5.1"
   },
   "scripts": {
-    "clean": "rimraf yarn.lock packages/**/node_modules packages/**/*.js packages/**/*.js.map",
+    "clean": "rimraf yarn.lock packages/**/node_modules packages/*/**/*.js packages/**/*.js.map",
     "bootstrap": "lerna bootstrap",
     "prepare": "tsc",
     "format": "prettier --write './packages/**/*.ts'",

@@ -19,7 +19,7 @@ import {
   InterruptHeader
 } from "./headers";
 
-export class AVRPreset extends StandardPreset {
+export class ArduinoPreset extends StandardPreset {
   public getBlacklist() {
     return [""];
   }
@@ -48,4 +48,4 @@ export class AVRPreset extends StandardPreset {
   }
 }
 
-export default AVRPreset;
+export default ArduinoPreset;
