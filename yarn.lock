@@ -2319,7 +2319,7 @@ lodash.templatesettings@^4.0.0:
   dependencies:
     lodash._reinterpolate "~3.0.0"
 
-lodash@^4.14.0, lodash@^4.17.4, lodash@^4.2.1, lodash@^4.3.0:
+lodash@^4.14.0, lodash@^4.17.4, lodash@^4.2.1, lodash@^4.3.0, lodash@latest:
   version "4.17.5"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.5.tgz#99a92d65c0272debe8c96b6057bc8fbfa3bed511"
 
@@ -3043,6 +3043,13 @@ prompt-radio@^1.2.1:
     debug "^2.6.8"
     prompt-checkbox "^2.2.0"
 
+prune@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/prune/-/prune-0.0.2.tgz#ca67859be0381f0ea4296db36ec7009fe55c28af"
+  dependencies:
+    lodash latest
+    sproutid latest
+
 pseudomap@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/pseudomap/-/pseudomap-1.0.2.tgz#f052a28da70e618917ef0a8ac34c1ae5a68286b3"
@@ -3576,6 +3583,12 @@ split@^1.0.0:
 sprintf-js@~1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
+
+sproutid@latest:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/sproutid/-/sproutid-0.0.5.tgz#714491833847d3a792ccef2ca5a06535fa1c5165"
+  dependencies:
+    lodash latest
 
 static-extend@^0.1.1, static-extend@^0.1.2:
   version "0.1.2"

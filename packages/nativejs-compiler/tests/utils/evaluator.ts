@@ -8,7 +8,7 @@ const compileToC = (jsSource, callback) => {
     jsSource,
     {
       downTranspileToES3: true,
-      presets: ["nativejs-preset-standard"]
+      presets: ["nativejs-standard-preset"]
     },
     callback
   );

@@ -1,5 +1,5 @@
 import { Plugin, Preset } from "nativejs-compiler";
-import { StandardPreset } from "nativejs-preset-standard";
+import { StandardPreset } from "nativejs-standard-preset";
 import {
   SerialConsoleLogPlugin,
   SerialConsoleReadPlugin

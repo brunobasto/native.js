@@ -5,16 +5,16 @@ import {
   StandardArrayPushHeader,
   StandardArrayRemoveHeader,
   StandardArrayTypeHeader
-} from "nativejs-header-standard-array";
-import { StandardLimitsHeader } from "nativejs-header-standard-limits";
-import { StandardAssertHeader } from "nativejs-header-standard-assert";
-import { StandardBooleanHeader } from "nativejs-header-standard-boolean";
-import { StandardDictCreateHeader } from "nativejs-header-standard-dict";
-import { StandardInt16Header } from "nativejs-header-standard-int16_t";
-import { StandardStdIoHeader } from "nativejs-header-standard-stdio";
-import { StandardStdLibHeader } from "nativejs-header-standard-stdlib";
-import { StandardMathHeader } from "nativejs-header-standard-math";
-import { StandardStructHeader } from "nativejs-header-standard-struct";
+} from "./headers/array";
+import { StandardLimitsHeader } from "./headers/limits";
+import { StandardAssertHeader } from "./headers/assert";
+import { StandardBooleanHeader } from "./headers/boolean";
+import { StandardDictCreateHeader } from "./headers/dict";
+import { StandardInt16Header } from "./headers/int16_t";
+import { StandardStdIoHeader } from "./headers/stdio";
+import { StandardStdLibHeader } from "./headers/stdlib";
+import { StandardMathHeader } from "./headers/math";
+import { StandardStructHeader } from "./headers/struct";
 import {
   StandardStringHeader,
   StandardSubStringHeader,
@@ -25,11 +25,11 @@ import {
   StandardStringAndIntCompareHeader,
   StandardStringAndIntBufferLengthHeader,
   StandardStringAndIntConcatHeader
-} from "nativejs-header-standard-string";
-import { StandardUint8Header } from "nativejs-header-standard-uint8_t";
+} from "./headers/string";
+import { StandardUint8Header } from "./headers/uint8_t";
 
-import { ConsoleLogPlugin } from "nativejs-plugin-standard-console";
-import { MathLogPlugin } from "nativejs-plugin-standard-math";
+import { ConsoleLogPlugin } from "./plugins/console";
+import { MathLogPlugin } from "./plugins/math";
 
 import { Plugin } from "nativejs-compiler";
 import { Preset } from "nativejs-compiler";

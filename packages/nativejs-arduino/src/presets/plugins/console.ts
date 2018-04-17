@@ -7,7 +7,7 @@ import { Plugin } from "nativejs-compiler";
 import { UARTHeaderType } from "../headers/uart";
 import { TypeRegistry, NumberVarType } from "nativejs-compiler";
 
-import { ConsoleLogPlugin } from "nativejs-plugin-standard-console";
+import { ConsoleLogPlugin } from "nativejs-standard-preset/src/plugins/console";
 
 export class SerialConsoleLogPlugin extends ConsoleLogPlugin {
   execute(scope: IScope, node: ts.Node, handler: Object): CExpression {
