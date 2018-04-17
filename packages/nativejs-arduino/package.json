@@ -1,8 +1,11 @@
 {
-  "name": "typescript-avr",
+  "name": "nativejs-arduino",
+  "bin": {
+    "arduino.js": "./src/bin/flash.js"
+  },
   "main": "src/index.js",
   "typings": "src/index.d.ts",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Example of AVR Firmaware writtin in Typescript",
   "dependencies": {
     "avrgirl-arduino": "https://github.com/brunobasto/avrgirl-arduino.git",
@@ -16,11 +19,10 @@
     "tslint-config-prettier": "^1.10.0"
   },
   "scripts": {
-    "flash": "npm run build && make flash",
     "format": "yarn --cwd ../../ format",
     "lint": "yarn --cwd ../../ lint",
     "prepare": "yarn --cwd ../../ prepare",
-    "test": "npm run build && cd tests && make -B all"
+    "test": "echo \"TODO: Implement arduino tests.\""
   },
   "repository": {
     "type": "git",
