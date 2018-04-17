@@ -5,7 +5,7 @@
   },
   "main": "src/index.js",
   "typings": "src/index.d.ts",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Example of AVR Firmaware writtin in Typescript",
   "dependencies": {
     "nativejs-compiler": "^1.1.1",
