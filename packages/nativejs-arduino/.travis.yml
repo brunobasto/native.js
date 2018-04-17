@@ -1,0 +1,18 @@
+language: c
+before_script:
+  - cmake --version
+
+env:
+  - CC=avr-gcc
+addons:
+  apt:
+    sources:
+      - george-edison55-precise-backports
+    packages:
+      - cmake
+      - cmake-data
+      - gcc-avr
+      - binutils-avr
+      - avr-libc
+script:
+  - npm run build && make hex

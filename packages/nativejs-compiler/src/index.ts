@@ -2,12 +2,13 @@ import { CProgram } from "./core/program";
 
 export default CProgram;
 
+export * from "./core/bottom";
 export * from "./core/header";
-export * from "./core/main";
 export * from "./core/main";
 export * from "./core/plugin";
 export * from "./core/preset";
 export * from "./core/program";
+export * from "./core/resolver";
 export * from "./core/template";
 export * from "./core/types";
 

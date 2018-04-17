@@ -1,0 +1,16 @@
+*.c
+*.elf
+*.hex
+*.js
+*.js.map
+*.sublime-project
+*.sublime-workspace
+*.x
+.clang_complete
+C*.cmake
+CMakeCache.txt
+CMakeFiles
+dist/
+Makefile
+node_modules/
+Testing

@@ -1,0 +1,31 @@
+{
+  "name": "typescript-avr",
+  "main": "src/index.js",
+  "typings": "src/index.d.ts",
+  "version": "0.0.1",
+  "description": "Example of AVR Firmaware writtin in Typescript",
+  "dependencies": {
+    "avrgirl-arduino": "https://github.com/brunobasto/avrgirl-arduino.git",
+    "serialport": "^6.1.1",
+    "typescript": "2.1.6",
+    "yargs": "^11.0.0"
+  },
+  "devDependencies": {
+    "prettier": "^1.11.1",
+    "tslint": "^5.9.1",
+    "tslint-config-prettier": "^1.10.0"
+  },
+  "scripts": {
+    "flash": "npm run build && make flash",
+    "format": "yarn --cwd ../../ format",
+    "lint": "yarn --cwd ../../ lint",
+    "prepare": "yarn --cwd ../../ prepare",
+    "test": "npm run build && cd tests && make -B all"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/brunobasto/typescript-avr.git"
+  },
+  "author": "Bruno Basto",
+  "license": "ISC"
+}
