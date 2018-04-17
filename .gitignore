@@ -1,6 +1,5 @@
 *.c
 *.elf
-*.js
 *.js.map
 *.plist
 *.res
@@ -13,6 +12,7 @@ coverage
 lerna-debug.log
 lib
 node_modules
+packages/*/**/*.js
 tests/coverage
 tests_esp
 ts2c.bundle.js
