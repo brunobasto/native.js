@@ -5,10 +5,11 @@
   },
   "main": "src/index.js",
   "typings": "src/index.d.ts",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Example of AVR Firmaware writtin in Typescript",
   "dependencies": {
     "avrgirl-arduino": "https://github.com/brunobasto/avrgirl-arduino.git",
+    "nativejs-compiler": "^0.0.1",
     "serialport": "^6.1.1",
     "typescript": "2.1.6",
     "yargs": "^11.0.0"
