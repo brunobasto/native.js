@@ -29,8 +29,9 @@
   "author": "Bruno Basto",
   "license": "ISC",
   "workspaces": [
-    "packages/nativejs-arduino",
+    "packages/arduino.js",
     "packages/nativejs-compiler",
-    "packages/nativejs-standard-preset"
+    "packages/nativejs-preset-arduino",
+    "packages/nativejs-preset-standard"
   ]
 }

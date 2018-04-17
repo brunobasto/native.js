@@ -1,16 +1,16 @@
 {
-  "name": "nativejs-arduino",
+  "name": "nativejs-preset-arduino",
   "bin": {
     "arduino.js": "./src/bin/flash.js"
   },
   "main": "src/index.js",
   "typings": "src/index.d.ts",
-  "version": "1.1.0",
+  "version": "0.1.0",
   "description": "Example of AVR Firmaware writtin in Typescript",
   "dependencies": {
     "avrgirl-arduino": "https://github.com/brunobasto/avrgirl-arduino.git",
     "nativejs-compiler": "^1.1.0",
-    "nativejs-standard-preset": "^0.4.0",
+    "nativejs-preset-standard": "^0.1.0",
     "serialport": "^6.1.1",
     "typescript": "2.1.6",
     "yargs": "^11.0.0"
