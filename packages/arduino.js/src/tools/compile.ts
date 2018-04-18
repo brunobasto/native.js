@@ -7,10 +7,8 @@ import * as request from "request";
 
 const log = debug("cloud-gcc");
 
-// "https://gcc-avr.wedeploy.io/"
-
 const compile = (fileName, options, callback) => {
-  const r = request.post("http://localhost:3000/", (err, response) => {
+  const r = request.post("https://gcc-avr.wedeploy.io/", (err, response) => {
     if (err) {
       return console.error("upload failed:", err);
     }
