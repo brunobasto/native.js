@@ -1,7 +1,7 @@
 {
   "name": "arduino.js",
   "bin": {
-    "arduino.js": "./src/bin/flash.js"
+    "arduino.js": "./src/bin/arduino.js"
   },
   "main": "src/index.js",
   "typings": "src/index.d.ts",
@@ -12,6 +12,7 @@
     "nativejs-compiler": "^1.1.1",
     "nativejs-preset-arduino": "^0.1.3",
     "nativejs-preset-standard": "^0.1.1",
+    "request": "^2.85.0",
     "serialport": "^6.1.1",
     "typescript": "2.1.6",
     "yargs": "^11.0.0"
