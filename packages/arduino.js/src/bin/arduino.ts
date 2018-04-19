@@ -12,6 +12,10 @@ const { tmpNameSync } = require("tmp");
 import * as Avrgirl from "avrgirl-arduino";
 import * as boards from "avrgirl-arduino/boards";
 
+const chalkAnimation = require("chalk-animation");
+
+const tempFileTemplate = path.join(os.tmpdir(), "tmp-XXXXXX");
+
 const yargs = require("yargs")
   .usage("Usage: nativejs-arduino [options] <fileName>")
   .alias("b", "baud")
@@ -21,11 +25,10 @@ const yargs = require("yargs")
   .alias("t", "tail")
   .alias("v", "version")
   .describe("baud", "Baud rate to use for serial communication.")
-  .describe(
-    "f_cpu",
-    "The CPU frequency your microcontroller will be running at."
-  )
-  .describe("mcu", "The target microcontroller.")
+  .describe("board", "The arduino board you want to target.")
+  .describe("upload-baud", "The baud rate to use for programming your chip.")
+  .describe("f_cpu", "The frequency your chip will be running at.")
+  .describe("mcu", "The target chip name.")
   .describe("flash", "Wether or not to upload to arduino after compile.")
   .describe("output", "Compiled output file name.")
   .describe("port", "The port to use for serial communication.")
@@ -40,14 +43,16 @@ if (yargs.argv._.length === 0) {
   process.exit();
 }
 
+const logPrefix = "[arduino.js]";
+
 let fileName = yargs.argv._[0];
 const source = fs.readFileSync(fileName);
 
 const tailConnection = (connection, baudRate) => {
-  console.log("Openning serial communication...");
+  console.log(logPrefix, "Openning serial communication...");
   const { serialPort } = connection;
   const listen = () => {
-    console.log("Ready");
+    console.log(logPrefix, "Ready");
     process.stdin.on("data", chunk => {
       setTimeout(() => serialPort.write(chunk), 100);
     });
@@ -56,7 +61,7 @@ const tailConnection = (connection, baudRate) => {
   const open = () => {
     serialPort.open(error => {
       if (error) {
-        console.log("Error openning serial communication:", error);
+        console.error(logPrefix, "Error openning serial communication:", error);
       }
       serialPort.update({ baudRate }, () => {
         listen();
@@ -67,28 +72,46 @@ const tailConnection = (connection, baudRate) => {
   serialPort.close(() => open());
 };
 
+const displayLoading = text => {
+  const animation = chalkAnimation.karaoke(text);
+  const interval = setInterval(() => {
+    animation.replace((text += "."));
+  }, 1000);
+  animation.start();
+  return {
+    stop: () => {
+      animation.stop();
+      clearInterval(interval);
+    }
+  };
+};
+
 transpile(source, cSource => {
-  const template = path.join(os.tmpdir(), "tmp-XXXXXX");
-  let cFileName = tmpNameSync({ template });
+  let cFileName = tmpNameSync({ tempFileTemplate });
   if (yargs.argv["output"]) {
     cFileName = yargs.argv["output"];
   }
   fs.writeFileSync(path.resolve(process.cwd(), cFileName), cSource);
-  console.log(`${fileName} -> ${cFileName}`);
+  console.log(logPrefix, `${fileName} -> ${cFileName}`);
   if (yargs.argv["flash"]) {
-    console.log("Compiling...");
+    const compiling = displayLoading(logPrefix + " Compiling");
+    let boardName = "uno";
+    if (yargs.argv["board"]) {
+      boardName = yargs.argv["board"];
+    }
 
-    const customUno = {
-      ...boards.uno,
-      baud: 19200
-    };
+    let board = boards[boardName];
+    if (yargs.argv["upload-baud"]) {
+      board = {
+        ...board,
+        baud: yargs.argv["upload-baud"]
+      };
+    }
 
-    var avrgirl = new Avrgirl({
-      board: customUno
-    });
+    const avrgirl = new Avrgirl({ board });
 
     const flash = (hex, callback) => {
-      avrgirl.flash(hex, function(error) {
+      const f = avrgirl.flash(hex, function(error) {
         if (error) {
           callback(error);
         } else {
@@ -98,29 +121,28 @@ transpile(source, cSource => {
     };
 
     const compileOptions = {
-      BAUD: yargs.argv["baud"] || customUno.baud,
+      BAUD: yargs.argv["baud"] || avrgirl.connection.board.baud,
       MCU: yargs.argv["mcu"] || "atmega168",
       F_CPU: yargs.argv["f_cpu"] || 16000000
     };
 
     compile(cFileName, compileOptions, hex => {
-      console.log("Done compiling");
-      console.log("Flashing...");
-      const template = path.join(os.tmpdir(), "tmp-XXXXXX");
-      const hexFileName = tmpNameSync({ template });
+      compiling.stop();
+      const flashing = displayLoading(logPrefix + " Flashing");
+      const hexFileName = tmpNameSync({ tempFileTemplate });
       fs.writeFileSync(hexFileName, hex);
-      flash(hexFileName, (error, { connection }) => {
+      flash(hexFileName, (error, response) => {
+        flashing.stop();
         if (error) {
           console.log(
-            "Sorry, there was an error trying to upload your sketch."
+            logPrefix,
+            "Sorry, there was an error trying to upload your sketch:"
           );
-          console.log(
-            "Please make sure you have your Arduino device connected."
-          );
+          console.log(logPrefix, error.message);
         } else {
-          console.log("Done flashing");
+          console.log(logPrefix, "Done flashing");
           if (yargs.argv["tail"]) {
-            tailConnection(connection, compileOptions.BAUD);
+            tailConnection(response.connection, compileOptions.BAUD);
           }
         }
       });
