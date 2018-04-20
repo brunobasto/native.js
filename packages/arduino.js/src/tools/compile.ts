@@ -1,14 +1,16 @@
 import * as fs from "fs";
-import * as os from "os";
-import * as path from "path";
+import * as request from "request";
 import debug from "debug";
 import { exec } from "child_process";
-import * as request from "request";
 
 const log = debug("cloud-gcc");
 
+const endpoint = process.env["DEBUG"]
+  ? "http://localhost:3000/"
+  : "https://gcc-avr.wedeploy.io/";
+
 const compile = (fileName, options, callback) => {
-  const r = request.post("https://gcc-avr.wedeploy.io/", (err, response) => {
+  const r = request.post(endpoint, (err, response) => {
     if (err) {
       return console.error("upload failed:", err);
     }
