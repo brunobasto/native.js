@@ -10,6 +10,7 @@ import {
   Header,
   HeaderRegistry,
   BooleanHeaderType,
+  Uint8HeaderType,
   StructHeaderType
 } from "./header";
 import { Main, MainRegistry } from "./main";
@@ -235,6 +236,9 @@ export class CProgram implements IScope {
 
     this.memoryManager.preprocessVariables();
 
+    HeaderRegistry.declareDependency(BooleanHeaderType);
+    HeaderRegistry.declareDependency(Uint8HeaderType);
+
     for (let source of sourceFiles) {
       this.memoryManager.preprocessTemporaryVariables(source);
     }
@@ -262,8 +266,6 @@ export class CProgram implements IScope {
     this.functionPrototypes = functionPrototypes.map(
       fp => new CFunctionPrototype(this, fp)
     );
-
-    HeaderRegistry.declareDependency(BooleanHeaderType);
 
     this.headers = HeaderRegistry.getDeclaredDependencies();
 
