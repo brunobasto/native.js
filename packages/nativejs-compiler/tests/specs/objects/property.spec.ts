@@ -41,6 +41,20 @@ describe("Object Properties", () => {
     assertObjectResult(expression, done);
   });
 
+  it("should infer property types of literal object passes to function call", done => {
+    const expression = `
+    function returnObject(obj) {
+      return obj;
+    }
+    const result = returnObject({
+      f: 22.4,
+      f1: 40 / 2,
+      f2: 5000000
+    });
+    `;
+    assertObjectResult(expression, done);
+  });
+
   it("should allow assigning property values with expressions", done => {
     const expression = `
     const result = {};

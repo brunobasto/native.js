@@ -11,7 +11,7 @@ describe("Array Literals", () => {
     assertArrayResult(expression, done);
   });
 
-  xit("should create an array of booleans", done => {
+  it("should create an array of booleans", done => {
     const expression = `
 	const result = [true, false, true];
 	`;
@@ -32,14 +32,21 @@ describe("Array Literals", () => {
     assertArrayResult(expression, done);
   });
 
-  xit("should create an array of floats", done => {
+  it("should create an array of objects with arrays", done => {
+    const expression = `
+  const result = [{value: [0, 1]}, {value: [2, 3]}, {value: [4, 5]}];
+  `;
+    assertArrayResult(expression, done);
+  });
+
+  it("should create an array of floats", done => {
     const expression = `
 	const result = [10.3, 20.4, 30.5];
 	`;
     assertArrayResult(expression, done);
   });
 
-  xit("should create an array of longs", done => {
+  it("should create an array of longs", done => {
     const expression = `
 	const result = [500000, 100000000, 24234344233224324];
 	`;
