@@ -505,6 +505,9 @@ export class TypeHelper {
         }
         return null;
       }
+      case ts.SyntaxKind.PropertyAssignment:
+        const propertyAssignment = <ts.PropertyAssignment>node;
+        return this.getCType(propertyAssignment.initializer);
       case ts.SyntaxKind.FunctionExpression:
         // TODO - Actually infer function return type
         return NumberVarType;
@@ -666,6 +669,9 @@ export class TypeHelper {
       tsType.flags == ts.TypeFlags.Number ||
       tsType.flags == ts.TypeFlags.NumberLiteral
     ) {
+      if (ident && ident.parent.kind === ts.SyntaxKind.PropertyAssignment) {
+        return this.getCType(ident.parent);
+      }
       return NumberVarType;
     }
     if (
@@ -1449,10 +1455,22 @@ export class TypeHelper {
   private determineArrayType(arrLiteral: ts.ArrayLiteralExpression): ArrayType {
     let elementType: CType = PointerVarType;
     let cap = arrLiteral.elements.length;
-    if (cap > 0)
-      elementType = this.convertType(
-        this.typeChecker.getTypeAtLocation(arrLiteral.elements[0])
-      );
+    if (cap > 0) {
+      if (
+        arrLiteral.elements[0].kind === ts.SyntaxKind.ArrayLiteralExpression
+      ) {
+        elementType = this.determineArrayType(
+          <ts.ArrayLiteralExpression>arrLiteral.elements[0]
+        );
+      } else {
+        elementType = this.getCType(arrLiteral.elements[0]);
+        if (!elementType) {
+          elementType = this.convertType(
+            this.typeChecker.getTypeAtLocation(arrLiteral.elements[0])
+          );
+        }
+      }
+    }
 
     let type = new ArrayType(elementType, cap, false);
     this.arrayLiteralsTypes[arrLiteral.pos] = type;
@@ -1461,6 +1479,10 @@ export class TypeHelper {
 
   public ensureArrayStruct(elementType: CType) {
     let elementTypeText = this.getTypeString(elementType);
+    if (elementType instanceof ArrayType) {
+      elementTypeText =
+        this.getTypeString(<ArrayType>elementType.elementType) + " * ";
+    }
     let structName = ArrayType.getArrayStructName(elementTypeText);
     this.userStructs[structName] = new StructType(structName, {
       size: NumberVarType,
