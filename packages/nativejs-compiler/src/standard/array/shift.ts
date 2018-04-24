@@ -20,7 +20,7 @@ class ArrayShiftResolver implements IResolver {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const objType = typeHelper.getCType(propAccess.expression);
+    const objType = typeHelper.inferNodeType(propAccess.expression);
     return (
       propAccess.name.getText() == "shift" &&
       objType instanceof ArrayType &&
@@ -63,7 +63,7 @@ class CArrayShift {
       propAccess,
       "value"
     );
-    const type = scope.root.typeHelper.getCType(
+    const type = scope.root.typeHelper.inferNodeType(
       propAccess.expression
     ) as ArrayType;
     scope.variables.push(

@@ -21,7 +21,7 @@ class ArrayPushResolver implements IResolver {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const objType = typeHelper.getCType(propAccess.expression);
+    const objType = typeHelper.inferNodeType(propAccess.expression);
     return (
       propAccess.name.getText() == "push" &&
       objType instanceof ArrayType &&
@@ -65,7 +65,9 @@ class CArrayPush {
   constructor(scope: IScope, call: ts.CallExpression) {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     this.varAccess = new CElementAccess(scope, propAccess.expression);
-    const types = call.arguments.map(a => scope.root.typeHelper.getCType(a));
+    const types = call.arguments.map(a =>
+      scope.root.typeHelper.inferNodeType(a)
+    );
     const args = call.arguments.map(a =>
       CodeTemplateFactory.createForNode(scope, a)
     );

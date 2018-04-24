@@ -20,7 +20,7 @@ class ArrayForEachResolver implements IResolver {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const objType = typeHelper.getCType(propAccess.expression);
+    const objType = typeHelper.inferNodeType(propAccess.expression);
     return (
       propAccess.name.getText() == "forEach" && objType instanceof ArrayType
     );
@@ -68,7 +68,7 @@ class CArrayForEach {
     this.topExpressionOfStatement =
       call.parent.kind == ts.SyntaxKind.ExpressionStatement;
 
-    const objType = scope.root.typeHelper.getCType(
+    const objType = scope.root.typeHelper.inferNodeType(
       propAccess.expression
     ) as ArrayType;
 
@@ -107,7 +107,7 @@ class CGetSize {
   public staticArraySize: number;
   public isArray: boolean;
   constructor(scope: IScope, valueNode: ts.Node, public value: CExpression) {
-    const type = scope.root.typeHelper.getCType(valueNode);
+    const type = scope.root.typeHelper.inferNodeType(valueNode);
     this.isArray = type instanceof ArrayType;
     this.staticArraySize = type instanceof ArrayType && type.capacity;
   }

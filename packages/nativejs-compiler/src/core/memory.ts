@@ -55,7 +55,7 @@ export class MemoryManager {
             if (binExpr.left.kind == ts.SyntaxKind.Identifier) break;
           }
 
-          let type = this.typeHelper.getCType(node);
+          let type = this.typeHelper.inferNodeType(node);
           if (type && type instanceof ArrayType && type.isDynamicArray)
             this.scheduleNodeDisposal(node, true);
         }
@@ -72,7 +72,7 @@ export class MemoryManager {
             if (binExpr.left.kind == ts.SyntaxKind.Identifier) break;
           }
 
-          let type = this.typeHelper.getCType(node);
+          let type = this.typeHelper.inferNodeType(node);
           if (type && (type instanceof StructType || type instanceof DictType))
             this.scheduleNodeDisposal(node, true);
         }
@@ -84,8 +84,8 @@ export class MemoryManager {
             binExpr.operatorToken.kind == ts.SyntaxKind.PlusToken ||
             binExpr.operatorToken.kind == ts.SyntaxKind.FirstCompoundAssignment
           ) {
-            let leftType = this.typeHelper.getCType(binExpr.left);
-            let rightType = this.typeHelper.getCType(binExpr.right);
+            let leftType = this.typeHelper.inferNodeType(binExpr.left);
+            let rightType = this.typeHelper.inferNodeType(binExpr.right);
             if (leftType == StringVarType || rightType == StringVarType)
               this.scheduleNodeDisposal(binExpr, true);
 
@@ -196,7 +196,8 @@ export class MemoryManager {
           array: simpleVarScopeInfo.array,
           dict: simpleVarScopeInfo.dict,
           string:
-            this.typeHelper.getCType(simpleVarScopeInfo.node) == StringVarType,
+            this.typeHelper.inferNodeType(simpleVarScopeInfo.node) ==
+            StringVarType,
           arrayWithContents: simpleVarScopeInfo.arrayWithContents
         });
     }
@@ -416,7 +417,7 @@ export class MemoryManager {
       }
     }
 
-    let type = this.typeHelper.getCType(heapNode);
+    let type = this.typeHelper.inferNodeType(heapNode);
     let varName: string;
     if (heapNode.kind == ts.SyntaxKind.ArrayLiteralExpression)
       varName = this.typeHelper.addNewTemporaryVariable(heapNode, "tmp_array");

@@ -24,7 +24,7 @@ export class AssignmentHelper {
     let argumentExpression;
     if (left.kind == ts.SyntaxKind.ElementAccessExpression) {
       let elemAccess = <ts.ElementAccessExpression>left;
-      varType = scope.root.typeHelper.getCType(elemAccess.expression);
+      varType = scope.root.typeHelper.inferNodeType(elemAccess.expression);
       if (elemAccess.expression.kind == ts.SyntaxKind.Identifier)
         accessor = elemAccess.expression.getText();
       else accessor = new CElementAccess(scope, elemAccess.expression);
@@ -47,7 +47,7 @@ export class AssignmentHelper {
           elemAccess.argumentExpression
         );
     } else {
-      varType = scope.root.typeHelper.getCType(left);
+      varType = scope.root.typeHelper.inferNodeType(left);
       accessor = new CElementAccess(scope, left);
       argumentExpression = null;
     }
@@ -188,7 +188,7 @@ export class CAssignment {
       // only do this when we have an argument expression
       if (<ts.Expression>elementAccess.argumentExpression) {
         const isStringValue =
-          scope.root.typeHelper.getCType(right) == StringVarType;
+          scope.root.typeHelper.inferNodeType(right) == StringVarType;
         if (isStringValue) {
           this.isStringValue = 1;
         }

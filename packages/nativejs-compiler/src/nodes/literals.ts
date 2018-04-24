@@ -21,7 +21,7 @@ class CArrayLiteralExpression {
   public expression: string;
   constructor(scope: IScope, node: ts.ArrayLiteralExpression) {
     let arrSize = node.elements.length;
-    let type = scope.root.typeHelper.getCType(node);
+    let type = scope.root.typeHelper.inferNodeType(node);
     if (type instanceof ArrayType) {
       let varName: string;
       let canUseInitializerList = node.elements.every(
@@ -109,7 +109,7 @@ class CObjectLiteralExpression {
   public allocator: CVariableAllocation;
   public initializers: CAssignment[];
   constructor(scope: IScope, node: ts.ObjectLiteralExpression) {
-    let type = scope.root.typeHelper.getCType(node);
+    let type = scope.root.typeHelper.inferNodeType(node);
     this.isStruct = type instanceof StructType;
     this.isDict = type instanceof DictType;
     if (this.isStruct || this.isDict) {

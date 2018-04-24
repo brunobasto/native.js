@@ -20,7 +20,7 @@ class ArraySliceResolver implements IResolver {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const objType = typeHelper.getCType(propAccess.expression);
+    const objType = typeHelper.inferNodeType(propAccess.expression);
     return (
       propAccess.name.getText() == "slice" &&
       objType instanceof ArrayType &&
@@ -29,7 +29,7 @@ class ArraySliceResolver implements IResolver {
   }
   public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    return typeHelper.getCType(propAccess.expression);
+    return typeHelper.inferNodeType(propAccess.expression);
   }
   public createTemplate(scope: IScope, node: ts.CallExpression) {
     return new CArraySlice(scope, node);
@@ -93,7 +93,7 @@ class CArraySlice {
       this.tempVarName = scope.root.memoryManager.getReservedTemporaryVarName(
         call
       );
-      const type = scope.root.typeHelper.getCType(propAccess.expression);
+      const type = scope.root.typeHelper.inferNodeType(propAccess.expression);
       if (!scope.root.memoryManager.variableWasReused(call)) {
         scope.variables.push(new CVariable(scope, this.tempVarName, type));
       }

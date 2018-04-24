@@ -23,6 +23,16 @@ describe("Functions", () => {
     assertStringResult(expression, done);
   });
 
+  it.only("should allow arguments", done => {
+    const expression = `
+      function returnArguments() {
+        return arguments;
+      }
+      const result = returnArguments(1, 2, 3);
+    `;
+    assertStringResult(expression, done);
+  });
+
   xit("should allow declaring named functions with parameter and integer return type", done => {
     const expression = `
       function myFunction(add) {

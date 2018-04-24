@@ -378,7 +378,126 @@ export class TypeHelper {
     return parent;
   }
 
-  public getCType(node: ts.Node): CType {
+  private inferNumericLiteral(node: ts.NumericLiteral) {
+    // if it's. a float, return float
+    if (this.isFloatLiteral(node)) {
+      return FloatVarType;
+    }
+    // if it's a big number, return long
+    const literalText = node.getText();
+    if (literalText.indexOf("-") === 0) {
+      return SignedLongVarType;
+    }
+    if (parseInt(literalText, 10) > 1023) {
+      return LongVarType;
+    }
+    // else return int
+    return NumberVarType;
+  }
+
+  private inferBinaryExpression(node: ts.BinaryExpression) {
+    const parentBinary = this.findParentWithKind(
+      node,
+      ts.SyntaxKind.BinaryExpression
+    );
+    log(
+      parentBinary.getText(),
+      this.isFloatExpression(<ts.BinaryExpression>parentBinary)
+    );
+    if (this.isFloatExpression(<ts.BinaryExpression>parentBinary)) {
+      return FloatVarType;
+    } else if (this.isLongExpression(<ts.BinaryExpression>parentBinary)) {
+      return LongVarType;
+    } else {
+      let tsType = this.typeChecker.getTypeAtLocation(node);
+      let type = tsType && this.convertType(tsType);
+      if (type != UniversalVarType && type != PointerVarType) {
+        return type;
+      }
+    }
+  }
+
+  private inferIdentifier(node: ts.Identifier) {
+    // is parameter of a function
+    if (node.parent.kind == ts.SyntaxKind.Parameter) {
+      let parentCall = this.findParentCallExpression(node);
+      // the function is inside a call expression
+      if (parentCall) {
+        const propAccess = <ts.PropertyAccessExpression>parentCall.expression;
+        let parentObjectType = this.inferNodeType(propAccess.expression);
+        // the call expression is on an Array
+        if (parentObjectType instanceof ArrayType) {
+          // return the type of the Array
+          return parentObjectType.elementType;
+        }
+      }
+    }
+    let varInfo = this.getVariableInfo(<ts.Identifier>node);
+    return (varInfo && varInfo.type) || null;
+  }
+
+  private inferElementAccessExpression(node: ts.ElementAccessExpression) {
+    let elemAccess = <ts.ElementAccessExpression>node;
+    let parentObjectType = this.inferNodeType(elemAccess.expression);
+    if (parentObjectType instanceof ArrayType)
+      return parentObjectType.elementType;
+    else if (parentObjectType instanceof StructType)
+      return parentObjectType.properties[
+        elemAccess.argumentExpression.getText().slice(1, -1)
+      ];
+    else if (parentObjectType instanceof DictType)
+      return parentObjectType.elementType;
+    return null;
+  }
+
+  private inferPropertyAccessExpression(node: ts.PropertyAccessExpression) {
+    let propAccess = <ts.PropertyAccessExpression>node;
+    let parentObjectType = this.inferNodeType(propAccess.expression);
+    if (parentObjectType instanceof StructType)
+      return parentObjectType.properties[propAccess.name.getText()];
+    else if (
+      parentObjectType instanceof ArrayType &&
+      propAccess.name.getText() == "length"
+    )
+      return NumberVarType;
+    else if (
+      parentObjectType === StringVarType &&
+      propAccess.name.getText() == "length"
+    )
+      return NumberVarType;
+    return null;
+  }
+
+  private inferCallExpression(node: ts.CallExpression) {
+    let call = <ts.CallExpression>node;
+    let retType = StandardCallHelper.getReturnType(this, call);
+    if (retType) return retType;
+
+    if (call.expression.kind == ts.SyntaxKind.PropertyAccessExpression) {
+      let propAccess = <ts.PropertyAccessExpression>call.expression;
+      let propName = propAccess.name.getText();
+      if (
+        (propName == "indexOf" || propName == "lastIndexOf") &&
+        call.arguments.length == 1
+      ) {
+        let exprType = this.inferNodeType(propAccess.expression);
+        if (exprType && exprType == StringVarType) return NumberVarType;
+      }
+    } else if (call.expression.kind == ts.SyntaxKind.Identifier) {
+      if (call.expression.getText() == "parseInt") {
+        return NumberVarType;
+      }
+      let funcSymbol = this.typeChecker.getSymbolAtLocation(call.expression);
+      if (funcSymbol != null) {
+        let funcDeclPos = funcSymbol.valueDeclaration.pos;
+        let varInfo = this.variables[funcDeclPos];
+        return varInfo && varInfo.type;
+      }
+    }
+    return null;
+  }
+
+  public inferNodeType(node: ts.Node): CType {
     if (!node.kind) return null;
     // Look for known registered types
     const nodeType = TypeRegistry.getNodeType(node);
@@ -387,40 +506,9 @@ export class TypeHelper {
     }
     switch (node.kind) {
       case ts.SyntaxKind.NumericLiteral:
-        // if it's. a float, return float
-        if (this.isFloatLiteral(<ts.NumericLiteral>node)) {
-          return FloatVarType;
-        }
-        // if it's a big number, return long
-        const literalText = node.getText();
-        if (literalText.indexOf("-") === 0) {
-          return SignedLongVarType;
-        }
-        if (parseInt(literalText, 10) > 1023) {
-          return LongVarType;
-        }
-        // else return int
-        return NumberVarType;
+        return this.inferNumericLiteral(<ts.NumericLiteral>node);
       case ts.SyntaxKind.BinaryExpression: {
-        const parentBinary = this.findParentWithKind(
-          node,
-          ts.SyntaxKind.BinaryExpression
-        );
-        log(
-          parentBinary.getText(),
-          this.isFloatExpression(<ts.BinaryExpression>parentBinary)
-        );
-        if (this.isFloatExpression(<ts.BinaryExpression>parentBinary)) {
-          return FloatVarType;
-        } else if (this.isLongExpression(<ts.BinaryExpression>parentBinary)) {
-          return LongVarType;
-        } else {
-          let tsType = this.typeChecker.getTypeAtLocation(node);
-          let type = tsType && this.convertType(tsType);
-          if (type != UniversalVarType && type != PointerVarType) {
-            return type;
-          }
-        }
+        return this.inferBinaryExpression(<ts.BinaryExpression>node);
       }
       case ts.SyntaxKind.TrueKeyword:
       case ts.SyntaxKind.FalseKeyword:
@@ -428,86 +516,24 @@ export class TypeHelper {
       case ts.SyntaxKind.StringLiteral:
         return StringVarType;
       case ts.SyntaxKind.Identifier: {
-        // is parameter of a function
-        if (node.parent.kind == ts.SyntaxKind.Parameter) {
-          let parentCall = this.findParentCallExpression(node);
-          // the function is inside a call expression
-          if (parentCall) {
-            const propAccess = <ts.PropertyAccessExpression>parentCall.expression;
-            let parentObjectType = this.getCType(propAccess.expression);
-            // the call expression is on an Array
-            if (parentObjectType instanceof ArrayType) {
-              // return the type of the Array
-              return parentObjectType.elementType;
-            }
-          }
-        }
-        let varInfo = this.getVariableInfo(<ts.Identifier>node);
-        return (varInfo && varInfo.type) || null;
+        return this.inferIdentifier(<ts.Identifier>node);
       }
       case ts.SyntaxKind.ElementAccessExpression: {
-        let elemAccess = <ts.ElementAccessExpression>node;
-        let parentObjectType = this.getCType(elemAccess.expression);
-        if (parentObjectType instanceof ArrayType)
-          return parentObjectType.elementType;
-        else if (parentObjectType instanceof StructType)
-          return parentObjectType.properties[
-            elemAccess.argumentExpression.getText().slice(1, -1)
-          ];
-        else if (parentObjectType instanceof DictType)
-          return parentObjectType.elementType;
-        return null;
+        return this.inferElementAccessExpression(
+          <ts.ElementAccessExpression>node
+        );
       }
       case ts.SyntaxKind.PropertyAccessExpression: {
-        let propAccess = <ts.PropertyAccessExpression>node;
-        let parentObjectType = this.getCType(propAccess.expression);
-        if (parentObjectType instanceof StructType)
-          return parentObjectType.properties[propAccess.name.getText()];
-        else if (
-          parentObjectType instanceof ArrayType &&
-          propAccess.name.getText() == "length"
-        )
-          return NumberVarType;
-        else if (
-          parentObjectType === StringVarType &&
-          propAccess.name.getText() == "length"
-        )
-          return NumberVarType;
-        return null;
+        return this.inferPropertyAccessExpression(
+          <ts.PropertyAccessExpression>node
+        );
       }
       case ts.SyntaxKind.CallExpression: {
-        let call = <ts.CallExpression>node;
-        let retType = StandardCallHelper.getReturnType(this, call);
-        if (retType) return retType;
-
-        if (call.expression.kind == ts.SyntaxKind.PropertyAccessExpression) {
-          let propAccess = <ts.PropertyAccessExpression>call.expression;
-          let propName = propAccess.name.getText();
-          if (
-            (propName == "indexOf" || propName == "lastIndexOf") &&
-            call.arguments.length == 1
-          ) {
-            let exprType = this.getCType(propAccess.expression);
-            if (exprType && exprType == StringVarType) return NumberVarType;
-          }
-        } else if (call.expression.kind == ts.SyntaxKind.Identifier) {
-          if (call.expression.getText() == "parseInt") {
-            return NumberVarType;
-          }
-          let funcSymbol = this.typeChecker.getSymbolAtLocation(
-            call.expression
-          );
-          if (funcSymbol != null) {
-            let funcDeclPos = funcSymbol.valueDeclaration.pos;
-            let varInfo = this.variables[funcDeclPos];
-            return varInfo && varInfo.type;
-          }
-        }
-        return null;
+        return this.inferCallExpression(<ts.CallExpression>node);
       }
       case ts.SyntaxKind.PropertyAssignment:
         const propertyAssignment = <ts.PropertyAssignment>node;
-        return this.getCType(propertyAssignment.initializer);
+        return this.inferNodeType(propertyAssignment.initializer);
       case ts.SyntaxKind.FunctionExpression:
         // TODO - Actually infer function return type
         return NumberVarType;
@@ -534,7 +560,10 @@ export class TypeHelper {
   /** Get information of variable specified by ts.Node */
   public getVariableInfo(node: ts.Node, propKey?: string): VariableInfo {
     let symbol = this.typeChecker.getSymbolAtLocation(node);
-    let varPos = symbol ? symbol.valueDeclaration.pos : node.pos;
+    let varPos =
+      symbol && symbol.valueDeclaration
+        ? symbol.valueDeclaration.pos
+        : node.pos;
     let varInfo = this.variables[varPos];
     if (varInfo && propKey) {
       let propPos = this.variablesData[varPos].varDeclPosByPropName[propKey];
@@ -557,7 +586,7 @@ export class TypeHelper {
       source = this.convertType(source);
     else if (source.kind != null && source.flags != null)
       // ts.Node
-      source = this.getCType(source);
+      source = this.inferNodeType(source);
     else if (
       source.name != null &&
       source.flags != null &&
@@ -670,7 +699,7 @@ export class TypeHelper {
       tsType.flags == ts.TypeFlags.NumberLiteral
     ) {
       if (ident && ident.parent.kind === ts.SyntaxKind.PropertyAssignment) {
-        return this.getCType(ident.parent);
+        return this.inferNodeType(ident.parent);
       }
       return NumberVarType;
     }
@@ -711,6 +740,13 @@ export class TypeHelper {
 
   private findVariablesRecursively(node: ts.Node) {
     PluginRegistry.processTypesForNode(node);
+
+    if (
+      node.kind === ts.SyntaxKind.Identifier &&
+      node.getText() == "arguments"
+    ) {
+      return;
+    }
 
     if (node.kind == ts.SyntaxKind.CallExpression) {
       let call = <ts.CallExpression>node;
@@ -787,6 +823,8 @@ export class TypeHelper {
       let varInfo = null;
       let varData = null;
       let varNode = null;
+
+      const parentFunction = this.findParentFunction(node);
       if (node.kind == ts.SyntaxKind.PropertyAccessExpression) {
         let propAccess = <ts.PropertyAccessExpression>node;
         let propName = propAccess.name.getText();
@@ -841,17 +879,25 @@ export class TypeHelper {
       } else if (node.kind == ts.SyntaxKind.Identifier) {
         let symbol = this.typeChecker.getSymbolAtLocation(node);
         if (symbol) {
-          varPos = symbol.valueDeclaration.pos;
-          if (!this.variables[varPos]) {
-            this.variables[varPos] = new VariableInfo();
-            this.variablesData[varPos] = new VariableData();
-            this.variables[varPos].name = node.getText();
-            this.variables[varPos].declaration = symbol.declarations[0].name;
+          if (
+            symbol.declarations &&
+            symbol.declarations.length === 0 &&
+            symbol.name !== "arguments"
+          ) {
+            throw new Error("Undeclared variable");
+          } else {
+            varPos = symbol.valueDeclaration.pos;
+            if (!this.variables[varPos]) {
+              this.variables[varPos] = new VariableInfo();
+              this.variablesData[varPos] = new VariableData();
+              this.variables[varPos].name = node.getText();
+              this.variables[varPos].declaration = symbol.declarations[0].name;
+            }
+            varInfo = this.variables[varPos];
+            varData = this.variablesData[varPos];
+            varInfo.references.push(node);
+            varNode = node;
           }
-          varInfo = this.variables[varPos];
-          varData = this.variablesData[varPos];
-          varInfo.references.push(node);
-          varNode = node;
         }
       }
 
@@ -1256,7 +1302,7 @@ export class TypeHelper {
             propAssignment.initializer.kind ==
               ts.SyntaxKind.ArrayLiteralExpression
           ) {
-            let type = this.getCType(ref.parent.parent);
+            let type = this.inferNodeType(ref.parent.parent);
             if (type && type instanceof StructType)
               this.arrayLiteralsTypes[propAssignment.initializer.pos] =
                 type.properties[varInfo.name];
@@ -1284,7 +1330,7 @@ export class TypeHelper {
             somePromisesAreResolved = true;
           }
           let currentType = variablePromises[id].bestType || PointerVarType;
-          let resolvedType = this.getCType(
+          let resolvedType = this.inferNodeType(
             functionCallsPromises[id].associatedNode
           );
           let mergeResult = this.mergeTypes(currentType, resolvedType);
@@ -1299,7 +1345,7 @@ export class TypeHelper {
       for (let promiseId in this.variablesData[varPos].typePromises) {
         let promise = this.variablesData[varPos].typePromises[promiseId];
         let resolvedType =
-          this.getCType(promise.associatedNode) || PointerVarType;
+          this.inferNodeType(promise.associatedNode) || PointerVarType;
 
         let finalType = resolvedType;
         if (promise.promiseKind == TypePromiseKind.dynamicArrayOf) {
@@ -1463,7 +1509,7 @@ export class TypeHelper {
           <ts.ArrayLiteralExpression>arrLiteral.elements[0]
         );
       } else {
-        elementType = this.getCType(arrLiteral.elements[0]);
+        elementType = this.inferNodeType(arrLiteral.elements[0]);
         if (!elementType) {
           elementType = this.convertType(
             this.typeChecker.getTypeAtLocation(arrLiteral.elements[0])

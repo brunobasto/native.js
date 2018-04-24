@@ -53,9 +53,9 @@ class CBinaryExpression {
       return;
     }
 
-    let leftType = scope.root.typeHelper.getCType(node.left);
+    let leftType = scope.root.typeHelper.inferNodeType(node.left);
     let left = CodeTemplateFactory.createForNode(scope, node.left);
-    let rightType = scope.root.typeHelper.getCType(node.right);
+    let rightType = scope.root.typeHelper.inferNodeType(node.right);
     let right = CodeTemplateFactory.createForNode(scope, node.right);
     this.expression = new CSimpleBinaryExpression(
       scope,
@@ -299,7 +299,7 @@ class CUnaryExpression {
   ) {
     let operatorMap: { [token: number]: string } = {};
     let callReplaceMap: { [token: number]: [string, string] } = {};
-    let type = scope.root.typeHelper.getCType(node.operand);
+    let type = scope.root.typeHelper.inferNodeType(node.operand);
     operatorMap[ts.SyntaxKind.ExclamationToken] = "!";
     const typeHelper = scope.root.typeHelper;
     if (typeHelper.isNumericType(type)) {

@@ -21,7 +21,7 @@ class ArrayPopResolver implements IResolver {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const objType = typeHelper.getCType(propAccess.expression);
+    const objType = typeHelper.inferNodeType(propAccess.expression);
     return (
       propAccess.name.getText() == "pop" &&
       objType instanceof ArrayType &&
@@ -30,7 +30,9 @@ class ArrayPopResolver implements IResolver {
   }
   public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const objType = typeHelper.getCType(propAccess.expression) as ArrayType;
+    const objType = typeHelper.inferNodeType(
+      propAccess.expression
+    ) as ArrayType;
     return objType.elementType;
   }
   public createTemplate(scope: IScope, node: ts.CallExpression) {

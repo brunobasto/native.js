@@ -27,7 +27,7 @@ class ArrayConcatResolver implements IResolver {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const objType = typeHelper.getCType(propAccess.expression);
+    const objType = typeHelper.inferNodeType(propAccess.expression);
     return (
       (propAccess.name.getText() == "join" ||
         propAccess.name.getText() == "toString") &&
@@ -85,7 +85,7 @@ class CArrayJoin {
 
     if (!this.topExpressionOfStatement) {
       const propAccess = call.expression as ts.PropertyAccessExpression;
-      const type = scope.root.typeHelper.getCType(
+      const type = scope.root.typeHelper.inferNodeType(
         propAccess.expression
       ) as ArrayType;
       this.varAccess = new CElementAccess(scope, propAccess.expression);

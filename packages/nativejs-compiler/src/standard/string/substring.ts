@@ -20,7 +20,7 @@ class StringSubstringResolver implements IResolver {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const objType = typeHelper.getCType(propAccess.expression);
+    const objType = typeHelper.inferNodeType(propAccess.expression);
     return propAccess.name.getText() == "substring" && objType == StringVarType;
   }
   public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {

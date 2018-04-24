@@ -20,7 +20,7 @@ class StringToStringResolver implements IResolver {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const objType = typeHelper.getCType(propAccess.expression);
+    const objType = typeHelper.inferNodeType(propAccess.expression);
     return (
       ["toString", "valueOf"].indexOf(propAccess.name.getText()) > -1 &&
       objType == StringVarType

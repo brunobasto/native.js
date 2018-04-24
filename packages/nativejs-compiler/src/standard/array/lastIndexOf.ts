@@ -23,7 +23,7 @@ class ArrayLastIndexOfResolver implements IResolver {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const objType = typeHelper.getCType(propAccess.expression);
+    const objType = typeHelper.inferNodeType(propAccess.expression);
     return (
       propAccess.name.getText() == "lastIndexOf" && objType instanceof ArrayType
     );
@@ -77,7 +77,7 @@ class CArrayLastIndexOf {
   public varAccess: CElementAccess = null;
   constructor(scope: IScope, call: ts.CallExpression) {
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const objType = scope.root.typeHelper.getCType(
+    const objType = scope.root.typeHelper.inferNodeType(
       propAccess.expression
     ) as ArrayType;
     this.varAccess = new CElementAccess(scope, propAccess.expression);

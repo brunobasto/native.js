@@ -14,7 +14,7 @@ class ArraySortResolver implements IResolver {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const objType = typeHelper.getCType(propAccess.expression);
+    const objType = typeHelper.inferNodeType(propAccess.expression);
     return (
       propAccess.name.getText() == "reverse" &&
       objType instanceof ArrayType &&
@@ -23,7 +23,7 @@ class ArraySortResolver implements IResolver {
   }
   public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    return typeHelper.getCType(propAccess.expression);
+    return typeHelper.inferNodeType(propAccess.expression);
   }
   public createTemplate(scope: IScope, node: ts.CallExpression) {
     return new CArrayReverse(scope, node);
@@ -62,7 +62,7 @@ class CArrayReverse {
   public tempVarName: string;
   constructor(scope: IScope, call: ts.CallExpression) {
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const type = scope.root.typeHelper.getCType(
+    const type = scope.root.typeHelper.inferNodeType(
       propAccess.expression
     ) as ArrayType;
     this.varAccess = new CElementAccess(scope, propAccess.expression);

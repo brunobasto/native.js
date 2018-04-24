@@ -20,14 +20,14 @@ class ArrayConcatResolver implements IResolver {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const objType = typeHelper.getCType(propAccess.expression);
+    const objType = typeHelper.inferNodeType(propAccess.expression);
     return (
       propAccess.name.getText() == "concat" && objType instanceof ArrayType
     );
   }
   public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const type = typeHelper.getCType(propAccess.expression) as ArrayType;
+    const type = typeHelper.inferNodeType(propAccess.expression) as ArrayType;
     return new ArrayType(type.elementType, 0, true);
   }
   public createTemplate(scope: IScope, node: ts.CallExpression) {
@@ -75,7 +75,7 @@ class CArrayConcat {
       this.tempVarName = scope.root.memoryManager.getReservedTemporaryVarName(
         call
       );
-      const type = scope.root.typeHelper.getCType(
+      const type = scope.root.typeHelper.inferNodeType(
         propAccess.expression
       ) as ArrayType;
       if (!scope.root.memoryManager.variableWasReused(call)) {
@@ -128,7 +128,7 @@ class CGetSize {
   public staticArraySize: number;
   public isArray: boolean;
   constructor(scope: IScope, valueNode: ts.Node, public value: CExpression) {
-    const type = scope.root.typeHelper.getCType(valueNode);
+    const type = scope.root.typeHelper.inferNodeType(valueNode);
     this.isArray = type instanceof ArrayType;
     this.staticArraySize = type instanceof ArrayType && type.capacity;
   }
@@ -156,7 +156,7 @@ class CConcatValue {
     public value: CExpression,
     public indexVarName: string
   ) {
-    const type = scope.root.typeHelper.getCType(valueNode);
+    const type = scope.root.typeHelper.inferNodeType(valueNode);
     this.isArray = type instanceof ArrayType;
     this.staticArraySize =
       type instanceof ArrayType && !type.isDynamicArray && type.capacity;
