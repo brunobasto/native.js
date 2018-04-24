@@ -80,7 +80,7 @@ class VariableData {
   typeResolutionLog: any[] = [];
 }
 
-export class TypeHelper {
+export class TypeVisitor {
   private variablesData: { [varDeclPos: number]: VariableData } = {};
   private functionCallsData: {
     [funcDeclPos: number]: PromiseDictionary[];
@@ -106,8 +106,11 @@ export class TypeHelper {
 
   /** Performs initialization of variables array */
   /** Call this before using getVariableInfo */
-  public figureOutVariablesAndTypes(sources: ts.SourceFile[]) {
-    for (let source of sources) this.findVariablesRecursively(source);
+  public visit(sources: ts.SourceFile[]) {
+    for (let source of sources) {
+      this.visitNode(source);
+    }
+
     this.resolvePromisesAndFinalizeTypes();
   }
 
@@ -232,7 +235,83 @@ export class TypeHelper {
     return this.structures.getDeclaredStructs();
   }
 
-  private findVariablesRecursively(node: ts.Node) {
+  private visitCallExpression(node: ts.CallExpression) {
+    let call = <ts.CallExpression>node;
+    if (call.expression.kind == ts.SyntaxKind.Identifier) {
+      let funcSymbol = this.typeChecker.getSymbolAtLocation(call.expression);
+      if (funcSymbol != null) {
+        let funcDeclPos = funcSymbol.valueDeclaration.pos + 1;
+        if (funcDeclPos > call.pos)
+          this.functionPrototypes[
+            funcDeclPos
+          ] = <ts.FunctionDeclaration>funcSymbol.valueDeclaration;
+        for (let i = 0; i < call.arguments.length; i++) {
+          if (!this.functionCallsData[funcDeclPos])
+            this.functionCallsData[funcDeclPos] = [];
+          let callData = this.functionCallsData[funcDeclPos];
+          let argId = call.arguments[i].pos + "_" + call.arguments[i].end;
+          if (!callData[i]) callData[i] = {};
+          callData[i][argId] = new TypePromise(call.arguments[i]);
+        }
+      }
+    }
+  }
+
+  private visitReturnStatement(node: ts.ReturnStatement) {
+    let ret = <ts.ReturnStatement>node;
+    let parentFunc = ScopeUtil.findParentFunction(node);
+    let funcPos = parentFunc && parentFunc.pos;
+    if (funcPos != null) {
+      if (ret.expression) {
+        if (ret.expression.kind == ts.SyntaxKind.ObjectLiteralExpression) {
+          this.addTypePromise(funcPos, ret.expression);
+          let objLiteral = <ts.ObjectLiteralExpression>ret.expression;
+          for (let propAssignment of objLiteral.properties
+            .filter(p => p.kind == ts.SyntaxKind.PropertyAssignment)
+            .map(p => <ts.PropertyAssignment>p)) {
+            this.addTypePromise(
+              funcPos,
+              propAssignment.initializer,
+              TypePromiseKind.propertyType,
+              propAssignment.name.getText()
+            );
+          }
+        } else this.addTypePromise(funcPos, ret.expression);
+      } else {
+        this.addTypePromise(funcPos, ret, TypePromiseKind.void);
+      }
+    }
+  }
+
+  private visitArrayLiteralExpression(node: ts.ArrayLiteralExpression) {
+    if (!this.arrayLiteralsTypes[node.pos]) {
+      this.determineArrayType(<ts.ArrayLiteralExpression>node);
+    }
+
+    let arrType = this.arrayLiteralsTypes[node.pos];
+    if (
+      arrType instanceof ArrayType &&
+      node.parent.kind == ts.SyntaxKind.PropertyAccessExpression &&
+      node.parent.parent.kind == ts.SyntaxKind.CallExpression
+    ) {
+      let propAccess = <ts.PropertyAccessExpression>node.parent;
+      // if array literal is concatenated, we need to ensure that we
+      // have corresponding dynamic array type for the temporary variable
+      if (propAccess.name.getText() == "concat")
+        this.ensureArrayStruct(arrType.elementType);
+    }
+  }
+
+  private visitObjectLiteralExpression(node: ts.ObjectLiteralExpression) {
+    if (!this.objectLiteralsTypes[node.pos]) {
+      let type = this.structures.generateStructure(
+        this.typeChecker.getTypeAtLocation(node)
+      );
+      this.objectLiteralsTypes[node.pos] = type;
+    }
+  }
+
+  private visitNode(node: ts.Node) {
     PluginRegistry.processTypesForNode(node);
 
     if (
@@ -243,72 +322,13 @@ export class TypeHelper {
     }
 
     if (node.kind == ts.SyntaxKind.CallExpression) {
-      let call = <ts.CallExpression>node;
-      if (call.expression.kind == ts.SyntaxKind.Identifier) {
-        let funcSymbol = this.typeChecker.getSymbolAtLocation(call.expression);
-        if (funcSymbol != null) {
-          let funcDeclPos = funcSymbol.valueDeclaration.pos + 1;
-          if (funcDeclPos > call.pos)
-            this.functionPrototypes[
-              funcDeclPos
-            ] = <ts.FunctionDeclaration>funcSymbol.valueDeclaration;
-          for (let i = 0; i < call.arguments.length; i++) {
-            if (!this.functionCallsData[funcDeclPos])
-              this.functionCallsData[funcDeclPos] = [];
-            let callData = this.functionCallsData[funcDeclPos];
-            let argId = call.arguments[i].pos + "_" + call.arguments[i].end;
-            if (!callData[i]) callData[i] = {};
-            callData[i][argId] = new TypePromise(call.arguments[i]);
-          }
-        }
-      }
+      this.visitCallExpression(<ts.CallExpression>node);
     } else if (node.kind == ts.SyntaxKind.ReturnStatement) {
-      let ret = <ts.ReturnStatement>node;
-      let parentFunc = ScopeUtil.findParentFunction(node);
-      let funcPos = parentFunc && parentFunc.pos;
-      if (funcPos != null) {
-        if (ret.expression) {
-          if (ret.expression.kind == ts.SyntaxKind.ObjectLiteralExpression) {
-            this.addTypePromise(funcPos, ret.expression);
-            let objLiteral = <ts.ObjectLiteralExpression>ret.expression;
-            for (let propAssignment of objLiteral.properties
-              .filter(p => p.kind == ts.SyntaxKind.PropertyAssignment)
-              .map(p => <ts.PropertyAssignment>p)) {
-              this.addTypePromise(
-                funcPos,
-                propAssignment.initializer,
-                TypePromiseKind.propertyType,
-                propAssignment.name.getText()
-              );
-            }
-          } else this.addTypePromise(funcPos, ret.expression);
-        } else {
-          this.addTypePromise(funcPos, ret, TypePromiseKind.void);
-        }
-      }
+      this.visitReturnStatement(<ts.ReturnStatement>node);
     } else if (node.kind == ts.SyntaxKind.ArrayLiteralExpression) {
-      if (!this.arrayLiteralsTypes[node.pos])
-        this.determineArrayType(<ts.ArrayLiteralExpression>node);
-
-      let arrType = this.arrayLiteralsTypes[node.pos];
-      if (
-        arrType instanceof ArrayType &&
-        node.parent.kind == ts.SyntaxKind.PropertyAccessExpression &&
-        node.parent.parent.kind == ts.SyntaxKind.CallExpression
-      ) {
-        let propAccess = <ts.PropertyAccessExpression>node.parent;
-        // if array literal is concatenated, we need to ensure that we
-        // have corresponding dynamic array type for the temporary variable
-        if (propAccess.name.getText() == "concat")
-          this.ensureArrayStruct(arrType.elementType);
-      }
+      this.visitArrayLiteralExpression(<ts.ArrayLiteralExpression>node);
     } else if (node.kind == ts.SyntaxKind.ObjectLiteralExpression) {
-      if (!this.objectLiteralsTypes[node.pos]) {
-        let type = this.structures.generateStructure(
-          this.typeChecker.getTypeAtLocation(node)
-        );
-        this.objectLiteralsTypes[node.pos] = type;
-      }
+      this.visitObjectLiteralExpression(<ts.ObjectLiteralExpression>node);
     } else if (
       node.kind == ts.SyntaxKind.Identifier ||
       node.kind == ts.SyntaxKind.PropertyAccessExpression
@@ -709,7 +729,7 @@ export class TypeHelper {
         }
       }
     }
-    node.getChildren().forEach(c => this.findVariablesRecursively(c));
+    node.getChildren().forEach(c => this.visitNode(c));
   }
 
   private resolvePromisesAndFinalizeTypes() {

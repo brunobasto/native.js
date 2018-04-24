@@ -11,22 +11,22 @@ import {
   IntegerType,
   StringType
 } from "../../core/types/NativeTypes";
-import { TypeHelper } from "../../core/types/TypeHelper";
+import { TypeVisitor } from "../../core/types/TypeVisitor";
 
 @StandardCallResolver
 class StringToStringResolver implements IResolver {
-  public matchesNode(typeHelper: TypeHelper, call: ts.CallExpression) {
+  public matchesNode(typeVisitor: TypeVisitor, call: ts.CallExpression) {
     if (call.expression.kind != ts.SyntaxKind.PropertyAccessExpression) {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const objType = typeHelper.inferNodeType(propAccess.expression);
+    const objType = typeVisitor.inferNodeType(propAccess.expression);
     return (
       ["toString", "valueOf"].indexOf(propAccess.name.getText()) > -1 &&
       objType == StringType
     );
   }
-  public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
+  public returnType(typeVisitor: TypeVisitor, call: ts.CallExpression) {
     return StringType;
   }
   public createTemplate(scope: IScope, node: ts.CallExpression) {
@@ -35,13 +35,13 @@ class StringToStringResolver implements IResolver {
       node.expression as ts.PropertyAccessExpression
     );
   }
-  public needsDisposal(typeHelper: TypeHelper, node: ts.CallExpression) {
+  public needsDisposal(typeVisitor: TypeVisitor, node: ts.CallExpression) {
     return false;
   }
-  public getTempVarName(typeHelper: TypeHelper, node: ts.CallExpression) {
+  public getTempVarName(typeVisitor: TypeVisitor, node: ts.CallExpression) {
     return null;
   }
-  public getEscapeNode(typeHelper: TypeHelper, node: ts.CallExpression) {
+  public getEscapeNode(typeVisitor: TypeVisitor, node: ts.CallExpression) {
     return null;
   }
 }

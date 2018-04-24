@@ -26,7 +26,7 @@ export class CElementAccess {
     let argumentExpression: string = null;
 
     if (node.kind == ts.SyntaxKind.Identifier) {
-      type = scope.root.typeHelper.inferNodeType(node);
+      type = scope.root.typeVisitor.inferNodeType(node);
       elementAccess = node.getText();
       let isLogicalContext =
         (node.parent.kind == ts.SyntaxKind.IfStatement ||
@@ -68,14 +68,14 @@ export class CElementAccess {
       }
     } else if (node.kind == ts.SyntaxKind.PropertyAccessExpression) {
       let propAccess = <ts.PropertyAccessExpression>node;
-      type = scope.root.typeHelper.inferNodeType(propAccess.expression);
+      type = scope.root.typeVisitor.inferNodeType(propAccess.expression);
       if (propAccess.expression.kind == ts.SyntaxKind.Identifier)
         elementAccess = propAccess.expression.getText();
       else elementAccess = new CElementAccess(scope, propAccess.expression);
       argumentExpression = propAccess.name.getText();
     } else if (node.kind == ts.SyntaxKind.ElementAccessExpression) {
       let elemAccess = <ts.ElementAccessExpression>node;
-      type = scope.root.typeHelper.inferNodeType(elemAccess.expression);
+      type = scope.root.typeVisitor.inferNodeType(elemAccess.expression);
       if (elemAccess.expression.kind == ts.SyntaxKind.Identifier)
         elementAccess = elemAccess.expression.getText();
       else elementAccess = new CElementAccess(scope, elemAccess.expression);
@@ -97,7 +97,7 @@ export class CElementAccess {
           elemAccess.argumentExpression
         );
     } else {
-      type = scope.root.typeHelper.inferNodeType(node);
+      type = scope.root.typeVisitor.inferNodeType(node);
       elementAccess = CodeTemplateFactory.createForNode(scope, node);
     }
 

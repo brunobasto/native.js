@@ -11,35 +11,35 @@ import {
   IntegerType,
   StringType
 } from "../../core/types/NativeTypes";
-import { TypeHelper } from "../../core/types/TypeHelper";
+import { TypeVisitor } from "../../core/types/TypeVisitor";
 
 @StandardCallResolver
 class ArrayUnshiftResolver implements IResolver {
-  public matchesNode(typeHelper: TypeHelper, call: ts.CallExpression) {
+  public matchesNode(typeVisitor: TypeVisitor, call: ts.CallExpression) {
     if (call.expression.kind != ts.SyntaxKind.PropertyAccessExpression) {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const objType = typeHelper.inferNodeType(propAccess.expression);
+    const objType = typeVisitor.inferNodeType(propAccess.expression);
     return (
       propAccess.name.getText() == "unshift" &&
       objType instanceof ArrayType &&
       objType.isDynamicArray
     );
   }
-  public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
+  public returnType(typeVisitor: TypeVisitor, call: ts.CallExpression) {
     return IntegerType;
   }
   public createTemplate(scope: IScope, node: ts.CallExpression) {
     return new CArrayUnshift(scope, node);
   }
-  public needsDisposal(typeHelper: TypeHelper, node: ts.CallExpression) {
+  public needsDisposal(typeVisitor: TypeVisitor, node: ts.CallExpression) {
     return false;
   }
-  public getTempVarName(typeHelper: TypeHelper, node: ts.CallExpression) {
+  public getTempVarName(typeVisitor: TypeVisitor, node: ts.CallExpression) {
     return null;
   }
-  public getEscapeNode(typeHelper: TypeHelper, node: ts.CallExpression) {
+  public getEscapeNode(typeVisitor: TypeVisitor, node: ts.CallExpression) {
     return (node.expression as ts.PropertyAccessExpression).expression;
   }
 }

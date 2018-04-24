@@ -54,9 +54,9 @@ class CBinaryExpression {
       return;
     }
 
-    let leftType = scope.root.typeHelper.inferNodeType(node.left);
+    let leftType = scope.root.typeVisitor.inferNodeType(node.left);
     let left = CodeTemplateFactory.createForNode(scope, node.left);
-    let rightType = scope.root.typeHelper.inferNodeType(node.right);
+    let rightType = scope.root.typeVisitor.inferNodeType(node.right);
     let right = CodeTemplateFactory.createForNode(scope, node.right);
     this.expression = new CSimpleBinaryExpression(
       scope,
@@ -138,7 +138,7 @@ export class CSimpleBinaryExpression {
 
     operatorMap[ts.SyntaxKind.AmpersandAmpersandToken] = "&&";
     operatorMap[ts.SyntaxKind.BarBarToken] = "||";
-    const typeHelper = scope.root.typeHelper;
+    const typeVisitor = scope.root.typeVisitor;
     if (isNumericType(leftType) && isNumericType(rightType)) {
       this.addNumberOperators(operatorMap);
     } else if (leftType == StringType && rightType == StringType) {
@@ -297,9 +297,9 @@ class CUnaryExpression {
   ) {
     let operatorMap: { [token: number]: string } = {};
     let callReplaceMap: { [token: number]: [string, string] } = {};
-    let type = scope.root.typeHelper.inferNodeType(node.operand);
+    let type = scope.root.typeVisitor.inferNodeType(node.operand);
     operatorMap[ts.SyntaxKind.ExclamationToken] = "!";
-    const typeHelper = scope.root.typeHelper;
+    const typeVisitor = scope.root.typeVisitor;
     if (isNumericType(type)) {
       operatorMap[ts.SyntaxKind.PlusPlusToken] = "++";
       operatorMap[ts.SyntaxKind.MinusMinusToken] = "--";

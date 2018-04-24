@@ -5,7 +5,7 @@ import {
   StringType,
   StructType
 } from "./types/NativeTypes";
-import { TypeHelper } from "./types/TypeHelper";
+import { TypeVisitor } from "./types/TypeVisitor";
 import { StandardCallHelper } from "./resolver";
 import { StringMatchResolver } from "../standard/string/match";
 import { TemporaryVariables } from "./temporary/TemporaryVariables";
@@ -33,13 +33,13 @@ export class MemoryManager {
 
   constructor(
     private typeChecker: ts.TypeChecker,
-    private typeHelper: TypeHelper,
+    private typeVisitor: TypeVisitor,
     private temporaryVariables: TemporaryVariables
   ) {}
 
   public preprocessVariables() {
-    for (let k in this.typeHelper.variables) {
-      let v = this.typeHelper.variables[k];
+    for (let k in this.typeVisitor.variables) {
+      let v = this.typeVisitor.variables[k];
       if (v.requiresAllocation) this.scheduleNodeDisposal(v.declaration, false);
     }
   }
@@ -58,7 +58,7 @@ export class MemoryManager {
             if (binExpr.left.kind == ts.SyntaxKind.Identifier) break;
           }
 
-          let type = this.typeHelper.inferNodeType(node);
+          let type = this.typeVisitor.inferNodeType(node);
           if (type && type instanceof ArrayType && type.isDynamicArray)
             this.scheduleNodeDisposal(node, true);
         }
@@ -75,7 +75,7 @@ export class MemoryManager {
             if (binExpr.left.kind == ts.SyntaxKind.Identifier) break;
           }
 
-          let type = this.typeHelper.inferNodeType(node);
+          let type = this.typeVisitor.inferNodeType(node);
           if (type && (type instanceof StructType || type instanceof DictType))
             this.scheduleNodeDisposal(node, true);
         }
@@ -87,8 +87,8 @@ export class MemoryManager {
             binExpr.operatorToken.kind == ts.SyntaxKind.PlusToken ||
             binExpr.operatorToken.kind == ts.SyntaxKind.FirstCompoundAssignment
           ) {
-            let leftType = this.typeHelper.inferNodeType(binExpr.left);
-            let rightType = this.typeHelper.inferNodeType(binExpr.right);
+            let leftType = this.typeVisitor.inferNodeType(binExpr.left);
+            let rightType = this.typeVisitor.inferNodeType(binExpr.right);
             if (leftType == StringType || rightType == StringType)
               this.scheduleNodeDisposal(binExpr, true);
 
@@ -105,7 +105,7 @@ export class MemoryManager {
         {
           if (
             StandardCallHelper.needsDisposal(
-              this.typeHelper,
+              this.typeVisitor,
               <ts.CallExpression>node
             )
           ) {
@@ -199,7 +199,7 @@ export class MemoryManager {
           array: simpleVarScopeInfo.array,
           dict: simpleVarScopeInfo.dict,
           string:
-            this.typeHelper.inferNodeType(simpleVarScopeInfo.node) ==
+            this.typeVisitor.inferNodeType(simpleVarScopeInfo.node) ==
             StringType,
           arrayWithContents: simpleVarScopeInfo.arrayWithContents
         });
@@ -258,12 +258,12 @@ export class MemoryManager {
       let refs = [node];
       if (node.kind == ts.SyntaxKind.Identifier) {
         let varIdent = <ts.Identifier>node;
-        let nodeVarInfo = this.typeHelper.getVariableInfo(varIdent);
+        let nodeVarInfo = this.typeVisitor.getVariableInfo(varIdent);
         if (!nodeVarInfo) {
           log("WARNING: Cannot find references for " + node.getText());
           continue;
         }
-        refs = this.typeHelper.getVariableInfo(varIdent).references;
+        refs = this.typeVisitor.getVariableInfo(varIdent).references;
       }
       let returned = false;
       for (let ref of refs) {
@@ -346,12 +346,12 @@ export class MemoryManager {
             let symbol = this.typeChecker.getSymbolAtLocation(call.expression);
             if (!symbol) {
               let isStandardCall =
-                StandardCallHelper.isStandardCall(this.typeHelper, call) ||
+                StandardCallHelper.isStandardCall(this.typeVisitor, call) ||
                 call.expression.getText() == "log";
 
               if (isStandardCall) {
                 let standardCallEscapeNode = StandardCallHelper.getEscapeNode(
-                  this.typeHelper,
+                  this.typeVisitor,
                   call
                 );
                 if (standardCallEscapeNode) {
@@ -420,7 +420,7 @@ export class MemoryManager {
       }
     }
 
-    let type = this.typeHelper.inferNodeType(heapNode);
+    let type = this.typeVisitor.inferNodeType(heapNode);
     let varName: string;
     if (heapNode.kind == ts.SyntaxKind.ArrayLiteralExpression)
       varName = this.temporaryVariables.addNewTemporaryVariable(
@@ -440,7 +440,7 @@ export class MemoryManager {
     else if (heapNode.kind == ts.SyntaxKind.CallExpression)
       varName = this.temporaryVariables.addNewTemporaryVariable(
         heapNode,
-        StandardCallHelper.getTempVarName(this.typeHelper, heapNode)
+        StandardCallHelper.getTempVarName(this.typeVisitor, heapNode)
       );
     else varName = heapNode.getText().replace(/\./g, "->");
 
@@ -451,7 +451,7 @@ export class MemoryManager {
     if (
       vnode.kind == ts.SyntaxKind.CallExpression &&
       new StringMatchResolver().matchesNode(
-        this.typeHelper,
+        this.typeVisitor,
         <ts.CallExpression>vnode
       )
     )

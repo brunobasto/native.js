@@ -2,7 +2,7 @@ import * as ts from "typescript";
 import { MemoryManager } from "./memory";
 import { ArrayType, StructType } from "./types/NativeTypes";
 import { TypeRegistry } from "./types/TypeRegistry";
-import { TypeHelper } from "./types/TypeHelper";
+import { TypeVisitor } from "./types/TypeVisitor";
 import { TypeInferencer } from "./types/TypeInferencer";
 import { CodeTemplate, CodeTemplateFactory } from "./template";
 import { CFunction, CFunctionPrototype } from "../nodes/function";
@@ -183,7 +183,7 @@ export class CProgram implements IScope {
   public root = this;
   public statements: any[] = [];
   public typeChecker: ts.TypeChecker;
-  public typeHelper: TypeHelper;
+  public typeVisitor: TypeVisitor;
   public variables: CVariable[] = [];
   public temporaryVariables: TemporaryVariables;
   public typeInferencer: TypeInferencer;
@@ -212,11 +212,11 @@ export class CProgram implements IScope {
     this.temporaryVariables = new TemporaryVariables(this.typeChecker);
 
     this.typeInferencer = new TypeInferencer(this);
-    this.typeHelper = new TypeHelper(this);
+    this.typeVisitor = new TypeVisitor(this);
 
     this.memoryManager = new MemoryManager(
       this.typeChecker,
-      this.typeHelper,
+      this.typeVisitor,
       this.temporaryVariables
     );
 
@@ -246,7 +246,7 @@ export class CProgram implements IScope {
       }
     }
 
-    this.typeHelper.figureOutVariablesAndTypes(sourceFiles);
+    this.typeVisitor.visit(sourceFiles);
 
     this.memoryManager.preprocessVariables();
 
@@ -265,7 +265,7 @@ export class CProgram implements IScope {
       }
     }
 
-    let structs = this.typeHelper.getDeclaredStructs();
+    let structs = this.typeVisitor.getDeclaredStructs();
 
     structs.forEach((s: any) => {
       HeaderRegistry.declareDependency(StructHeaderType, {
@@ -274,7 +274,7 @@ export class CProgram implements IScope {
       });
     });
 
-    let functionPrototypes = this.typeHelper.getFunctionPrototypes();
+    let functionPrototypes = this.typeVisitor.getFunctionPrototypes();
 
     this.functionPrototypes = functionPrototypes.map(
       fp => new CFunctionPrototype(this, fp)

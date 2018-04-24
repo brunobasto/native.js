@@ -18,7 +18,7 @@ import {
 } from "./NativeTypes";
 import { ScopeUtil } from "../scope/ScopeUtil";
 import { TypeRegistry } from "./TypeRegistry";
-import { TypeHelper } from "./TypeHelper";
+import { TypeVisitor } from "./TypeVisitor";
 import { CProgram } from "../program";
 
 const log = debug("TypeInferencer");
@@ -30,8 +30,8 @@ export class TypeInferencer {
     this.typeChecker = program.typeChecker;
   }
 
-  private getTypeHelper() {
-    return this.program.typeHelper;
+  private getTypeVisitor() {
+    return this.program.typeVisitor;
   }
 
   public isFloatExpression(binaryExpression: ts.BinaryExpression): boolean {
@@ -47,15 +47,17 @@ export class TypeInferencer {
     // if left or right is float identifier
     if (
       binaryExpression.left.kind == ts.SyntaxKind.Identifier &&
-      this.getTypeHelper().getVariableInfo(<ts.Identifier>binaryExpression.left)
-        .type == FloatType
+      this.getTypeVisitor().getVariableInfo(
+        <ts.Identifier>binaryExpression.left
+      ).type == FloatType
     ) {
       return true;
     }
     if (
       binaryExpression.left.kind == ts.SyntaxKind.Identifier &&
-      this.getTypeHelper().getVariableInfo(<ts.Identifier>binaryExpression.left)
-        .type == FloatType
+      this.getTypeVisitor().getVariableInfo(
+        <ts.Identifier>binaryExpression.left
+      ).type == FloatType
     ) {
       return true;
     }
@@ -120,15 +122,17 @@ export class TypeInferencer {
     // if left or right is float identifier
     if (
       binaryExpression.left.kind == ts.SyntaxKind.Identifier &&
-      this.getTypeHelper().getVariableInfo(<ts.Identifier>binaryExpression.left)
-        .type == LongType
+      this.getTypeVisitor().getVariableInfo(
+        <ts.Identifier>binaryExpression.left
+      ).type == LongType
     ) {
       return true;
     }
     if (
       binaryExpression.left.kind == ts.SyntaxKind.Identifier &&
-      this.getTypeHelper().getVariableInfo(<ts.Identifier>binaryExpression.left)
-        .type == LongType
+      this.getTypeVisitor().getVariableInfo(
+        <ts.Identifier>binaryExpression.left
+      ).type == LongType
     ) {
       return true;
     }
@@ -186,7 +190,7 @@ export class TypeInferencer {
     );
     if (parent) {
       const declaration = <ts.VariableDeclaration>parent;
-      let varInfo = this.getTypeHelper().getVariableInfo(declaration.name);
+      let varInfo = this.getTypeVisitor().getVariableInfo(declaration.name);
       for (let ref of varInfo.references) {
         // and one of its references is a binary expression
         const binary = ScopeUtil.findParentWithKind(
@@ -237,7 +241,7 @@ export class TypeInferencer {
       return LongType;
     } else {
       let tsType = this.typeChecker.getTypeAtLocation(node);
-      let type = tsType && this.getTypeHelper().convertType(tsType);
+      let type = tsType && this.getTypeVisitor().convertType(tsType);
       if (type != UniversalType && type != PointerType) {
         return type;
       }
@@ -259,7 +263,7 @@ export class TypeInferencer {
         }
       }
     }
-    let varInfo = this.getTypeHelper().getVariableInfo(<ts.Identifier>node);
+    let varInfo = this.getTypeVisitor().getVariableInfo(<ts.Identifier>node);
     return (varInfo && varInfo.type) || null;
   }
 
@@ -297,7 +301,7 @@ export class TypeInferencer {
 
   private inferCallExpression(node: ts.CallExpression) {
     let call = <ts.CallExpression>node;
-    let retType = StandardCallHelper.getReturnType(this.getTypeHelper(), call);
+    let retType = StandardCallHelper.getReturnType(this.getTypeVisitor(), call);
     if (retType) return retType;
 
     if (call.expression.kind == ts.SyntaxKind.PropertyAccessExpression) {
@@ -317,13 +321,15 @@ export class TypeInferencer {
       let funcSymbol = this.typeChecker.getSymbolAtLocation(call.expression);
       if (funcSymbol != null) {
         let funcDeclPos = funcSymbol.valueDeclaration.pos;
-        return this.getTypeHelper().getVariableType(funcDeclPos);
+        return this.getTypeVisitor().getVariableType(funcDeclPos);
       }
     }
     return null;
   }
 
   public inferNodeType(node: ts.Node): NativeType {
+    const typeVisitor = this.getTypeVisitor();
+
     if (!node.kind) return null;
     // Look for known registered types
     const nodeType = TypeRegistry.getNodeType(node);
@@ -366,16 +372,16 @@ export class TypeInferencer {
       case ts.SyntaxKind.RegularExpressionLiteral:
         return RegexType;
       case ts.SyntaxKind.ArrayLiteralExpression:
-        return this.getTypeHelper().getArrayLiteralType(node.pos);
+        return typeVisitor.getArrayLiteralType(node.pos);
       case ts.SyntaxKind.ObjectLiteralExpression:
-        return this.getTypeHelper().getObjectLiteralType(node.pos);
+        return typeVisitor.getObjectLiteralType(node.pos);
       case ts.SyntaxKind.FunctionDeclaration: {
-        return this.getTypeHelper().getVariableType(node.pos);
+        return typeVisitor.getVariableType(node.pos);
       }
       default:
         {
           let tsType = this.typeChecker.getTypeAtLocation(node);
-          let type = tsType && this.getTypeHelper().convertType(tsType);
+          let type = tsType && this.getTypeVisitor().convertType(tsType);
           if (type != UniversalType && type != PointerType) return type;
         }
         return null;

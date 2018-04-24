@@ -19,31 +19,31 @@ import {
   RegexType,
   StringType
 } from "../../core/types/NativeTypes";
-import { TypeHelper } from "../../core/types/TypeHelper";
+import { TypeVisitor } from "../../core/types/TypeVisitor";
 
 @StandardCallResolver
 export class StringMatchResolver implements IResolver {
-  public matchesNode(typeHelper: TypeHelper, call: ts.CallExpression) {
+  public matchesNode(typeVisitor: TypeVisitor, call: ts.CallExpression) {
     if (call.expression.kind != ts.SyntaxKind.PropertyAccessExpression) {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const objType = typeHelper.inferNodeType(propAccess.expression);
+    const objType = typeVisitor.inferNodeType(propAccess.expression);
     return propAccess.name.getText() == "match" && objType == StringType;
   }
-  public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
+  public returnType(typeVisitor: TypeVisitor, call: ts.CallExpression) {
     return new ArrayType(StringType, 1, true);
   }
   public createTemplate(scope: IScope, node: ts.CallExpression) {
     return new CStringMatch(scope, node);
   }
-  public needsDisposal(typeHelper: TypeHelper, node: ts.CallExpression) {
+  public needsDisposal(typeVisitor: TypeVisitor, node: ts.CallExpression) {
     return node.parent.kind != ts.SyntaxKind.ExpressionStatement;
   }
-  public getTempVarName(typeHelper: TypeHelper, node: ts.CallExpression) {
+  public getTempVarName(typeVisitor: TypeVisitor, node: ts.CallExpression) {
     return "match_array";
   }
-  public getEscapeNode(typeHelper: TypeHelper, node: ts.CallExpression) {
+  public getEscapeNode(typeVisitor: TypeVisitor, node: ts.CallExpression) {
     return null;
   }
 }

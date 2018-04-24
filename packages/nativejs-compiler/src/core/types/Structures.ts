@@ -6,7 +6,7 @@ import {
   PointerType,
   StructType
 } from "./NativeTypes";
-import { TypeHelper } from "./TypeHelper";
+import { TypeVisitor } from "./TypeVisitor";
 import { PropertiesDictionary } from "./PropertiesDictionary";
 
 type StructData = { [name: string]: StructType };
@@ -16,7 +16,7 @@ export class Structures {
 
   constructor(
     private typeChecker: ts.TypeChecker,
-    private typeHelper: TypeHelper
+    private typeVisitor: TypeVisitor
   ) {}
 
   public declare(name: string, struct: StructType) {
@@ -64,8 +64,10 @@ export class Structures {
         prop,
         prop.valueDeclaration
       );
-      let propType = this.typeHelper.convertType(propTsType, <ts.Identifier>prop
-        .valueDeclaration.name);
+      let propType = this.typeVisitor.convertType(
+        propTsType,
+        <ts.Identifier>prop.valueDeclaration.name
+      );
       if (
         propType == PointerType &&
         prop.valueDeclaration.kind == ts.SyntaxKind.PropertyAssignment
@@ -76,7 +78,7 @@ export class Structures {
           propAssignment.initializer.kind ==
             ts.SyntaxKind.ArrayLiteralExpression
         )
-          propType = this.typeHelper.determineArrayType(
+          propType = this.typeVisitor.determineArrayType(
             <ts.ArrayLiteralExpression>propAssignment.initializer
           );
       }

@@ -11,37 +11,37 @@ import {
   IntegerType,
   StringType
 } from "../../core/types/NativeTypes";
-import { TypeHelper } from "../../core/types/TypeHelper";
+import { TypeVisitor } from "../../core/types/TypeVisitor";
 
 @StandardCallResolver
 class ArrayConcatResolver implements IResolver {
-  public matchesNode(typeHelper: TypeHelper, call: ts.CallExpression) {
+  public matchesNode(typeVisitor: TypeVisitor, call: ts.CallExpression) {
     if (call.expression.kind != ts.SyntaxKind.PropertyAccessExpression) {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const objType = typeHelper.inferNodeType(propAccess.expression);
+    const objType = typeVisitor.inferNodeType(propAccess.expression);
     return (
       propAccess.name.getText() == "concat" && objType instanceof ArrayType
     );
   }
-  public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
+  public returnType(typeVisitor: TypeVisitor, call: ts.CallExpression) {
     const propAccess = call.expression as ts.PropertyAccessExpression;
-    const type = typeHelper.inferNodeType(propAccess.expression) as ArrayType;
+    const type = typeVisitor.inferNodeType(propAccess.expression) as ArrayType;
     return new ArrayType(type.elementType, 0, true);
   }
   public createTemplate(scope: IScope, node: ts.CallExpression) {
     return new CArrayConcat(scope, node);
   }
-  public needsDisposal(typeHelper: TypeHelper, node: ts.CallExpression) {
+  public needsDisposal(typeVisitor: TypeVisitor, node: ts.CallExpression) {
     // if parent is expression statement, then this is the top expression
     // and thus return value is not used, so the temporary variable will not be created
     return node.parent.kind != ts.SyntaxKind.ExpressionStatement;
   }
-  public getTempVarName(typeHelper: TypeHelper, node: ts.CallExpression) {
+  public getTempVarName(typeVisitor: TypeVisitor, node: ts.CallExpression) {
     return "tmp_array";
   }
-  public getEscapeNode(typeHelper: TypeHelper, node: ts.CallExpression) {
+  public getEscapeNode(typeVisitor: TypeVisitor, node: ts.CallExpression) {
     return node;
   }
 }
@@ -75,7 +75,7 @@ class CArrayConcat {
       this.tempVarName = scope.root.memoryManager.getReservedTemporaryVarName(
         call
       );
-      const type = scope.root.typeHelper.inferNodeType(
+      const type = scope.root.typeVisitor.inferNodeType(
         propAccess.expression
       ) as ArrayType;
       if (!scope.root.memoryManager.variableWasReused(call)) {
@@ -130,7 +130,7 @@ class CGetSize {
   public staticArraySize: number;
   public isArray: boolean;
   constructor(scope: IScope, valueNode: ts.Node, public value: CExpression) {
-    const type = scope.root.typeHelper.inferNodeType(valueNode);
+    const type = scope.root.typeVisitor.inferNodeType(valueNode);
     this.isArray = type instanceof ArrayType;
     this.staticArraySize = type instanceof ArrayType && type.capacity;
   }
@@ -158,7 +158,7 @@ class CConcatValue {
     public value: CExpression,
     public indexVarName: string
   ) {
-    const type = scope.root.typeHelper.inferNodeType(valueNode);
+    const type = scope.root.typeVisitor.inferNodeType(valueNode);
     this.isArray = type instanceof ArrayType;
     this.staticArraySize =
       type instanceof ArrayType && !type.isDynamicArray && type.capacity;

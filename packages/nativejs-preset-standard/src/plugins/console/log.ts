@@ -23,7 +23,7 @@ export class ConsoleLogHelper {
     const printfs = [];
     for (let i = 0; i < printNodes.length; i++) {
       const printNode = printNodes[i];
-      const type = scope.root.typeHelper.inferNodeType(printNode);
+      const type = scope.root.typeVisitor.inferNodeType(printNode);
       let nodeExpressions = processBinaryExpressions(scope, printNode);
 
       let stringLit = "";
@@ -69,12 +69,12 @@ export class ConsoleLogHelper {
 }
 
 function processBinaryExpressions(scope: IScope, printNode: ts.Node) {
-  const type = scope.root.typeHelper.inferNodeType(printNode);
+  const type = scope.root.typeVisitor.inferNodeType(printNode);
   if (type == StringType && printNode.kind == ts.SyntaxKind.BinaryExpression) {
     const binExpr = printNode as ts.BinaryExpression;
     if (
-      scope.root.typeHelper.inferNodeType(binExpr.left) == StringType &&
-      scope.root.typeHelper.inferNodeType(binExpr.right) == StringType
+      scope.root.typeVisitor.inferNodeType(binExpr.left) == StringType &&
+      scope.root.typeVisitor.inferNodeType(binExpr.right) == StringType
     ) {
       const left = processBinaryExpressions(scope, binExpr.left);
       const right = processBinaryExpressions(scope, binExpr.right);

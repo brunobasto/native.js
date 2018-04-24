@@ -23,7 +23,7 @@ class CArrayLiteralExpression {
   public expression: string;
   constructor(scope: IScope, node: ts.ArrayLiteralExpression) {
     let arrSize = node.elements.length;
-    let type = scope.root.typeHelper.inferNodeType(node);
+    let type = scope.root.typeVisitor.inferNodeType(node);
     if (type instanceof ArrayType) {
       let varName: string;
       let canUseInitializerList = node.elements.every(
@@ -111,7 +111,7 @@ class CObjectLiteralExpression {
   public allocator: CVariableAllocation;
   public initializers: CAssignment[];
   constructor(scope: IScope, node: ts.ObjectLiteralExpression) {
-    let type = scope.root.typeHelper.inferNodeType(node);
+    let type = scope.root.typeVisitor.inferNodeType(node);
     this.isStruct = type instanceof StructType;
     this.isDict = type instanceof DictType;
     if (this.isStruct || this.isDict) {
@@ -189,7 +189,7 @@ export class CString {
 export class CNumber {
   public value: string;
   constructor(scope: IScope, value: ts.Node) {
-    const { typeHelper } = scope.root;
+    const { typeVisitor } = scope.root;
     // look for parent binary expressions
     let parent = ScopeUtil.findParentWithKind(
       value,

@@ -65,7 +65,7 @@ export class StandardRegexMatchHeader implements Header {
     scope.root.functions.push(regexClearMatches);
     scope.root.functions.push(regexMatch);
 
-    scope.root.typeHelper.ensureArrayStruct(StringType);
+    scope.root.typeVisitor.ensureArrayStruct(StringType);
 
     return new RegexMatchTemplate();
   }

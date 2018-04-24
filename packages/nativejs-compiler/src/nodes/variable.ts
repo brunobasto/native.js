@@ -54,7 +54,7 @@ export class CVariableDeclaration {
   public initializer: CAssignment | string = "";
 
   constructor(scope: IScope, varDecl: ts.VariableDeclaration) {
-    let varInfo = scope.root.typeHelper.getVariableInfo(
+    let varInfo = scope.root.typeVisitor.getVariableInfo(
       <ts.Identifier>varDecl.name
     );
     scope.variables.push(new CVariable(scope, varInfo.name, varInfo.type));
@@ -215,7 +215,7 @@ export class CVariable {
     private typeSource,
     options?: CVariableOptions
   ) {
-    let typeString = scope.root.typeHelper.getTypeString(typeSource);
+    let typeString = scope.root.typeVisitor.getTypeString(typeSource);
 
     if (typeString == IntegerType) {
       HeaderRegistry.declareDependency(Int16HeaderType);

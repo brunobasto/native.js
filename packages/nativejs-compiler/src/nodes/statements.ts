@@ -166,7 +166,7 @@ export class CForOfStatement implements IScope {
       new CVariable(scope, this.iteratorVarName, IntegerType)
     );
     this.arrayAccess = new CElementAccess(scope, node.expression);
-    let arrayVarType = scope.root.typeHelper.inferNodeType(node.expression);
+    let arrayVarType = scope.root.typeVisitor.inferNodeType(node.expression);
     if (arrayVarType && arrayVarType instanceof ArrayType) {
       this.isDynamicArray = arrayVarType.isDynamicArray;
       this.arrayCapacity = arrayVarType.capacity + "";
@@ -223,7 +223,7 @@ export class CForInStatement implements IScope {
       new CVariable(scope, this.iteratorVarName, IntegerType)
     );
     this.varAccess = new CElementAccess(scope, node.expression);
-    let dictVarType = scope.root.typeHelper.inferNodeType(node.expression);
+    let dictVarType = scope.root.typeVisitor.inferNodeType(node.expression);
     // TODO: do something with dictVarType
 
     if (node.initializer.kind == ts.SyntaxKind.VariableDeclarationList) {

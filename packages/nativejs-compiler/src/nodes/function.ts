@@ -1,6 +1,6 @@
 import * as ts from "typescript";
 import { ArrayType, StringType, IntegerType } from "../core/types/NativeTypes";
-import { TypeHelper } from "../core/types/TypeHelper";
+import { TypeVisitor } from "../core/types/TypeVisitor";
 import { CodeTemplate, CodeTemplateFactory } from "../core/template";
 import { CVariable, CVariableDestructors } from "./variable";
 import { IScope, CProgram } from "../core/program";
@@ -14,7 +14,7 @@ export class CFunctionPrototype {
   public name: string;
   public parameters: CVariable[] = [];
   constructor(scope: IScope, node: ts.FunctionDeclaration) {
-    this.returnType = scope.root.typeHelper.getTypeString(node);
+    this.returnType = scope.root.typeVisitor.getTypeString(node);
 
     this.name = node.name.getText();
     this.parameters = node.parameters.map(
@@ -50,7 +50,7 @@ export class CFunction implements IScope {
     node: ts.FunctionDeclaration | ts.FunctionExpression
   ) {
     this.parent = root;
-    this.returnType = root.typeHelper.getTypeString(node);
+    this.returnType = root.typeVisitor.getTypeString(node);
 
     if (node.name) {
       this.name = node.name.getText();
