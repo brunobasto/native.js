@@ -12,10 +12,10 @@ import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
   ArrayType,
-  NumberVarType,
-  StringVarType,
-  TypeHelper
-} from "../../core/types";
+  IntegerType,
+  StringType
+} from "../../core/types/NativeTypes";
+import { TypeHelper } from "../../core/types/TypeHelper";
 
 @StandardCallResolver
 class StringIndexOfResolver implements IResolver {
@@ -25,12 +25,10 @@ class StringIndexOfResolver implements IResolver {
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeHelper.inferNodeType(propAccess.expression);
-    return (
-      propAccess.name.getText() == "lastIndexOf" && objType == StringVarType
-    );
+    return propAccess.name.getText() == "lastIndexOf" && objType == StringType;
   }
   public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
-    return NumberVarType;
+    return IntegerType;
   }
   public createTemplate(scope: IScope, node: ts.CallExpression) {
     return new CStringIndexOf(scope, node);

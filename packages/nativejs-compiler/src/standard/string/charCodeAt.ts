@@ -8,10 +8,10 @@ import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
   ArrayType,
-  NumberVarType,
-  StringVarType,
-  TypeHelper
-} from "../../core/types";
+  IntegerType,
+  StringType
+} from "../../core/types/NativeTypes";
+import { TypeHelper } from "../../core/types/TypeHelper";
 
 @StandardCallResolver
 class StringCharCodeAtResolver implements IResolver {
@@ -21,12 +21,10 @@ class StringCharCodeAtResolver implements IResolver {
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeHelper.inferNodeType(propAccess.expression);
-    return (
-      propAccess.name.getText() == "charCodeAt" && objType == StringVarType
-    );
+    return propAccess.name.getText() == "charCodeAt" && objType == StringType;
   }
   public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
-    return NumberVarType;
+    return IntegerType;
   }
   public createTemplate(scope: IScope, node: ts.CallExpression) {
     return new CStringSearch(scope, node);

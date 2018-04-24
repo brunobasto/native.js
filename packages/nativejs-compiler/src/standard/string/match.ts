@@ -14,12 +14,12 @@ import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
   ArrayType,
-  NumberVarType,
-  RegexMatchVarType,
-  RegexVarType,
-  StringVarType,
-  TypeHelper
-} from "../../core/types";
+  IntegerType,
+  RegexMatchType,
+  RegexType,
+  StringType
+} from "../../core/types/NativeTypes";
+import { TypeHelper } from "../../core/types/TypeHelper";
 
 @StandardCallResolver
 export class StringMatchResolver implements IResolver {
@@ -29,10 +29,10 @@ export class StringMatchResolver implements IResolver {
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeHelper.inferNodeType(propAccess.expression);
-    return propAccess.name.getText() == "match" && objType == StringVarType;
+    return propAccess.name.getText() == "match" && objType == StringType;
   }
   public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
-    return new ArrayType(StringVarType, 1, true);
+    return new ArrayType(StringType, 1, true);
   }
   public createTemplate(scope: IScope, node: ts.CallExpression) {
     return new CStringMatch(scope, node);
@@ -84,7 +84,7 @@ class CStringMatch {
             new CVariable(
               scope,
               this.matchArrayVarName,
-              new ArrayType(StringVarType, 0, true)
+              new ArrayType(StringType, 0, true)
             )
           );
         }

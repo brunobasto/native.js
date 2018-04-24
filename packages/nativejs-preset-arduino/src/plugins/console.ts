@@ -5,7 +5,7 @@ import { HeaderRegistry, StdioHeaderType } from "nativejs-compiler";
 import { IScope } from "nativejs-compiler";
 import { Plugin } from "nativejs-compiler";
 import { UARTHeaderType } from "../headers/uart";
-import { TypeRegistry, NumberVarType } from "nativejs-compiler";
+import { TypeRegistry, IntegerType } from "nativejs-compiler";
 
 import { ConsoleLogPlugin } from "nativejs-preset-standard/src/plugins/console";
 

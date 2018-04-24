@@ -9,7 +9,7 @@ import {
   CVariable,
   HeaderRegistry,
   IScope,
-  NumberVarType,
+  IntegerType,
   Plugin,
   TypeRegistry
 } from "nativejs-compiler";
@@ -36,7 +36,7 @@ class TimerFunction extends CFunction {
     this.parameters[0] = new CVariable(
       this,
       node.parameters[0].getText(),
-      NumberVarType,
+      IntegerType,
       {
         removeStorageSpecifier: true
       }
@@ -80,7 +80,7 @@ export class Timer0Plugin implements Plugin {
     TypeRegistry.declareNodeType(node, "void");
     const call = <ts.CallExpression>node;
     const callback = <ts.FunctionExpression>call.arguments[0];
-    TypeRegistry.declareNodeType(callback.parameters[0], NumberVarType);
+    TypeRegistry.declareNodeType(callback.parameters[0], IntegerType);
   }
 
   matchesNode(node: ts.Node): boolean {

@@ -7,12 +7,12 @@ import { IScope } from "../../core/program";
 import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
-  CType,
+  NativeType,
   ArrayType,
-  NumberVarType,
-  StringVarType,
-  TypeHelper
-} from "../../core/types";
+  IntegerType,
+  StringType
+} from "../../core/types/NativeTypes";
+import { TypeHelper } from "../../core/types/TypeHelper";
 
 @StandardCallResolver
 class ArrayPushResolver implements IResolver {
@@ -29,7 +29,7 @@ class ArrayPushResolver implements IResolver {
     );
   }
   public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
-    return NumberVarType;
+    return IntegerType;
   }
   public createTemplate(scope: IScope, node: ts.CallExpression) {
     return new CArrayPush(scope, node);
@@ -77,13 +77,11 @@ class CArrayPush {
     this.topExpressionOfStatement =
       call.parent.kind == ts.SyntaxKind.ExpressionStatement;
     if (!this.topExpressionOfStatement) {
-      this.tempVarName = scope.root.typeHelper.addNewTemporaryVariable(
+      this.tempVarName = scope.root.temporaryVariables.addNewTemporaryVariable(
         propAccess,
         "arr_size"
       );
-      scope.variables.push(
-        new CVariable(scope, this.tempVarName, NumberVarType)
-      );
+      scope.variables.push(new CVariable(scope, this.tempVarName, IntegerType));
     }
     HeaderRegistry.declareDependency(ArrayPushHeaderType);
   }
@@ -108,9 +106,9 @@ class CPushValue {
     scope: IScope,
     public varAccess: CElementAccess,
     public value: CExpression,
-    public type: CType
+    public type: NativeType
   ) {
-    if (type == StringVarType) {
+    if (type == StringType) {
       this.isString = true;
       this.tempStringName = scope.root.gc.getUniqueName();
     }

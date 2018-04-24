@@ -2,14 +2,14 @@ import * as ts from "typescript";
 import { CodeTemplate, CodeTemplateFactory } from "../core/template";
 import { IScope } from "../core/program";
 import {
-  CType,
+  NativeType,
   ArrayType,
   StructType,
   DictType,
-  StringVarType,
-  UniversalVarType,
-  PointerVarType
-} from "../core/types";
+  StringType,
+  UniversalType,
+  PointerType
+} from "../core/types/NativeTypes";
 import { HeaderRegistry, StringLengthHeaderType } from "../core/header";
 import { CExpression } from "./expressions";
 
@@ -21,7 +21,7 @@ import { CExpression } from "./expressions";
 export class CElementAccess {
   public simpleAccessor: CSimpleElementAccess;
   constructor(scope: IScope, node: ts.Node) {
-    let type: CType = null;
+    let type: NativeType = null;
     let elementAccess: CElementAccess | string = null;
     let argumentExpression: string = null;
 
@@ -140,21 +140,19 @@ export class CSimpleElementAccess {
   public arrayCapacity: string;
   constructor(
     scope: IScope,
-    type: CType,
+    type: NativeType,
     public elementAccess: CElementAccess | CSimpleElementAccess | string,
     public argumentExpression: CExpression
   ) {
     this.isSimpleVar =
-      typeof type === "string" &&
-      type != UniversalVarType &&
-      type != PointerVarType;
+      typeof type === "string" && type != UniversalType && type != PointerType;
     this.isDynamicArray = type instanceof ArrayType && type.isDynamicArray;
     this.isStaticArray = type instanceof ArrayType && !type.isDynamicArray;
     this.arrayCapacity =
       type instanceof ArrayType && !type.isDynamicArray && type.capacity + "";
     this.isDict = type instanceof DictType;
     this.isStruct = type instanceof StructType;
-    this.isString = type === StringVarType;
+    this.isString = type === StringType;
     if (this.isString && this.argumentExpression == "length")
       HeaderRegistry.declareDependency(StringLengthHeaderType);
   }

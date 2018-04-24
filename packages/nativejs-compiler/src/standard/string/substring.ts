@@ -8,10 +8,10 @@ import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import { HeaderRegistry, SubStringHeaderType } from "../../core/header";
 import {
   ArrayType,
-  NumberVarType,
-  StringVarType,
-  TypeHelper
-} from "../../core/types";
+  IntegerType,
+  StringType
+} from "../../core/types/NativeTypes";
+import { TypeHelper } from "../../core/types/TypeHelper";
 
 @StandardCallResolver
 class StringSubstringResolver implements IResolver {
@@ -21,10 +21,10 @@ class StringSubstringResolver implements IResolver {
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeHelper.inferNodeType(propAccess.expression);
-    return propAccess.name.getText() == "substring" && objType == StringVarType;
+    return propAccess.name.getText() == "substring" && objType == StringType;
   }
   public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
-    return StringVarType;
+    return StringType;
   }
   public createTemplate(scope: IScope, node: ts.CallExpression) {
     return new CStringSubstring(scope, node);
@@ -78,7 +78,7 @@ class CStringSubstring {
         );
         if (!scope.root.memoryManager.variableWasReused(call)) {
           scope.variables.push(
-            new CVariable(scope, this.tempVarName, StringVarType)
+            new CVariable(scope, this.tempVarName, StringType)
           );
         }
         this.start = CodeTemplateFactory.createForNode(

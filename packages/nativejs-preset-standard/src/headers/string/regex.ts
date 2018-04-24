@@ -9,8 +9,8 @@ import {
   SubStringHeaderType,
   StructHeaderType,
   ArrayType,
-  StringVarType,
-  NumberVarType
+  StringType,
+  IntegerType
 } from "nativejs-compiler";
 import { CExpression } from "nativejs-compiler";
 import { IScope } from "nativejs-compiler";
@@ -65,7 +65,7 @@ export class StandardRegexMatchHeader implements Header {
     scope.root.functions.push(regexClearMatches);
     scope.root.functions.push(regexMatch);
 
-    scope.root.typeHelper.ensureArrayStruct(StringVarType);
+    scope.root.typeHelper.ensureArrayStruct(StringType);
 
     return new RegexMatchTemplate();
   }

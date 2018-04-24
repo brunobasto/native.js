@@ -2,12 +2,12 @@ import * as ts from "typescript";
 import { CodeTemplate, CodeTemplateFactory } from "../core/template";
 import { IScope } from "../core/program";
 import {
-  CType,
+  NativeType,
   ArrayType,
   StructType,
   DictType,
-  StringVarType
-} from "../core/types";
+  StringType
+} from "../core/types/NativeTypes";
 import { CElementAccess, CSimpleElementAccess } from "./elementaccess";
 import { CExpression } from "./expressions";
 import { CVariable } from "./variable";
@@ -106,7 +106,7 @@ export class CAssignment {
     scope: IScope,
     public accessor: CElementAccess | CSimpleElementAccess | string,
     public argumentExpression: CExpression,
-    type: CType,
+    type: NativeType,
     left: ts.Node,
     right: ts.Expression,
     inline: boolean = false
@@ -188,7 +188,7 @@ export class CAssignment {
       // only do this when we have an argument expression
       if (<ts.Expression>elementAccess.argumentExpression) {
         const isStringValue =
-          scope.root.typeHelper.inferNodeType(right) == StringVarType;
+          scope.root.typeHelper.inferNodeType(right) == StringType;
         if (isStringValue) {
           this.isStringValue = 1;
         }

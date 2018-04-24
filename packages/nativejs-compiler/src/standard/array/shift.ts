@@ -8,10 +8,10 @@ import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
   ArrayType,
-  NumberVarType,
-  StringVarType,
-  TypeHelper
-} from "../../core/types";
+  IntegerType,
+  StringType
+} from "../../core/types/NativeTypes";
+import { TypeHelper } from "../../core/types/TypeHelper";
 
 @StandardCallResolver
 class ArrayShiftResolver implements IResolver {
@@ -28,7 +28,7 @@ class ArrayShiftResolver implements IResolver {
     );
   }
   public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
-    return NumberVarType;
+    return IntegerType;
   }
   public createTemplate(scope: IScope, node: ts.CallExpression) {
     return new CArrayShift(scope, node);
@@ -59,7 +59,7 @@ class CArrayShift {
   constructor(scope: IScope, call: ts.CallExpression) {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     this.varAccess = new CElementAccess(scope, propAccess.expression);
-    this.tempVarName = scope.root.typeHelper.addNewTemporaryVariable(
+    this.tempVarName = scope.root.temporaryVariables.addNewTemporaryVariable(
       propAccess,
       "value"
     );

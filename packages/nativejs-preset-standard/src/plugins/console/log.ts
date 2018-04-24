@@ -6,14 +6,14 @@ import { IScope } from "nativejs-compiler";
 import { CodeTemplate, CodeTemplateFactory } from "nativejs-compiler";
 import {
   ArrayType,
-  BooleanVarType,
-  CType,
+  BooleanType,
+  NativeType,
   DictType,
-  NumberVarType,
-  RegexVarType,
-  LongVarType,
-  FloatVarType,
-  StringVarType,
+  IntegerType,
+  RegexType,
+  LongType,
+  FloatType,
+  StringType,
   StructType,
   VariableInfo
 } from "nativejs-compiler";
@@ -70,14 +70,11 @@ export class ConsoleLogHelper {
 
 function processBinaryExpressions(scope: IScope, printNode: ts.Node) {
   const type = scope.root.typeHelper.inferNodeType(printNode);
-  if (
-    type == StringVarType &&
-    printNode.kind == ts.SyntaxKind.BinaryExpression
-  ) {
+  if (type == StringType && printNode.kind == ts.SyntaxKind.BinaryExpression) {
     const binExpr = printNode as ts.BinaryExpression;
     if (
-      scope.root.typeHelper.inferNodeType(binExpr.left) == StringVarType &&
-      scope.root.typeHelper.inferNodeType(binExpr.right) == StringVarType
+      scope.root.typeHelper.inferNodeType(binExpr.left) == StringType &&
+      scope.root.typeHelper.inferNodeType(binExpr.right) == StringType
     ) {
       const left = processBinaryExpressions(scope, binExpr.left);
       const right = processBinaryExpressions(scope, binExpr.right);
@@ -171,18 +168,18 @@ class CPrintf {
     scope: IScope,
     printNode: ts.Node,
     public accessor: string,
-    varType: CType,
+    varType: NativeType,
     options: PrintfOptions
   ) {
     this.isStringLiteral =
-      varType == StringVarType && printNode.kind == ts.SyntaxKind.StringLiteral;
-    this.isBoolean = varType == BooleanVarType;
-    this.isCString = varType == StringVarType && !options.quotedString;
-    this.isFloat = varType == FloatVarType;
-    this.isInteger = varType == NumberVarType;
-    this.isLong = varType == LongVarType;
-    this.isQuotedCString = varType == StringVarType && options.quotedString;
-    this.isRegex = varType == RegexVarType;
+      varType == StringType && printNode.kind == ts.SyntaxKind.StringLiteral;
+    this.isBoolean = varType == BooleanType;
+    this.isCString = varType == StringType && !options.quotedString;
+    this.isFloat = varType == FloatType;
+    this.isInteger = varType == IntegerType;
+    this.isLong = varType == LongType;
+    this.isQuotedCString = varType == StringType && options.quotedString;
+    this.isRegex = varType == RegexType;
 
     this.PREFIX = options.prefix || "";
     this.POSTFIX = options.postfix || "";
@@ -197,11 +194,11 @@ class CPrintf {
 
     if (varType instanceof ArrayType) {
       this.isArray = true;
-      this.iteratorVarName = scope.root.typeHelper.addNewIteratorVariable(
+      this.iteratorVarName = scope.root.temporaryVariables.addNewIteratorVariable(
         printNode
       );
       scope.variables.push(
-        new CVariable(scope, this.iteratorVarName, NumberVarType)
+        new CVariable(scope, this.iteratorVarName, IntegerType)
       );
       this.arraySize = varType.isDynamicArray
         ? accessor + "->size"
@@ -224,11 +221,11 @@ class CPrintf {
       ];
     } else if (varType instanceof DictType) {
       this.isDict = true;
-      this.iteratorVarName = scope.root.typeHelper.addNewIteratorVariable(
+      this.iteratorVarName = scope.root.temporaryVariables.addNewIteratorVariable(
         printNode
       );
       scope.variables.push(
-        new CVariable(scope, this.iteratorVarName, NumberVarType)
+        new CVariable(scope, this.iteratorVarName, IntegerType)
       );
       const opts = { quotedString: true, indent: this.INDENT + "    " };
       this.elementPrintfs = [

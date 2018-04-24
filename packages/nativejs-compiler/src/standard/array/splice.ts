@@ -13,10 +13,10 @@ import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
   ArrayType,
-  NumberVarType,
-  StringVarType,
-  TypeHelper
-} from "../../core/types";
+  IntegerType,
+  StringType
+} from "../../core/types/NativeTypes";
+import { TypeHelper } from "../../core/types/TypeHelper";
 
 @StandardCallResolver
 class ArraySpliceResolver implements IResolver {
@@ -99,11 +99,11 @@ class CArraySplice {
       if (!scope.root.memoryManager.variableWasReused(call)) {
         scope.variables.push(new CVariable(scope, this.tempVarName, type));
       }
-      this.iteratorVarName = scope.root.typeHelper.addNewIteratorVariable(
+      this.iteratorVarName = scope.root.temporaryVariables.addNewIteratorVariable(
         propAccess
       );
       scope.variables.push(
-        new CVariable(scope, this.iteratorVarName, NumberVarType)
+        new CVariable(scope, this.iteratorVarName, IntegerType)
       );
     }
     if (call.arguments.length > 2) {

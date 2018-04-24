@@ -5,7 +5,8 @@ import { CVariable } from "../../nodes/variable";
 import { IScope } from "../../core/program";
 import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
-import { ArrayType, NumberVarType, TypeHelper } from "../../core/types";
+import { ArrayType, IntegerType } from "../../core/types/NativeTypes";
+import { TypeHelper } from "../../core/types/TypeHelper";
 
 @StandardCallResolver
 class ArraySortResolver implements IResolver {
@@ -68,18 +69,18 @@ class CArrayReverse {
     this.varAccess = new CElementAccess(scope, propAccess.expression);
     this.topExpressionOfStatement =
       call.parent.kind == ts.SyntaxKind.ExpressionStatement;
-    this.iteratorVar1 = scope.root.typeHelper.addNewIteratorVariable(call);
-    this.iteratorVar2 = scope.root.typeHelper.addNewIteratorVariable(call);
-    this.tempVarName = scope.root.typeHelper.addNewTemporaryVariable(
+    this.iteratorVar1 = scope.root.temporaryVariables.addNewIteratorVariable(
+      call
+    );
+    this.iteratorVar2 = scope.root.temporaryVariables.addNewIteratorVariable(
+      call
+    );
+    this.tempVarName = scope.root.temporaryVariables.addNewTemporaryVariable(
       call,
       "temp"
     );
-    scope.variables.push(
-      new CVariable(scope, this.iteratorVar1, NumberVarType)
-    );
-    scope.variables.push(
-      new CVariable(scope, this.iteratorVar2, NumberVarType)
-    );
+    scope.variables.push(new CVariable(scope, this.iteratorVar1, IntegerType));
+    scope.variables.push(new CVariable(scope, this.iteratorVar2, IntegerType));
     scope.variables.push(
       new CVariable(scope, this.tempVarName, type.elementType)
     );

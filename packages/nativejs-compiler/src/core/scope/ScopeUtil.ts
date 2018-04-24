@@ -1,6 +1,45 @@
 import * as ts from "typescript";
 
 export class ScopeUtil {
+  public static findParentFunction(node: ts.Node): ts.FunctionDeclaration {
+    let parentFunc = node;
+    while (parentFunc && parentFunc.kind != ts.SyntaxKind.FunctionDeclaration) {
+      parentFunc = parentFunc.parent;
+    }
+    return <ts.FunctionDeclaration>parentFunc;
+  }
+
+  public static findParentCallExpression(node: ts.Node): ts.CallExpression {
+    let parentCall = node;
+    while (parentCall && parentCall.kind != ts.SyntaxKind.CallExpression) {
+      parentCall = parentCall.parent;
+    }
+    return <ts.CallExpression>parentCall;
+  }
+
+  public static isChildOfBitwiseOperation(node: ts.Node) {
+    let parent = this.findParentWithKind(node, ts.SyntaxKind.BinaryExpression);
+    while (parent) {
+      const parentBinary = <ts.BinaryExpression>parent;
+      if (parentBinary.operatorToken.kind == ts.SyntaxKind.AmpersandToken) {
+        return true;
+      }
+      parent = this.findParentWithKind(
+        parent.parent,
+        ts.SyntaxKind.BinaryExpression
+      );
+    }
+    return false;
+  }
+
+  public static findParentWithKind(node: ts.Node, kind: ts.SyntaxKind) {
+    let parent = node;
+    while (parent && parent.kind != kind) {
+      parent = parent.parent;
+    }
+    return parent;
+  }
+
   static isOutsideScope(scope: ts.Node, node: ts.Node) {
     let parent = node;
     while (parent) {

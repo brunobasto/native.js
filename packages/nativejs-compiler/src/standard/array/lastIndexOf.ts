@@ -11,10 +11,10 @@ import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
   ArrayType,
-  NumberVarType,
-  StringVarType,
-  TypeHelper
-} from "../../core/types";
+  IntegerType,
+  StringType
+} from "../../core/types/NativeTypes";
+import { TypeHelper } from "../../core/types/TypeHelper";
 
 @StandardCallResolver
 class ArrayLastIndexOfResolver implements IResolver {
@@ -29,7 +29,7 @@ class ArrayLastIndexOfResolver implements IResolver {
     );
   }
   public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
-    return NumberVarType;
+    return IntegerType;
   }
   public createTemplate(scope: IScope, node: ts.CallExpression) {
     return new CArrayLastIndexOf(scope, node);
@@ -88,21 +88,19 @@ class CArrayLastIndexOf {
       call.parent.kind == ts.SyntaxKind.ExpressionStatement;
 
     if (!this.topExpressionOfStatement) {
-      this.tempVarName = scope.root.typeHelper.addNewTemporaryVariable(
+      this.tempVarName = scope.root.temporaryVariables.addNewTemporaryVariable(
         propAccess,
         "arr_pos"
       );
-      this.iteratorVarName = scope.root.typeHelper.addNewIteratorVariable(
+      this.iteratorVarName = scope.root.temporaryVariables.addNewIteratorVariable(
         propAccess
       );
       this.staticArraySize = objType.isDynamicArray
         ? ""
         : objType.capacity + "";
+      scope.variables.push(new CVariable(scope, this.tempVarName, IntegerType));
       scope.variables.push(
-        new CVariable(scope, this.tempVarName, NumberVarType)
-      );
-      scope.variables.push(
-        new CVariable(scope, this.iteratorVarName, NumberVarType)
+        new CVariable(scope, this.iteratorVarName, IntegerType)
       );
       const arrayElementAccess = new CSimpleElementAccess(
         scope,

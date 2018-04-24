@@ -1,7 +1,7 @@
 import * as ts from "typescript";
 import { CodeTemplate, CodeTemplateFactory } from "../core/template";
 import { CProgram, IScope } from "../core/program";
-import { ArrayType, StructType, NumberVarType } from "../core/types";
+import { ArrayType, StructType, IntegerType } from "../core/types/NativeTypes";
 import {
   CVariable,
   CVariableDeclaration,
@@ -159,9 +159,11 @@ export class CForOfStatement implements IScope {
     this.parent = scope;
     this.func = scope.func;
     this.root = scope.root;
-    this.iteratorVarName = scope.root.typeHelper.addNewIteratorVariable(node);
+    this.iteratorVarName = scope.root.temporaryVariables.addNewIteratorVariable(
+      node
+    );
     scope.variables.push(
-      new CVariable(scope, this.iteratorVarName, NumberVarType)
+      new CVariable(scope, this.iteratorVarName, IntegerType)
     );
     this.arrayAccess = new CElementAccess(scope, node.expression);
     let arrayVarType = scope.root.typeHelper.inferNodeType(node.expression);
@@ -214,9 +216,11 @@ export class CForInStatement implements IScope {
     this.parent = scope;
     this.func = scope.func;
     this.root = scope.root;
-    this.iteratorVarName = scope.root.typeHelper.addNewIteratorVariable(node);
+    this.iteratorVarName = scope.root.temporaryVariables.addNewIteratorVariable(
+      node
+    );
     scope.variables.push(
-      new CVariable(scope, this.iteratorVarName, NumberVarType)
+      new CVariable(scope, this.iteratorVarName, IntegerType)
     );
     this.varAccess = new CElementAccess(scope, node.expression);
     let dictVarType = scope.root.typeHelper.inferNodeType(node.expression);

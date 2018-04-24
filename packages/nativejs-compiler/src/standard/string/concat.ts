@@ -14,10 +14,10 @@ import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
   ArrayType,
-  NumberVarType,
-  StringVarType,
-  TypeHelper
-} from "../../core/types";
+  IntegerType,
+  StringType
+} from "../../core/types/NativeTypes";
+import { TypeHelper } from "../../core/types/TypeHelper";
 
 @StandardCallResolver
 class StringConcatResolver implements IResolver {
@@ -27,10 +27,10 @@ class StringConcatResolver implements IResolver {
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeHelper.inferNodeType(propAccess.expression);
-    return propAccess.name.getText() == "concat" && objType == StringVarType;
+    return propAccess.name.getText() == "concat" && objType == StringType;
   }
   public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
-    return StringVarType;
+    return StringType;
   }
   public createTemplate(scope: IScope, node: ts.CallExpression) {
     return new CStringConcat(scope, node);
@@ -111,7 +111,7 @@ class CGetSize {
   public isNumber: boolean;
   constructor(scope: IScope, valueNode: ts.Node, public value: CExpression) {
     const type = scope.root.typeHelper.inferNodeType(valueNode);
-    this.isNumber = type == NumberVarType;
+    this.isNumber = type == IntegerType;
   }
 }
 
@@ -131,6 +131,6 @@ class CConcatValue {
     public value: CExpression
   ) {
     const type = scope.root.typeHelper.inferNodeType(valueNode);
-    this.isNumber = type == NumberVarType;
+    this.isNumber = type == IntegerType;
   }
 }

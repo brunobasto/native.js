@@ -1,6 +1,9 @@
 import * as ts from "typescript";
 import { MemoryManager } from "./memory";
-import { TypeHelper, ArrayType, StructType, TypeRegistry } from "./types";
+import { ArrayType, StructType } from "./types/NativeTypes";
+import { TypeRegistry } from "./types/TypeRegistry";
+import { TypeHelper } from "./types/TypeHelper";
+import { TypeInferencer } from "./types/TypeInferencer";
 import { CodeTemplate, CodeTemplateFactory } from "./template";
 import { CFunction, CFunctionPrototype } from "../nodes/function";
 import { CVariable, CVariableDestructors } from "../nodes/variable";
@@ -16,6 +19,7 @@ import {
 import { Main, MainRegistry } from "./main";
 import { Bottom, BottomRegistry } from "./bottom";
 import { GarbageCollector } from "./gc";
+import { TemporaryVariables } from "./temporary/TemporaryVariables";
 
 // these imports are here only because it is necessary to run decorators
 import "../nodes/statements";
@@ -181,6 +185,8 @@ export class CProgram implements IScope {
   public typeChecker: ts.TypeChecker;
   public typeHelper: TypeHelper;
   public variables: CVariable[] = [];
+  public temporaryVariables: TemporaryVariables;
+  public typeInferencer: TypeInferencer;
 
   private resolvePreset(
     preset: Preset,
@@ -202,9 +208,17 @@ export class CProgram implements IScope {
 
   constructor(tsProgram: ts.Program, presets: Preset[] = []) {
     this.typeChecker = tsProgram.getTypeChecker();
-    this.typeHelper = new TypeHelper(this.typeChecker);
-    this.memoryManager = new MemoryManager(this.typeChecker, this.typeHelper);
     this.gc = new GarbageCollector(this.typeChecker);
+    this.temporaryVariables = new TemporaryVariables(this.typeChecker);
+
+    this.typeInferencer = new TypeInferencer(this);
+    this.typeHelper = new TypeHelper(this);
+
+    this.memoryManager = new MemoryManager(
+      this.typeChecker,
+      this.typeHelper,
+      this.temporaryVariables
+    );
 
     TypeRegistry.init();
     HeaderRegistry.init();
@@ -251,10 +265,7 @@ export class CProgram implements IScope {
       }
     }
 
-    let [
-      structs,
-      functionPrototypes
-    ] = this.typeHelper.getStructsAndFunctionPrototypes();
+    let structs = this.typeHelper.getDeclaredStructs();
 
     structs.forEach((s: any) => {
       HeaderRegistry.declareDependency(StructHeaderType, {
@@ -262,6 +273,8 @@ export class CProgram implements IScope {
         properties: s.properties
       });
     });
+
+    let functionPrototypes = this.typeHelper.getFunctionPrototypes();
 
     this.functionPrototypes = functionPrototypes.map(
       fp => new CFunctionPrototype(this, fp)

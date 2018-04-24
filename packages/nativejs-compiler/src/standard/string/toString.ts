@@ -8,10 +8,10 @@ import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
   ArrayType,
-  NumberVarType,
-  StringVarType,
-  TypeHelper
-} from "../../core/types";
+  IntegerType,
+  StringType
+} from "../../core/types/NativeTypes";
+import { TypeHelper } from "../../core/types/TypeHelper";
 
 @StandardCallResolver
 class StringToStringResolver implements IResolver {
@@ -23,11 +23,11 @@ class StringToStringResolver implements IResolver {
     const objType = typeHelper.inferNodeType(propAccess.expression);
     return (
       ["toString", "valueOf"].indexOf(propAccess.name.getText()) > -1 &&
-      objType == StringVarType
+      objType == StringType
     );
   }
   public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
-    return StringVarType;
+    return StringType;
   }
   public createTemplate(scope: IScope, node: ts.CallExpression) {
     return CodeTemplateFactory.createForNode(

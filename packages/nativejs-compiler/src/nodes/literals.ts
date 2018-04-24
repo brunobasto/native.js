@@ -1,7 +1,7 @@
 import * as ts from "typescript";
 import { CodeTemplate, CodeTemplateFactory } from "../core/template";
 import { IScope } from "../core/program";
-import { ArrayType, StructType, DictType } from "../core/types";
+import { ArrayType, StructType, DictType } from "../core/types/NativeTypes";
 import { CVariable, CVariableAllocation } from "./variable";
 import { AssignmentHelper, CAssignment } from "./assignment";
 import { CRegexSearchFunction } from "./regexfunc";
@@ -12,6 +12,8 @@ import {
   BooleanHeaderType,
   RegexMatchHeaderType
 } from "../core/header";
+import { ScopeUtil } from "../core/scope/ScopeUtil";
+
 import debug from "debug";
 
 const log = debug("nodes");
@@ -30,7 +32,7 @@ class CArrayLiteralExpression {
           e.kind == ts.SyntaxKind.StringLiteral
       );
       if (!type.isDynamicArray && canUseInitializerList) {
-        varName = scope.root.typeHelper.addNewTemporaryVariable(
+        varName = scope.root.temporaryVariables.addNewTemporaryVariable(
           node,
           "tmp_array"
         );
@@ -64,7 +66,7 @@ class CArrayLiteralExpression {
               ");\n"
           );
         } else {
-          varName = scope.root.typeHelper.addNewTemporaryVariable(
+          varName = scope.root.temporaryVariables.addNewTemporaryVariable(
             node,
             "tmp_array"
           );
@@ -149,10 +151,9 @@ class CRegexLiteralExpression {
   constructor(scope: IScope, node: ts.RegularExpressionLiteral) {
     let template = node.text;
     if (!regexNames[template]) {
-      regexNames[template] = scope.root.typeHelper.addNewTemporaryVariable(
-        null,
-        "regex"
-      );
+      regexNames[
+        template
+      ] = scope.root.temporaryVariables.addNewTemporaryVariable(null, "regex");
       scope.root.functions.splice(
         scope.parent ? -2 : -1,
         0,
@@ -190,12 +191,15 @@ export class CNumber {
   constructor(scope: IScope, value: ts.Node) {
     const { typeHelper } = scope.root;
     // look for parent binary expressions
-    let parent = typeHelper.findParentWithKind(
+    let parent = ScopeUtil.findParentWithKind(
       value,
       ts.SyntaxKind.BinaryExpression
     );
     // if it's inside a float expression
-    if (parent && typeHelper.isFloatExpression(<ts.BinaryExpression>parent)) {
+    if (
+      parent &&
+      scope.root.typeInferencer.isFloatExpression(<ts.BinaryExpression>parent)
+    ) {
       this.value = `((float)${value.getText()})`;
     } else {
       this.value = value.getText();

@@ -14,11 +14,11 @@ import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
   ArrayType,
-  CType,
-  NumberVarType,
-  StringVarType,
-  TypeHelper
-} from "../../core/types";
+  NativeType,
+  IntegerType,
+  StringType
+} from "../../core/types/NativeTypes";
+import { TypeHelper } from "../../core/types/TypeHelper";
 
 @StandardCallResolver
 class ArrayConcatResolver implements IResolver {
@@ -35,7 +35,7 @@ class ArrayConcatResolver implements IResolver {
     );
   }
   public returnType(typeHelper: TypeHelper, call: ts.CallExpression) {
-    return StringVarType;
+    return StringType;
   }
   public createTemplate(scope: IScope, node: ts.CallExpression) {
     return new CArrayJoin(scope, node);
@@ -92,16 +92,18 @@ class CArrayJoin {
       this.arraySize = new CArraySize(scope, this.varAccess, type);
       this.arrayElement = new CArrayElement(scope, this.varAccess, type);
       this.catFuncName =
-        type.elementType == NumberVarType ? "str_int16_t_cat" : "strcat";
+        type.elementType == IntegerType ? "str_int16_t_cat" : "strcat";
       this.tempVarName = scope.root.memoryManager.getReservedTemporaryVarName(
         call
       );
       if (!scope.root.memoryManager.variableWasReused(call)) {
         scope.variables.push(new CVariable(scope, this.tempVarName, "char *"));
       }
-      this.iteratorVarName = scope.root.typeHelper.addNewIteratorVariable(call);
+      this.iteratorVarName = scope.root.temporaryVariables.addNewIteratorVariable(
+        call
+      );
       scope.variables.push(
-        new CVariable(scope, this.iteratorVarName, NumberVarType)
+        new CVariable(scope, this.iteratorVarName, IntegerType)
       );
       this.calculatedStringLength = new CCalculateStringSize(
         scope,
@@ -121,7 +123,7 @@ class CArrayJoin {
       HeaderRegistry.declareDependency(StdlibHeaderType);
       HeaderRegistry.declareDependency(StringHeaderType);
 
-      if (type.elementType == NumberVarType) {
+      if (type.elementType == IntegerType) {
         HeaderRegistry.declareDependency(StringAndIntConcatHeaderType);
       }
     }
@@ -192,18 +194,18 @@ class CCalculateStringSize {
     public type: ArrayType,
     node: ts.Node
   ) {
-    this.arrayOfStrings = type.elementType == StringVarType;
-    this.arrayOfNumbers = type.elementType == NumberVarType;
+    this.arrayOfStrings = type.elementType == StringType;
+    this.arrayOfNumbers = type.elementType == IntegerType;
     this.arrayCapacity = type.capacity + "";
     this.arraySize = new CArraySize(scope, this.varAccess, type);
     this.arrayElement = new CArrayElement(scope, this.varAccess, type);
     if (this.arrayOfStrings) {
-      this.lengthVarName = scope.root.typeHelper.addNewTemporaryVariable(
+      this.lengthVarName = scope.root.temporaryVariables.addNewTemporaryVariable(
         node,
         "len"
       );
       scope.variables.push(
-        new CVariable(scope, this.lengthVarName, NumberVarType)
+        new CVariable(scope, this.lengthVarName, IntegerType)
       );
     }
   }

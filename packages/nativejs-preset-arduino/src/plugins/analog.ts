@@ -1,6 +1,6 @@
 import * as ts from "typescript";
 import { CExpression } from "nativejs-compiler";
-import { TypeRegistry, NumberVarType } from "nativejs-compiler";
+import { TypeRegistry, IntegerType } from "nativejs-compiler";
 import { CodeTemplate, CodeTemplateFactory } from "nativejs-compiler";
 import { HeaderRegistry } from "nativejs-compiler";
 import { IScope } from "nativejs-compiler";
@@ -36,7 +36,7 @@ export class AnalogReadPlugin implements Plugin {
   processTypes(node: ts.Node) {
     const call = <ts.CallExpression>node;
 
-    TypeRegistry.declareNodeType(call, NumberVarType);
+    TypeRegistry.declareNodeType(call, IntegerType);
   }
 
   matchesNode(node: ts.Node): boolean {

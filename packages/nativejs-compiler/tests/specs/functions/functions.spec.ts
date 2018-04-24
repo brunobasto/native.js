@@ -23,7 +23,7 @@ describe("Functions", () => {
     assertStringResult(expression, done);
   });
 
-  it.only("should allow arguments", done => {
+  xit("should allow arguments", done => {
     const expression = `
       function returnArguments() {
         return arguments;

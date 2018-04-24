@@ -2,17 +2,17 @@ import * as ts from "typescript";
 import { ArrayPopHeaderType, HeaderRegistry } from "../../core/header";
 import { CElementAccess } from "../../nodes/elementaccess";
 import { CExpression } from "../../nodes/expressions";
-import { ScopeUtil } from "../../core/scope";
+import { ScopeUtil } from "../../core/scope/ScopeUtil";
 import { CVariable } from "../../nodes/variable";
 import { IScope } from "../../core/program";
 import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
   ArrayType,
-  NumberVarType,
-  StringVarType,
-  TypeHelper
-} from "../../core/types";
+  IntegerType,
+  StringType
+} from "../../core/types/NativeTypes";
+import { TypeHelper } from "../../core/types/TypeHelper";
 
 @StandardCallResolver
 class ArrayPopResolver implements IResolver {

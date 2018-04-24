@@ -1,13 +1,15 @@
 import * as ts from "typescript";
 import {
-  TypeHelper,
   ArrayType,
-  StructType,
   DictType,
-  StringVarType
-} from "./types";
+  StringType,
+  StructType
+} from "./types/NativeTypes";
+import { TypeHelper } from "./types/TypeHelper";
 import { StandardCallHelper } from "./resolver";
 import { StringMatchResolver } from "../standard/string/match";
+import { TemporaryVariables } from "./temporary/TemporaryVariables";
+
 import debug from "debug";
 
 const log = debug("memory");
@@ -31,7 +33,8 @@ export class MemoryManager {
 
   constructor(
     private typeChecker: ts.TypeChecker,
-    private typeHelper: TypeHelper
+    private typeHelper: TypeHelper,
+    private temporaryVariables: TemporaryVariables
   ) {}
 
   public preprocessVariables() {
@@ -86,7 +89,7 @@ export class MemoryManager {
           ) {
             let leftType = this.typeHelper.inferNodeType(binExpr.left);
             let rightType = this.typeHelper.inferNodeType(binExpr.right);
-            if (leftType == StringVarType || rightType == StringVarType)
+            if (leftType == StringType || rightType == StringType)
               this.scheduleNodeDisposal(binExpr, true);
 
             if (binExpr.left.kind == ts.SyntaxKind.BinaryExpression)
@@ -197,7 +200,7 @@ export class MemoryManager {
           dict: simpleVarScopeInfo.dict,
           string:
             this.typeHelper.inferNodeType(simpleVarScopeInfo.node) ==
-            StringVarType,
+            StringType,
           arrayWithContents: simpleVarScopeInfo.arrayWithContents
         });
     }
@@ -420,13 +423,22 @@ export class MemoryManager {
     let type = this.typeHelper.inferNodeType(heapNode);
     let varName: string;
     if (heapNode.kind == ts.SyntaxKind.ArrayLiteralExpression)
-      varName = this.typeHelper.addNewTemporaryVariable(heapNode, "tmp_array");
+      varName = this.temporaryVariables.addNewTemporaryVariable(
+        heapNode,
+        "tmp_array"
+      );
     else if (heapNode.kind == ts.SyntaxKind.ObjectLiteralExpression)
-      varName = this.typeHelper.addNewTemporaryVariable(heapNode, "tmp_obj");
+      varName = this.temporaryVariables.addNewTemporaryVariable(
+        heapNode,
+        "tmp_obj"
+      );
     else if (heapNode.kind == ts.SyntaxKind.BinaryExpression)
-      varName = this.typeHelper.addNewTemporaryVariable(heapNode, "tmp_string");
+      varName = this.temporaryVariables.addNewTemporaryVariable(
+        heapNode,
+        "tmp_string"
+      );
     else if (heapNode.kind == ts.SyntaxKind.CallExpression)
-      varName = this.typeHelper.addNewTemporaryVariable(
+      varName = this.temporaryVariables.addNewTemporaryVariable(
         heapNode,
         StandardCallHelper.getTempVarName(this.typeHelper, heapNode)
       );

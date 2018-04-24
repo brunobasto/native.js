@@ -8,10 +8,10 @@ import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
   ArrayType,
-  NumberVarType,
-  StringVarType,
-  TypeHelper
-} from "../../core/types";
+  IntegerType,
+  StringType
+} from "../../core/types/NativeTypes";
+import { TypeHelper } from "../../core/types/TypeHelper";
 
 @StandardCallResolver
 class ArraySliceResolver implements IResolver {
@@ -97,33 +97,31 @@ class CArraySlice {
       if (!scope.root.memoryManager.variableWasReused(call)) {
         scope.variables.push(new CVariable(scope, this.tempVarName, type));
       }
-      this.iteratorVarName = scope.root.typeHelper.addNewIteratorVariable(
+      this.iteratorVarName = scope.root.temporaryVariables.addNewIteratorVariable(
         propAccess
       );
       scope.variables.push(
-        new CVariable(scope, this.iteratorVarName, NumberVarType)
+        new CVariable(scope, this.iteratorVarName, IntegerType)
       );
-      this.sizeVarName = scope.root.typeHelper.addNewTemporaryVariable(
+      this.sizeVarName = scope.root.temporaryVariables.addNewTemporaryVariable(
         propAccess,
         "slice_size"
       );
-      scope.variables.push(
-        new CVariable(scope, this.sizeVarName, NumberVarType)
-      );
-      this.startVarName = scope.root.typeHelper.addNewTemporaryVariable(
+      scope.variables.push(new CVariable(scope, this.sizeVarName, IntegerType));
+      this.startVarName = scope.root.temporaryVariables.addNewTemporaryVariable(
         propAccess,
         "slice_start"
       );
       scope.variables.push(
-        new CVariable(scope, this.startVarName, NumberVarType)
+        new CVariable(scope, this.startVarName, IntegerType)
       );
       if (args.length == 2) {
-        this.endVarName = scope.root.typeHelper.addNewTemporaryVariable(
+        this.endVarName = scope.root.temporaryVariables.addNewTemporaryVariable(
           propAccess,
           "slice_end"
         );
         scope.variables.push(
-          new CVariable(scope, this.endVarName, NumberVarType)
+          new CVariable(scope, this.endVarName, IntegerType)
         );
       }
     }

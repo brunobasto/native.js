@@ -3,18 +3,18 @@ import { CElementAccess, CSimpleElementAccess } from "../nodes/elementaccess";
 import { CVariable, CVariableDestructors } from "../nodes/variable";
 import { CodeTemplate } from "../core/template";
 import { IScope } from "../core/program";
-import { ScopeUtil } from "./scope";
+import { ScopeUtil } from "./scope/ScopeUtil";
 import {
-  CType,
   ArrayType,
+  BooleanType,
+  IntegerType,
+  NativeType,
+  PointerType,
+  RegexType,
+  StringType,
   StructType,
-  StringVarType,
-  RegexVarType,
-  NumberVarType,
-  BooleanVarType,
-  UniversalVarType,
-  PointerVarType
-} from "./types";
+  UniversalType
+} from "./types/NativeTypes";
 
 import debug from "debug";
 const log = debug("gc");
@@ -196,8 +196,8 @@ export class GarbageCollector {
       .filter(variable => variable.scopeNode == scopeNode)
       .map((variable: TemporaryVariable) => {
         let typeString = "char *";
-        if (variable.type == NumberVarType) {
-          typeString = `${NumberVarType} *`;
+        if (variable.type == IntegerType) {
+          typeString = `${IntegerType} *`;
         }
         return new CVariable(scope, variable.name, typeString, {});
       });

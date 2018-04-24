@@ -7,10 +7,10 @@ import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
   ArrayType,
-  NumberVarType,
-  StringVarType,
-  TypeHelper
-} from "../../core/types";
+  IntegerType,
+  StringType
+} from "../../core/types/NativeTypes";
+import { TypeHelper } from "../../core/types/TypeHelper";
 
 @StandardCallResolver
 class ArraySortResolver implements IResolver {
@@ -72,8 +72,8 @@ class CArraySort {
     this.varAccess = new CElementAccess(scope, propAccess.expression);
     this.topExpressionOfStatement =
       call.parent.kind == ts.SyntaxKind.ExpressionStatement;
-    this.arrayOfInts = type.elementType == NumberVarType;
-    this.arrayOfStrings = type.elementType == StringVarType;
+    this.arrayOfInts = type.elementType == IntegerType;
+    this.arrayOfStrings = type.elementType == StringType;
 
     if (this.arrayOfInts) {
       scope.root.headerFlags.array_int16_t_cmp = true;

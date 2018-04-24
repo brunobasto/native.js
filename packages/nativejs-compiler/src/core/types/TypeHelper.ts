@@ -1,104 +1,32 @@
 import * as ts from "typescript";
 import debug from "debug";
-import { PluginRegistry } from "./plugin";
-import { StandardCallHelper } from "./resolver";
+import {
+  ArrayType,
+  BooleanType,
+  DictType,
+  FloatType,
+  IntegerType,
+  NativeType,
+  PointerType,
+  StringType,
+  StructType,
+  UniversalType
+} from "./NativeTypes";
+import { PluginRegistry } from "../plugin";
+import { PropertiesDictionary } from "./PropertiesDictionary";
+import { Structures } from "./Structures";
+import { ScopeUtil } from "../scope/ScopeUtil";
+import { TypeInferencer } from "./TypeInferencer";
+import { CProgram } from "../program";
 
 const log = debug("types");
-
-export type CType = string | StructType | ArrayType | DictType;
-
-export const UniversalVarType = "struct js_var *";
-export const BooleanVarType = "uint8_t";
-export const FloatVarType = "float";
-export const LongVarType = "unsigned long";
-export const NumberVarType = "int16_t";
-export const PointerVarType = "void *";
-export const RegexMatchVarType = "struct regex_match_struct_t";
-export const RegexVarType = "struct regex_struct_t";
-export const SignedLongVarType = "long";
-export const StringVarType = "const char *";
-
-/** Type that represents static or dynamic array */
-export class ArrayType {
-  public static getArrayStructName(elementTypeText: string) {
-    while (elementTypeText.indexOf(NumberVarType) > -1)
-      elementTypeText = elementTypeText.replace(NumberVarType, "number");
-    while (elementTypeText.indexOf(StringVarType) > -1)
-      elementTypeText = elementTypeText.replace(StringVarType, "string");
-    while (elementTypeText.indexOf(PointerVarType) > -1)
-      elementTypeText = elementTypeText.replace(PointerVarType, "pointer");
-    while (elementTypeText.indexOf(BooleanVarType) > -1)
-      elementTypeText = elementTypeText.replace(BooleanVarType, "bool");
-
-    elementTypeText = elementTypeText.replace(
-      /^struct array_(.*)_t \*$/,
-      (all, g1) => "array_" + g1
-    );
-
-    return (
-      "array_" +
-      elementTypeText
-        .replace(/^static /, "")
-        .replace("{var}", "")
-        .replace(/[\[\]]/g, "")
-        .replace(/ /g, "_")
-        .replace(/const char \*/g, "string")
-        .replace(/\*/g, "8") +
-      "_t"
-    );
-  }
-
-  private structName: string;
-  public getText() {
-    let elementType = this.elementType;
-    let elementTypeText;
-    if (typeof elementType === "string") elementTypeText = elementType;
-    else elementTypeText = elementType.getText();
-
-    this.structName = ArrayType.getArrayStructName(elementTypeText);
-
-    if (this.isDynamicArray) return "struct " + this.structName + " *";
-    else return "static " + elementTypeText + " {var}[" + this.capacity + "]";
-  }
-  constructor(
-    public elementType: CType,
-    public capacity: number,
-    public isDynamicArray: boolean
-  ) {}
-}
-
-type PropertiesDictionary = { [propName: string]: CType };
-
-/** Type that represents JS object with static properties (implemented as C struct) */
-export class StructType {
-  public getText() {
-    return this.structName;
-  }
-  constructor(
-    private structName: string,
-    public properties: PropertiesDictionary
-  ) {}
-}
-
-/** Type that represents JS object with dynamic properties (implemented as dynamic dictionary) */
-export class DictType {
-  public getText() {
-    let elementType = this.elementType;
-    let elementTypeText;
-    if (typeof elementType === "string") elementTypeText = elementType;
-    else elementTypeText = elementType.getText();
-
-    return "DICT(" + elementTypeText + ")";
-  }
-  constructor(public elementType: CType) {}
-}
 
 /** Information about a variable */
 export class VariableInfo {
   /** Name of the variable */
   name: string;
   /** The final determined C type for this variable */
-  type: CType;
+  type: NativeType;
   /** Contains all references to this variable */
   references: ts.Node[] = [];
   /** Where variable was declared */
@@ -108,7 +36,7 @@ export class VariableInfo {
 }
 
 // forOfIterator ====> for <var> of <array_variable> ---> <var>.type = (type of <array_variable>).elementType
-// forInIterator ====> for <var> in <dict_variable> ---> <var>.type = StringVarType
+// forInIterator ====> for <var> in <dict_variable> ---> <var>.type = StringType
 // dynamicArrayOf ====> <var>.push(<value>) ---> <var>.elementType = (type of <value>)
 // propertyType ====> <var>[<string>] = <value> ---> <var>.properties[<string>] = (type of <value>)
 // propertyType ====> <var>.<ident> = <value> ---> <var>.properties[<ident>] = (type of <value>)
@@ -127,7 +55,7 @@ enum TypePromiseKind {
 }
 
 class TypePromise {
-  public bestType: CType;
+  public bestType: NativeType;
   constructor(
     public associatedNode: ts.Node,
     public promiseKind: TypePromiseKind = TypePromiseKind.variable,
@@ -138,14 +66,14 @@ class TypePromise {
 type PromiseDictionary = { [promiseId: string]: TypePromise };
 
 class VariableData {
-  typePromises: { [id: string]: TypePromise } = {};
-  addedProperties: { [propName: string]: CType } = {};
-  parameterIndex: number;
-  parameterFuncDeclPos: number;
-  objLiteralAssigned: boolean = false;
+  addedProperties: { [propName: string]: NativeType } = {};
   arrLiteralAssigned: boolean = false;
-  isDynamicArray: boolean;
   isDict: boolean;
+  isDynamicArray: boolean;
+  parameterFuncDeclPos: number;
+  parameterIndex: number;
+  typePromises: { [id: string]: TypePromise } = {};
+  wasObjectLiteralAssigned: boolean = false;
   /** references to variables that represent properties of this variable */
   varDeclPosByPropName: { [propName: string]: number } = {};
   /** for debugging: log of how the type of this variable was determined */
@@ -153,20 +81,28 @@ class VariableData {
 }
 
 export class TypeHelper {
-  private userStructs: { [name: string]: StructType } = {};
   private variablesData: { [varDeclPos: number]: VariableData } = {};
   private functionCallsData: {
     [funcDeclPos: number]: PromiseDictionary[];
   } = {};
 
   public variables: { [varDeclPos: number]: VariableInfo } = {};
-  private functionPrototypes: {
-    [funcDeclPos: number]: ts.FunctionDeclaration;
-  } = {};
-  private arrayLiteralsTypes: { [litArrayPos: number]: CType } = {};
-  private objectLiteralsTypes: { [litObjectPos: number]: CType } = {};
+  private arrayLiteralsTypes: { [litArrayPos: number]: NativeType } = {};
+  private objectLiteralsTypes: { [litObjectPos: number]: NativeType } = {};
 
-  constructor(private typeChecker: ts.TypeChecker) {}
+  private structures: Structures;
+  private typeInferencer: TypeInferencer;
+  private typeChecker: ts.TypeChecker;
+
+  constructor(private program: CProgram) {
+    this.structures = new Structures(program.typeChecker, this);
+    this.typeChecker = program.typeChecker;
+    this.typeInferencer = program.typeInferencer;
+  }
+
+  public inferNodeType(node: ts.Node) {
+    return this.typeInferencer.inferNodeType(node);
+  }
 
   /** Performs initialization of variables array */
   /** Call this before using getVariableInfo */
@@ -175,386 +111,20 @@ export class TypeHelper {
     this.resolvePromisesAndFinalizeTypes();
   }
 
-  public getStructsAndFunctionPrototypes() {
-    let structs = this.getUserStructs();
-    let functionPrototypes = Object.keys(this.functionPrototypes).map(
-      k => this.functionPrototypes[k]
-    );
+  public ensureArrayStruct(elementType: NativeType) {
+    let elementTypeText = this.getTypeString(elementType);
+    if (elementType instanceof ArrayType) {
+      elementTypeText =
+        this.getTypeString(<ArrayType>elementType.elementType) + " * ";
+    }
+    const name = ArrayType.getArrayStructName(elementTypeText);
+    const struct = new StructType(name, {
+      size: IntegerType,
+      capacity: IntegerType,
+      data: elementTypeText + "*"
+    });
 
-    return [structs, functionPrototypes];
-  }
-
-  public isChildOfBitwiseOperation(node: ts.Node) {
-    let parent = this.findParentWithKind(node, ts.SyntaxKind.BinaryExpression);
-    while (parent) {
-      const parentBinary = <ts.BinaryExpression>parent;
-      if (parentBinary.operatorToken.kind == ts.SyntaxKind.AmpersandToken) {
-        return true;
-      }
-      parent = this.findParentWithKind(
-        parent.parent,
-        ts.SyntaxKind.BinaryExpression
-      );
-    }
-    return false;
-  }
-
-  public isFloatExpression(binaryExpression: ts.BinaryExpression): boolean {
-    // bitwise operators are excluded from this
-    if (this.isChildOfBitwiseOperation(binaryExpression)) {
-      return false;
-    }
-    // if expression is a division
-    if (binaryExpression.operatorToken.kind == ts.SyntaxKind.SlashToken) {
-      log(`Expression ${binaryExpression.getText()} evaluates to float`);
-      return true;
-    }
-    // if left or right is float identifier
-    if (
-      binaryExpression.left.kind == ts.SyntaxKind.Identifier &&
-      this.getVariableInfo(<ts.Identifier>binaryExpression.left).type ==
-        FloatVarType
-    ) {
-      return true;
-    }
-    if (
-      binaryExpression.left.kind == ts.SyntaxKind.Identifier &&
-      this.getVariableInfo(<ts.Identifier>binaryExpression.left).type ==
-        FloatVarType
-    ) {
-      return true;
-    }
-    // check for each binary expression inside the given expression
-    if (
-      binaryExpression.right.kind == ts.SyntaxKind.BinaryExpression &&
-      this.isFloatExpression(<ts.BinaryExpression>binaryExpression.right)
-    ) {
-      return true;
-    }
-    if (
-      binaryExpression.left.kind == ts.SyntaxKind.BinaryExpression &&
-      this.isFloatExpression(<ts.BinaryExpression>binaryExpression.left)
-    ) {
-      return true;
-    }
-    // check if parenthesized expression
-    if (binaryExpression.left.kind == ts.SyntaxKind.ParenthesizedExpression) {
-      const parenthesizedExpression = <ts.ParenthesizedExpression>binaryExpression.left;
-      if (
-        parenthesizedExpression.expression.kind ==
-          ts.SyntaxKind.BinaryExpression &&
-        this.isFloatExpression(
-          <ts.BinaryExpression>parenthesizedExpression.expression
-        )
-      ) {
-        return true;
-      }
-    }
-    if (binaryExpression.right.kind == ts.SyntaxKind.ParenthesizedExpression) {
-      const parenthesizedExpression = <ts.ParenthesizedExpression>binaryExpression.right;
-      if (
-        parenthesizedExpression.expression.kind ==
-          ts.SyntaxKind.BinaryExpression &&
-        this.isFloatExpression(
-          <ts.BinaryExpression>parenthesizedExpression.expression
-        )
-      ) {
-        return true;
-      }
-    }
-    if (
-      binaryExpression.left.kind == ts.SyntaxKind.NumericLiteral &&
-      this.isFloatLiteral(<ts.NumericLiteral>binaryExpression.left)
-    ) {
-      return true;
-    }
-    if (
-      binaryExpression.right.kind == ts.SyntaxKind.NumericLiteral &&
-      this.isFloatLiteral(<ts.NumericLiteral>binaryExpression.right)
-    ) {
-      return true;
-    }
-    return false;
-  }
-
-  public isLongExpression(binaryExpression: ts.BinaryExpression) {
-    // bitwise operators are excluded from this
-    if (this.isChildOfBitwiseOperation(binaryExpression)) {
-      return false;
-    }
-    // if left or right is float identifier
-    if (
-      binaryExpression.left.kind == ts.SyntaxKind.Identifier &&
-      this.getVariableInfo(<ts.Identifier>binaryExpression.left).type ==
-        LongVarType
-    ) {
-      return true;
-    }
-    if (
-      binaryExpression.left.kind == ts.SyntaxKind.Identifier &&
-      this.getVariableInfo(<ts.Identifier>binaryExpression.left).type ==
-        LongVarType
-    ) {
-      return true;
-    }
-    // check for each binary expression inside the given expression
-    if (
-      binaryExpression.right.kind == ts.SyntaxKind.BinaryExpression &&
-      this.isLongExpression(<ts.BinaryExpression>binaryExpression.right)
-    ) {
-      return true;
-    }
-    if (
-      binaryExpression.left.kind == ts.SyntaxKind.BinaryExpression &&
-      this.isLongExpression(<ts.BinaryExpression>binaryExpression.left)
-    ) {
-      return true;
-    }
-    // check if parenthesized expression
-    if (binaryExpression.left.kind == ts.SyntaxKind.ParenthesizedExpression) {
-      const parenthesizedExpression = <ts.ParenthesizedExpression>binaryExpression.left;
-      if (
-        parenthesizedExpression.expression.kind ==
-          ts.SyntaxKind.BinaryExpression &&
-        this.isLongExpression(
-          <ts.BinaryExpression>parenthesizedExpression.expression
-        )
-      ) {
-        return true;
-      }
-    }
-    if (binaryExpression.right.kind == ts.SyntaxKind.ParenthesizedExpression) {
-      const parenthesizedExpression = <ts.ParenthesizedExpression>binaryExpression.right;
-      if (
-        parenthesizedExpression.expression.kind ==
-          ts.SyntaxKind.BinaryExpression &&
-        this.isLongExpression(
-          <ts.BinaryExpression>parenthesizedExpression.expression
-        )
-      ) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public isFloatLiteral(node: ts.NumericLiteral): boolean {
-    // if it contains a floating point, return true
-    const literalText = node.getText();
-    if (literalText.indexOf(".") > -1) {
-      return true;
-    }
-    // if it's a variable declaration
-    let parent = this.findParentWithKind(
-      node,
-      ts.SyntaxKind.VariableDeclaration
-    );
-    if (parent) {
-      const declaration = <ts.VariableDeclaration>parent;
-      let varInfo = this.getVariableInfo(declaration.name);
-      for (let ref of varInfo.references) {
-        // and one of its references is a binary expression
-        const binary = this.findParentWithKind(
-          ref,
-          ts.SyntaxKind.BinaryExpression
-        );
-        if (binary) {
-          if (this.isFloatExpression(<ts.BinaryExpression>binary)) {
-            log(`so [${declaration.name.getText()}] evaluates to float`);
-            return true;
-          }
-        }
-      }
-    }
-
-    return false;
-  }
-
-  public findParentWithKind(node: ts.Node, kind: ts.SyntaxKind) {
-    let parent = node;
-    while (parent && parent.kind != kind) {
-      parent = parent.parent;
-    }
-    return parent;
-  }
-
-  private inferNumericLiteral(node: ts.NumericLiteral) {
-    // if it's. a float, return float
-    if (this.isFloatLiteral(node)) {
-      return FloatVarType;
-    }
-    // if it's a big number, return long
-    const literalText = node.getText();
-    if (literalText.indexOf("-") === 0) {
-      return SignedLongVarType;
-    }
-    if (parseInt(literalText, 10) > 1023) {
-      return LongVarType;
-    }
-    // else return int
-    return NumberVarType;
-  }
-
-  private inferBinaryExpression(node: ts.BinaryExpression) {
-    const parentBinary = this.findParentWithKind(
-      node,
-      ts.SyntaxKind.BinaryExpression
-    );
-    log(
-      parentBinary.getText(),
-      this.isFloatExpression(<ts.BinaryExpression>parentBinary)
-    );
-    if (this.isFloatExpression(<ts.BinaryExpression>parentBinary)) {
-      return FloatVarType;
-    } else if (this.isLongExpression(<ts.BinaryExpression>parentBinary)) {
-      return LongVarType;
-    } else {
-      let tsType = this.typeChecker.getTypeAtLocation(node);
-      let type = tsType && this.convertType(tsType);
-      if (type != UniversalVarType && type != PointerVarType) {
-        return type;
-      }
-    }
-  }
-
-  private inferIdentifier(node: ts.Identifier) {
-    // is parameter of a function
-    if (node.parent.kind == ts.SyntaxKind.Parameter) {
-      let parentCall = this.findParentCallExpression(node);
-      // the function is inside a call expression
-      if (parentCall) {
-        const propAccess = <ts.PropertyAccessExpression>parentCall.expression;
-        let parentObjectType = this.inferNodeType(propAccess.expression);
-        // the call expression is on an Array
-        if (parentObjectType instanceof ArrayType) {
-          // return the type of the Array
-          return parentObjectType.elementType;
-        }
-      }
-    }
-    let varInfo = this.getVariableInfo(<ts.Identifier>node);
-    return (varInfo && varInfo.type) || null;
-  }
-
-  private inferElementAccessExpression(node: ts.ElementAccessExpression) {
-    let elemAccess = <ts.ElementAccessExpression>node;
-    let parentObjectType = this.inferNodeType(elemAccess.expression);
-    if (parentObjectType instanceof ArrayType)
-      return parentObjectType.elementType;
-    else if (parentObjectType instanceof StructType)
-      return parentObjectType.properties[
-        elemAccess.argumentExpression.getText().slice(1, -1)
-      ];
-    else if (parentObjectType instanceof DictType)
-      return parentObjectType.elementType;
-    return null;
-  }
-
-  private inferPropertyAccessExpression(node: ts.PropertyAccessExpression) {
-    let propAccess = <ts.PropertyAccessExpression>node;
-    let parentObjectType = this.inferNodeType(propAccess.expression);
-    if (parentObjectType instanceof StructType)
-      return parentObjectType.properties[propAccess.name.getText()];
-    else if (
-      parentObjectType instanceof ArrayType &&
-      propAccess.name.getText() == "length"
-    )
-      return NumberVarType;
-    else if (
-      parentObjectType === StringVarType &&
-      propAccess.name.getText() == "length"
-    )
-      return NumberVarType;
-    return null;
-  }
-
-  private inferCallExpression(node: ts.CallExpression) {
-    let call = <ts.CallExpression>node;
-    let retType = StandardCallHelper.getReturnType(this, call);
-    if (retType) return retType;
-
-    if (call.expression.kind == ts.SyntaxKind.PropertyAccessExpression) {
-      let propAccess = <ts.PropertyAccessExpression>call.expression;
-      let propName = propAccess.name.getText();
-      if (
-        (propName == "indexOf" || propName == "lastIndexOf") &&
-        call.arguments.length == 1
-      ) {
-        let exprType = this.inferNodeType(propAccess.expression);
-        if (exprType && exprType == StringVarType) return NumberVarType;
-      }
-    } else if (call.expression.kind == ts.SyntaxKind.Identifier) {
-      if (call.expression.getText() == "parseInt") {
-        return NumberVarType;
-      }
-      let funcSymbol = this.typeChecker.getSymbolAtLocation(call.expression);
-      if (funcSymbol != null) {
-        let funcDeclPos = funcSymbol.valueDeclaration.pos;
-        let varInfo = this.variables[funcDeclPos];
-        return varInfo && varInfo.type;
-      }
-    }
-    return null;
-  }
-
-  public inferNodeType(node: ts.Node): CType {
-    if (!node.kind) return null;
-    // Look for known registered types
-    const nodeType = TypeRegistry.getNodeType(node);
-    if (nodeType) {
-      return nodeType;
-    }
-    switch (node.kind) {
-      case ts.SyntaxKind.NumericLiteral:
-        return this.inferNumericLiteral(<ts.NumericLiteral>node);
-      case ts.SyntaxKind.BinaryExpression: {
-        return this.inferBinaryExpression(<ts.BinaryExpression>node);
-      }
-      case ts.SyntaxKind.TrueKeyword:
-      case ts.SyntaxKind.FalseKeyword:
-        return BooleanVarType;
-      case ts.SyntaxKind.StringLiteral:
-        return StringVarType;
-      case ts.SyntaxKind.Identifier: {
-        return this.inferIdentifier(<ts.Identifier>node);
-      }
-      case ts.SyntaxKind.ElementAccessExpression: {
-        return this.inferElementAccessExpression(
-          <ts.ElementAccessExpression>node
-        );
-      }
-      case ts.SyntaxKind.PropertyAccessExpression: {
-        return this.inferPropertyAccessExpression(
-          <ts.PropertyAccessExpression>node
-        );
-      }
-      case ts.SyntaxKind.CallExpression: {
-        return this.inferCallExpression(<ts.CallExpression>node);
-      }
-      case ts.SyntaxKind.PropertyAssignment:
-        const propertyAssignment = <ts.PropertyAssignment>node;
-        return this.inferNodeType(propertyAssignment.initializer);
-      case ts.SyntaxKind.FunctionExpression:
-        // TODO - Actually infer function return type
-        return NumberVarType;
-      case ts.SyntaxKind.RegularExpressionLiteral:
-        return RegexVarType;
-      case ts.SyntaxKind.ArrayLiteralExpression:
-        return this.arrayLiteralsTypes[node.pos];
-      case ts.SyntaxKind.ObjectLiteralExpression:
-        return this.objectLiteralsTypes[node.pos];
-      case ts.SyntaxKind.FunctionDeclaration: {
-        let varInfo = this.variables[node.pos];
-        return varInfo && varInfo.type;
-      }
-      default:
-        {
-          let tsType = this.typeChecker.getTypeAtLocation(node);
-          let type = tsType && this.convertType(tsType);
-          if (type != UniversalVarType && type != PointerVarType) return type;
-        }
-        return null;
-    }
+    this.structures.declare(name, struct);
   }
 
   /** Get information of variable specified by ts.Node */
@@ -581,161 +151,85 @@ export class TypeHelper {
       source.flags != null &&
       source.callSignatures != null &&
       source.constructSignatures != null
-    )
+    ) {
       // ts.Type
       source = this.convertType(source);
-    else if (source.kind != null && source.flags != null)
+    } else if (source.kind != null && source.flags != null) {
       // ts.Node
       source = this.inferNodeType(source);
-    else if (
+    } else if (
       source.name != null &&
       source.flags != null &&
       source.valueDeclaration != null &&
       source.declarations != null
-    )
+    ) {
       //ts.Symbol
       source = this.variables[source.valueDeclaration.pos].type;
+    }
 
     if (source instanceof ArrayType) {
       this.ensureArrayStruct(source.elementType);
       return source.getText();
-    } else if (source instanceof StructType) return source.getText();
-    else if (source instanceof DictType) return source.getText();
-    else if (typeof source === "string") return source;
-    else throw new Error("Unrecognized type source");
-  }
-
-  private temporaryVariables: { [scopeId: string]: string[] } = {};
-  private iteratorVarNames = ["i", "j", "k", "l", "m", "n"];
-  /** Generate name for a new iterator variable and register it in temporaryVariables table.
-   * Generated name is guarantied not to conflict with any existing names in specified scope.
-   */
-  public addNewIteratorVariable(scopeNode: ts.Node): string {
-    let parentFunc = this.findParentFunction(scopeNode);
-    let scopeId = (parentFunc && parentFunc.pos + 1) || "main";
-    let existingSymbolNames = this.typeChecker
-      .getSymbolsInScope(scopeNode, ts.SymbolFlags.Variable)
-      .map(s => s.name);
-    if (!this.temporaryVariables[scopeId])
-      this.temporaryVariables[scopeId] = [];
-    existingSymbolNames = existingSymbolNames.concat(
-      this.temporaryVariables[scopeId]
-    );
-    let i = 0;
-    while (
-      i < this.iteratorVarNames.length &&
-      existingSymbolNames.indexOf(this.iteratorVarNames[i]) > -1
-    )
-      i++;
-    let iteratorVarName;
-    if (i == this.iteratorVarNames.length) {
-      i = 2;
-      while (existingSymbolNames.indexOf("i_" + i) > -1) i++;
-      iteratorVarName = "i_" + i;
-    } else iteratorVarName = this.iteratorVarNames[i];
-
-    this.temporaryVariables[scopeId].push(iteratorVarName);
-    return iteratorVarName;
-  }
-
-  /** Generate name for a new temporary variable and register it in temporaryVariables table.
-   * Generated name is guarantied not to conflict with any existing names in specified scope.
-   */
-  public addNewTemporaryVariable(
-    scopeNode: ts.Node,
-    proposedName: string
-  ): string {
-    let parentFunc = this.findParentFunction(scopeNode);
-    let scopeId = (parentFunc && parentFunc.pos + 1) || "main";
-    let existingSymbolNames =
-      scopeNode == null
-        ? []
-        : this.typeChecker
-            .getSymbolsInScope(scopeNode, ts.SymbolFlags.Variable)
-            .map(s => s.name);
-    if (!this.temporaryVariables[scopeId])
-      this.temporaryVariables[scopeId] = [];
-    existingSymbolNames = existingSymbolNames.concat(
-      this.temporaryVariables[scopeId]
-    );
-    if (existingSymbolNames.indexOf(proposedName) > -1) {
-      let i = 2;
-      while (existingSymbolNames.indexOf(proposedName + "_" + i) > -1) i++;
-      proposedName = proposedName + "_" + i;
+    } else if (source instanceof StructType) {
+      return source.getText();
+    } else if (source instanceof DictType) {
+      return source.getText();
+    } else if (typeof source === "string") {
+      return source;
+    } else {
+      throw new Error("Unrecognized type source");
     }
-
-    this.temporaryVariables[scopeId].push(proposedName);
-    return proposedName;
   }
 
-  private getUserStructs() {
-    return Object.keys(this.userStructs)
-      .filter(k => Object.keys(this.userStructs[k].properties).length > 0)
-      .map(k => {
-        return {
-          name: k,
-          properties: Object.keys(this.userStructs[k].properties).map(pk => {
-            return {
-              name: pk,
-              type: this.userStructs[k].properties[pk]
-            };
-          })
-        };
-      });
-  }
-
-  /** Convert ts.Type to CType */
+  /** Convert ts.Type to NativeType */
   /** Used mostly during type preprocessing stage */
-  private convertType(tsType: ts.Type, ident?: ts.Identifier): CType {
-    if (!tsType || tsType.flags == ts.TypeFlags.Void) return "void";
-
-    if (
+  public convertType(tsType: ts.Type, ident?: ts.Identifier): NativeType {
+    if (!tsType || tsType.flags == ts.TypeFlags.Void) {
+      return "void";
+    } else if (
       tsType.flags == ts.TypeFlags.String ||
       tsType.flags == ts.TypeFlags.StringLiteral
-    )
-      return StringVarType;
-    if (
+    ) {
+      return StringType;
+    } else if (
       tsType.flags == ts.TypeFlags.Number ||
       tsType.flags == ts.TypeFlags.NumberLiteral
     ) {
       if (ident && ident.parent.kind === ts.SyntaxKind.PropertyAssignment) {
         return this.inferNodeType(ident.parent);
       }
-      return NumberVarType;
-    }
-    if (
+      return IntegerType;
+    } else if (
       tsType.flags == ts.TypeFlags.Boolean ||
       tsType.flags == ts.TypeFlags.Boolean + ts.TypeFlags.Union
-    )
-      return BooleanVarType;
-
-    if (
+    ) {
+      return BooleanType;
+    } else if (
       tsType.flags & ts.TypeFlags.Object &&
       tsType.getProperties().length > 0
     ) {
-      return this.generateStructure(tsType, ident);
+      return this.structures.generateStructure(tsType, ident);
+    } else if (tsType.flags == ts.TypeFlags.Any) {
+      return PointerType;
     }
-
-    if (tsType.flags == ts.TypeFlags.Any) return PointerVarType;
 
     log("Non-standard type: " + this.typeChecker.typeToString(tsType));
-    return PointerVarType;
+
+    return PointerType;
   }
 
-  public findParentFunction(node: ts.Node): ts.FunctionDeclaration {
-    let parentFunc = node;
-    while (parentFunc && parentFunc.kind != ts.SyntaxKind.FunctionDeclaration) {
-      parentFunc = parentFunc.parent;
-    }
-    return <ts.FunctionDeclaration>parentFunc;
+  private functionPrototypes: {
+    [funcDeclPos: number]: ts.FunctionDeclaration;
+  } = {};
+
+  public getFunctionPrototypes() {
+    return Object.keys(this.functionPrototypes).map(
+      k => this.functionPrototypes[k]
+    );
   }
 
-  public findParentCallExpression(node: ts.Node): ts.CallExpression {
-    let parentCall = node;
-    while (parentCall && parentCall.kind != ts.SyntaxKind.CallExpression) {
-      parentCall = parentCall.parent;
-    }
-    return <ts.CallExpression>parentCall;
+  public getDeclaredStructs() {
+    return this.structures.getDeclaredStructs();
   }
 
   private findVariablesRecursively(node: ts.Node) {
@@ -770,7 +264,7 @@ export class TypeHelper {
       }
     } else if (node.kind == ts.SyntaxKind.ReturnStatement) {
       let ret = <ts.ReturnStatement>node;
-      let parentFunc = this.findParentFunction(node);
+      let parentFunc = ScopeUtil.findParentFunction(node);
       let funcPos = parentFunc && parentFunc.pos;
       if (funcPos != null) {
         if (ret.expression) {
@@ -810,7 +304,7 @@ export class TypeHelper {
       }
     } else if (node.kind == ts.SyntaxKind.ObjectLiteralExpression) {
       if (!this.objectLiteralsTypes[node.pos]) {
-        let type = this.generateStructure(
+        let type = this.structures.generateStructure(
           this.typeChecker.getTypeAtLocation(node)
         );
         this.objectLiteralsTypes[node.pos] = type;
@@ -824,7 +318,7 @@ export class TypeHelper {
       let varData = null;
       let varNode = null;
 
-      const parentFunction = this.findParentFunction(node);
+      const parentFunction = ScopeUtil.findParentFunction(node);
       if (node.kind == ts.SyntaxKind.PropertyAccessExpression) {
         let propAccess = <ts.PropertyAccessExpression>node;
         let propName = propAccess.name.getText();
@@ -913,7 +407,7 @@ export class TypeHelper {
               varDecl.initializer &&
               varDecl.initializer.kind == ts.SyntaxKind.ObjectLiteralExpression
             ) {
-              varData.objLiteralAssigned = true;
+              varData.wasObjectLiteralAssigned = true;
               let objLiteral = <ts.ObjectLiteralExpression>varDecl.initializer;
               for (let propAssignment of objLiteral.properties
                 .filter(p => p.kind == ts.SyntaxKind.PropertyAssignment)
@@ -1007,7 +501,7 @@ export class TypeHelper {
               binExpr.right &&
               binExpr.right.kind == ts.SyntaxKind.ObjectLiteralExpression
             ) {
-              varData.objLiteralAssigned = true;
+              varData.wasObjectLiteralAssigned = true;
               let objLiteral = <ts.ObjectLiteralExpression>binExpr.right;
               for (let propAssignment of objLiteral.properties
                 .filter(p => p.kind == ts.SyntaxKind.PropertyAssignment)
@@ -1238,7 +732,7 @@ export class TypeHelper {
         let varType = variableBestTypes.length
           ? variableBestTypes.reduce((c, n) => this.mergeTypes(c, n).type)
           : null;
-        varType = varType || PointerVarType;
+        varType = varType || PointerType;
 
         if (varType instanceof ArrayType) {
           if (
@@ -1250,7 +744,7 @@ export class TypeHelper {
           varType.isDynamicArray =
             varType.isDynamicArray || this.variablesData[k].isDynamicArray;
         } else if (varType instanceof StructType) {
-          if (this.variablesData[k].objLiteralAssigned)
+          if (this.variablesData[k].wasObjectLiteralAssigned)
             this.variables[k].requiresAllocation = true;
           let keys1 = Object.keys(this.variablesData[k].addedProperties);
           let keys2 = Object.keys(this.variablesData[k].varDeclPosByPropName);
@@ -1292,7 +786,7 @@ export class TypeHelper {
         if (ref.parent.kind == ts.SyntaxKind.BinaryExpression) {
           const binaryExpression = <ts.BinaryExpression>ref.parent;
           if (binaryExpression.operatorToken.kind == ts.SyntaxKind.SlashToken) {
-            varInfo.type = FloatVarType;
+            varInfo.type = FloatType;
           }
         }
         if (ref.parent.kind == ts.SyntaxKind.PropertyAssignment) {
@@ -1329,7 +823,7 @@ export class TypeHelper {
             variablePromises[id] = functionCallsPromises[id];
             somePromisesAreResolved = true;
           }
-          let currentType = variablePromises[id].bestType || PointerVarType;
+          let currentType = variablePromises[id].bestType || PointerType;
           let resolvedType = this.inferNodeType(
             functionCallsPromises[id].associatedNode
           );
@@ -1345,7 +839,7 @@ export class TypeHelper {
       for (let promiseId in this.variablesData[varPos].typePromises) {
         let promise = this.variablesData[varPos].typePromises[promiseId];
         let resolvedType =
-          this.inferNodeType(promise.associatedNode) || PointerVarType;
+          this.inferNodeType(promise.associatedNode) || PointerType;
 
         let finalType = resolvedType;
         if (promise.promiseKind == TypePromiseKind.dynamicArrayOf) {
@@ -1366,7 +860,7 @@ export class TypeHelper {
           resolvedType instanceof DictType &&
           promise.promiseKind == TypePromiseKind.forInIterator
         ) {
-          finalType = StringVarType;
+          finalType = StringType;
         } else if (promise.promiseKind == TypePromiseKind.void) {
           finalType = "void";
         }
@@ -1413,93 +907,8 @@ export class TypeHelper {
     return somePromisesAreResolved;
   }
 
-  private generateStructure(
-    tsType: ts.Type,
-    ident?: ts.Identifier
-  ): StructType {
-    var structName = "struct_" + Object.keys(this.userStructs).length + "_t";
-    var varName = ident && ident.getText();
-    if (varName) {
-      if (this.userStructs[varName + "_t"] == null) structName = varName + "_t";
-      else {
-        let i = 2;
-        while (this.userStructs[varName + "_" + i + "_t"] != null) i++;
-        structName = varName + "_" + i + "_t";
-      }
-    }
-    let userStructInfo: PropertiesDictionary = {};
-    for (let prop of tsType.getProperties()) {
-      let propTsType = this.typeChecker.getTypeOfSymbolAtLocation(
-        prop,
-        prop.valueDeclaration
-      );
-      let propType = this.convertType(propTsType, <ts.Identifier>prop
-        .valueDeclaration.name);
-      if (
-        propType == PointerVarType &&
-        prop.valueDeclaration.kind == ts.SyntaxKind.PropertyAssignment
-      ) {
-        let propAssignment = <ts.PropertyAssignment>prop.valueDeclaration;
-        if (
-          propAssignment.initializer &&
-          propAssignment.initializer.kind ==
-            ts.SyntaxKind.ArrayLiteralExpression
-        )
-          propType = this.determineArrayType(
-            <ts.ArrayLiteralExpression>propAssignment.initializer
-          );
-      }
-      userStructInfo[prop.name] = propType;
-    }
-
-    let userStructCode = this.getStructureBodyString(userStructInfo);
-
-    var found = false;
-    if (Object.keys(userStructInfo).length > 0) {
-      for (var s in this.userStructs) {
-        if (
-          this.getStructureBodyString(this.userStructs[s].properties) ==
-          userStructCode
-        ) {
-          structName = s;
-          found = true;
-          break;
-        }
-      }
-    }
-
-    if (!found)
-      this.userStructs[structName] = new StructType(
-        "struct " + structName + " *",
-        userStructInfo
-      );
-    return this.userStructs[structName];
-  }
-
-  private getStructureBodyString(properties: PropertiesDictionary) {
-    let userStructCode = "{\n";
-    for (let propName in properties) {
-      let propType = properties[propName];
-      if (typeof propType === "string") {
-        userStructCode += "    " + propType + " " + propName + ";\n";
-      } else if (propType instanceof ArrayType) {
-        let propTypeText = propType.getText();
-        if (propTypeText.indexOf("{var}") > -1)
-          userStructCode +=
-            "    " +
-            propTypeText.replace(/^static /, "").replace("{var}", propName) +
-            ";\n";
-        else userStructCode += "    " + propTypeText + " " + propName + ";\n";
-      } else {
-        userStructCode += "    " + propType.getText() + " " + propName + ";\n";
-      }
-    }
-    userStructCode += "};\n";
-    return userStructCode;
-  }
-
-  private determineArrayType(arrLiteral: ts.ArrayLiteralExpression): ArrayType {
-    let elementType: CType = PointerVarType;
+  public determineArrayType(arrLiteral: ts.ArrayLiteralExpression): ArrayType {
+    let elementType: NativeType = PointerType;
     let cap = arrLiteral.elements.length;
     if (cap > 0) {
       if (
@@ -1523,18 +932,17 @@ export class TypeHelper {
     return type;
   }
 
-  public ensureArrayStruct(elementType: CType) {
-    let elementTypeText = this.getTypeString(elementType);
-    if (elementType instanceof ArrayType) {
-      elementTypeText =
-        this.getTypeString(<ArrayType>elementType.elementType) + " * ";
-    }
-    let structName = ArrayType.getArrayStructName(elementTypeText);
-    this.userStructs[structName] = new StructType(structName, {
-      size: NumberVarType,
-      capacity: NumberVarType,
-      data: elementTypeText + "*"
-    });
+  public getArrayLiteralType(pos: number) {
+    return this.arrayLiteralsTypes[pos];
+  }
+
+  public getObjectLiteralType(pos: number) {
+    return this.objectLiteralsTypes[pos];
+  }
+
+  public getVariableType(pos: number) {
+    let varInfo = this.variables[pos];
+    return varInfo && varInfo.type;
   }
 
   private addTypePromise(
@@ -1556,7 +964,7 @@ export class TypeHelper {
     this.variablesData[varPos].typePromises[promiseId] = promise;
   }
 
-  private mergeTypes(currentType: CType, newType: CType) {
+  private mergeTypes(currentType: NativeType, newType: NativeType) {
     let newResult = { type: newType, replaced: true };
     let currentResult = { type: currentType, replaced: false };
 
@@ -1566,13 +974,13 @@ export class TypeHelper {
       return currentResult;
     else if (currentType == "void") return newResult;
     else if (newType == "void") return currentResult;
-    else if (currentType == PointerVarType) return newResult;
-    else if (newType == PointerVarType) return currentResult;
-    else if (currentType == UniversalVarType) return newResult;
-    else if (newType == UniversalVarType) return currentResult;
-    else if (currentType == NumberVarType && newType == FloatVarType)
+    else if (currentType == PointerType) return newResult;
+    else if (newType == PointerType) return currentResult;
+    else if (currentType == UniversalType) return newResult;
+    else if (newType == UniversalType) return currentResult;
+    else if (currentType == IntegerType && newType == FloatType)
       return newResult;
-    else if (currentType == FloatVarType && newType == NumberVarType)
+    else if (currentType == FloatType && newType == IntegerType)
       return currentResult;
     else if (currentType instanceof ArrayType && newType instanceof ArrayType) {
       let cap = Math.max(newType.capacity, currentType.capacity);
@@ -1597,7 +1005,7 @@ export class TypeHelper {
     ) {
       if (
         newType.elementType == currentType.elementType ||
-        currentType.elementType == PointerVarType
+        currentType.elementType == PointerType
       )
         return newResult;
     } else if (
@@ -1606,7 +1014,7 @@ export class TypeHelper {
     ) {
       if (
         newType.elementType == currentType.elementType ||
-        newType.elementType == PointerVarType
+        newType.elementType == PointerType
       )
         return currentResult;
     } else if (
@@ -1616,8 +1024,8 @@ export class TypeHelper {
       return newResult;
     } else if (currentType instanceof DictType && newType instanceof DictType) {
       if (
-        newType.elementType != PointerVarType &&
-        currentType.elementType == PointerVarType
+        newType.elementType != PointerType &&
+        currentType.elementType == PointerType
       )
         return newResult;
 
@@ -1625,36 +1033,11 @@ export class TypeHelper {
     }
 
     log(
-      "WARNING: candidate for UniversalVarType! Current: " +
+      "WARNING: candidate for UniversalType! Current: " +
         this.getTypeString(currentType) +
         ", new: " +
         this.getTypeString(newType)
     );
     return currentResult;
-  }
-
-  public isNumericType(type: CType) {
-    return (
-      type === NumberVarType ||
-      type === LongVarType ||
-      type === FloatVarType ||
-      type === SignedLongVarType
-    );
-  }
-}
-
-export class TypeRegistry {
-  private typesMap = new Map<number, CType>();
-  private static _instance: TypeRegistry;
-
-  public static init() {
-    this._instance = new TypeRegistry();
-  }
-  static getNodeType(node: ts.Node) {
-    return this._instance.typesMap.get(node.pos);
-  }
-
-  static declareNodeType(node: ts.Node, type: CType) {
-    this._instance.typesMap.set(node.pos, type);
   }
 }

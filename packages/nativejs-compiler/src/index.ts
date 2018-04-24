@@ -10,7 +10,13 @@ export * from "./core/preset";
 export * from "./core/program";
 export * from "./core/resolver";
 export * from "./core/template";
-export * from "./core/types";
+
+export * from "./core/types/NativeTypes";
+export * from "./core/types/PropertiesDictionary";
+export * from "./core/types/Structures";
+export * from "./core/types/TypeHelper";
+export * from "./core/types/TypeInferencer";
+export * from "./core/types/TypeRegistry";
 
 export * from "./nodes/assignment";
 export * from "./nodes/call";

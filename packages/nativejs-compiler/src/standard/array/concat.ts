@@ -8,10 +8,10 @@ import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
   ArrayType,
-  NumberVarType,
-  StringVarType,
-  TypeHelper
-} from "../../core/types";
+  IntegerType,
+  StringType
+} from "../../core/types/NativeTypes";
+import { TypeHelper } from "../../core/types/TypeHelper";
 
 @StandardCallResolver
 class ArrayConcatResolver implements IResolver {
@@ -87,9 +87,11 @@ class CArrayConcat {
           )
         );
       }
-      this.indexVarName = scope.root.typeHelper.addNewIteratorVariable(call);
+      this.indexVarName = scope.root.temporaryVariables.addNewIteratorVariable(
+        call
+      );
       scope.variables.push(
-        new CVariable(scope, this.indexVarName, NumberVarType)
+        new CVariable(scope, this.indexVarName, IntegerType)
       );
       const args = call.arguments.map(a => ({
         node: a,
@@ -161,11 +163,11 @@ class CConcatValue {
     this.staticArraySize =
       type instanceof ArrayType && !type.isDynamicArray && type.capacity;
     if (this.isArray) {
-      this.iteratorVarName = scope.root.typeHelper.addNewIteratorVariable(
+      this.iteratorVarName = scope.root.temporaryVariables.addNewIteratorVariable(
         valueNode
       );
       scope.variables.push(
-        new CVariable(scope, this.iteratorVarName, NumberVarType)
+        new CVariable(scope, this.iteratorVarName, IntegerType)
       );
     }
   }

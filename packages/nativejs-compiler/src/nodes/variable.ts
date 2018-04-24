@@ -5,11 +5,11 @@ import {
   ArrayType,
   StructType,
   DictType,
-  StringVarType,
-  NumberVarType,
-  BooleanVarType,
-  CType
-} from "../core/types";
+  StringType,
+  IntegerType,
+  BooleanType,
+  NativeType
+} from "../core/types/NativeTypes";
 import { AssignmentHelper, CAssignment } from "./assignment";
 import { CElementAccess, CSimpleElementAccess } from "./elementaccess";
 import {
@@ -95,7 +95,7 @@ export class CVariableAllocation {
   constructor(
     scope: IScope,
     public varName: CElementAccess | CSimpleElementAccess | string,
-    varType: CType,
+    varType: NativeType,
     refNode: ts.Node
   ) {
     this.needAllocateArray =
@@ -217,9 +217,9 @@ export class CVariable {
   ) {
     let typeString = scope.root.typeHelper.getTypeString(typeSource);
 
-    if (typeString == NumberVarType) {
+    if (typeString == IntegerType) {
       HeaderRegistry.declareDependency(Int16HeaderType);
-    } else if (typeString == BooleanVarType) {
+    } else if (typeString == BooleanType) {
       HeaderRegistry.declareDependency(Uint8HeaderType);
     }
     if (typeString.indexOf("{var}") > -1)

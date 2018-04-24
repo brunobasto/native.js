@@ -12,16 +12,17 @@ import {
 } from "../core/header";
 import { IScope } from "../core/program";
 import {
-  CType,
+  NativeType,
   ArrayType,
   StructType,
-  StringVarType,
-  RegexVarType,
-  NumberVarType,
-  BooleanVarType,
-  UniversalVarType,
-  PointerVarType
-} from "../core/types";
+  StringType,
+  RegexType,
+  IntegerType,
+  BooleanType,
+  UniversalType,
+  PointerType,
+  isNumericType
+} from "../core/types/NativeTypes";
 import { CVariable } from "./variable";
 import { CElementAccess } from "./elementaccess";
 import { CRegexAsString } from "./regexfunc";
@@ -117,33 +118,30 @@ export class CSimpleBinaryExpression {
   constructor(
     scope: IScope,
     public left: CExpression,
-    leftType: CType,
+    leftType: NativeType,
     public right: CExpression,
-    rightType: CType,
+    rightType: NativeType,
     operatorKind: ts.SyntaxKind,
     node: ts.Node
   ) {
     let operatorMap: { [token: number]: string } = {};
     let callReplaceMap: { [token: number]: [string, string] } = {};
 
-    if (leftType == RegexVarType && operatorKind == ts.SyntaxKind.PlusToken) {
-      leftType = StringVarType;
+    if (leftType == RegexType && operatorKind == ts.SyntaxKind.PlusToken) {
+      leftType = StringType;
       this.left = new CRegexAsString(left);
     }
-    if (rightType == RegexVarType && operatorKind == ts.SyntaxKind.PlusToken) {
-      rightType = StringVarType;
+    if (rightType == RegexType && operatorKind == ts.SyntaxKind.PlusToken) {
+      rightType = StringType;
       this.right = new CRegexAsString(right);
     }
 
     operatorMap[ts.SyntaxKind.AmpersandAmpersandToken] = "&&";
     operatorMap[ts.SyntaxKind.BarBarToken] = "||";
     const typeHelper = scope.root.typeHelper;
-    if (
-      typeHelper.isNumericType(leftType) &&
-      typeHelper.isNumericType(rightType)
-    ) {
+    if (isNumericType(leftType) && isNumericType(rightType)) {
       this.addNumberOperators(operatorMap);
-    } else if (leftType == StringVarType && rightType == StringVarType) {
+    } else if (leftType == StringType && rightType == StringType) {
       callReplaceMap[ts.SyntaxKind.ExclamationEqualsEqualsToken] = [
         "strcmp",
         " != 0"
@@ -168,15 +166,15 @@ export class CSimpleBinaryExpression {
         operatorKind == ts.SyntaxKind.PlusToken ||
         operatorKind == ts.SyntaxKind.FirstCompoundAssignment
       ) {
-        this.replaceWithVar(scope, node, operatorKind, StringVarType);
+        this.replaceWithVar(scope, node, operatorKind, StringType);
         this.strPlusStr = true;
         HeaderRegistry.declareDependency(AssertHeaderType);
         HeaderRegistry.declareDependency(StdlibHeaderType);
         HeaderRegistry.declareDependency(StringHeaderType);
       }
     } else if (
-      (leftType == NumberVarType && rightType == StringVarType) ||
-      (leftType == StringVarType && rightType == NumberVarType)
+      (leftType == IntegerType && rightType == StringType) ||
+      (leftType == StringType && rightType == IntegerType)
     ) {
       callReplaceMap[ts.SyntaxKind.ExclamationEqualsEqualsToken] = [
         "str_int16_t_cmp",
@@ -200,7 +198,7 @@ export class CSimpleBinaryExpression {
         HeaderRegistry.declareDependency(AssertHeaderType);
         HeaderRegistry.declareDependency(StringAndIntCompareHeaderType);
         // str_int16_t_cmp expects certain order of arguments (string, number)
-        if (leftType == NumberVarType) {
+        if (leftType == IntegerType) {
           let tmp = this.left;
           this.left = this.right;
           this.right = tmp;
@@ -211,8 +209,8 @@ export class CSimpleBinaryExpression {
         operatorKind == ts.SyntaxKind.PlusToken ||
         operatorKind == ts.SyntaxKind.FirstCompoundAssignment
       ) {
-        this.replaceWithVar(scope, node, operatorKind, StringVarType);
-        if (leftType == NumberVarType) {
+        this.replaceWithVar(scope, node, operatorKind, StringType);
+        if (leftType == IntegerType) {
           this.numberPlusStr = true;
         } else {
           this.strPlusNumber = true;
@@ -302,14 +300,14 @@ class CUnaryExpression {
     let type = scope.root.typeHelper.inferNodeType(node.operand);
     operatorMap[ts.SyntaxKind.ExclamationToken] = "!";
     const typeHelper = scope.root.typeHelper;
-    if (typeHelper.isNumericType(type)) {
+    if (isNumericType(type)) {
       operatorMap[ts.SyntaxKind.PlusPlusToken] = "++";
       operatorMap[ts.SyntaxKind.MinusMinusToken] = "--";
       operatorMap[ts.SyntaxKind.MinusToken] = "-";
       operatorMap[ts.SyntaxKind.PlusToken] = "+";
       operatorMap[ts.SyntaxKind.TildeToken] = "~";
     }
-    if (type == StringVarType) {
+    if (type == StringType) {
       callReplaceMap[ts.SyntaxKind.PlusToken] = ["atoi", ""];
       if (callReplaceMap[node.operator]) scope.root.headerFlags.atoi = true;
     }

@@ -6,12 +6,12 @@ import { IScope } from "../../core/program";
 import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
-  TypeRegistry,
   ArrayType,
-  NumberVarType,
-  StringVarType,
-  TypeHelper
-} from "../../core/types";
+  IntegerType,
+  StringType
+} from "../../core/types/NativeTypes";
+import { TypeRegistry } from "../../core/types/TypeRegistry";
+import { TypeHelper } from "../../core/types/TypeHelper";
 
 @StandardCallResolver
 class ArrayForEachResolver implements IResolver {
@@ -72,7 +72,7 @@ class CArrayForEach {
       propAccess.expression
     ) as ArrayType;
 
-    this.iteratorVarName = scope.root.typeHelper.addNewIteratorVariable(
+    this.iteratorVarName = scope.root.temporaryVariables.addNewIteratorVariable(
       propAccess
     );
     this.staticArraySize = objType.isDynamicArray ? "" : objType.capacity + "";
@@ -90,7 +90,7 @@ class CArrayForEach {
     this.iteratorFnAccess = args[0];
 
     scope.variables.push(
-      new CVariable(scope, this.iteratorVarName, NumberVarType)
+      new CVariable(scope, this.iteratorVarName, IntegerType)
     );
   }
 }

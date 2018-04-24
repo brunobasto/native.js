@@ -5,7 +5,7 @@ import { HeaderRegistry } from "nativejs-compiler";
 import { IScope } from "nativejs-compiler";
 import { MillisHeaderType } from "../headers/millis";
 import { Plugin } from "nativejs-compiler";
-import { TypeRegistry, NumberVarType } from "nativejs-compiler";
+import { TypeRegistry, IntegerType } from "nativejs-compiler";
 
 @CodeTemplate(`millis()`)
 class MillisTemplate {
@@ -24,7 +24,7 @@ export class MillisPlugin implements Plugin {
   processTypes(node: ts.Node) {
     const call = <ts.CallExpression>node;
 
-    TypeRegistry.declareNodeType(call, NumberVarType);
+    TypeRegistry.declareNodeType(call, IntegerType);
   }
 
   matchesNode(node: ts.Node): boolean {
