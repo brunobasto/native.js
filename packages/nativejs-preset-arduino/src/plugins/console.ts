@@ -10,10 +10,10 @@ import { TypeRegistry, IntegerType } from "nativejs-compiler";
 import { ConsoleLogPlugin } from "nativejs-preset-standard/src/plugins/console";
 
 export class SerialConsoleLogPlugin extends ConsoleLogPlugin {
-  execute(scope: IScope, node: ts.Node, handler: Object): CExpression {
+  execute(scope: IScope, node: ts.Node): CExpression {
     HeaderRegistry.declareDependency(UARTHeaderType);
 
-    return super.execute(scope, node, handler);
+    return super.execute(scope, node);
   }
 
   processTypes(node: ts.Node) {

@@ -116,10 +116,10 @@ export class TypeVisitor {
 
   public ensureArrayStruct(elementType: NativeType) {
     let elementTypeText = this.getTypeString(elementType);
-    if (elementType instanceof ArrayType) {
-      elementTypeText =
-        this.getTypeString(<ArrayType>elementType.elementType) + " * ";
-    }
+    // if (elementType instanceof ArrayType) {
+    //   elementTypeText =
+    //     this.getTypeString(<ArrayType>elementType.elementType) + " * ";
+    // }
     const name = ArrayType.getArrayStructName(elementTypeText);
     const struct = new StructType(name, {
       size: IntegerType,

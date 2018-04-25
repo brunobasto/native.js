@@ -2,7 +2,7 @@ import "mocha";
 import { assertArrayResult } from "../../utils/assert";
 
 describe("Real World Application - Gray", () => {
-  it("should gray an image", done => {
+  xit("should gray an image", done => {
     const expression = `
     function gray(imageSrc) {
       let imageDst = {
