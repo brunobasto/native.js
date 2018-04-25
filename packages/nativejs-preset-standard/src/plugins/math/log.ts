@@ -1,8 +1,8 @@
 import {
-  CExpression,
   CodeTemplate,
   CodeTemplateFactory,
   HeaderRegistry,
+  INativeExpression,
   IScope,
   MathHeaderType,
   Plugin
@@ -27,7 +27,7 @@ class MathLogTemplate {
 }
 
 export class MathLogPlugin implements Plugin {
-  public execute(scope: IScope, node: ts.Node): CExpression {
+  public execute(scope: IScope, node: ts.Node): INativeExpression {
     const call = node as ts.CallExpression;
 
     return new MathLogTemplate(scope, call);

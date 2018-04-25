@@ -1,15 +1,15 @@
 import {
   BooleanHeaderType,
-  CExpression,
   CodeTemplate,
-  Header
+  Header,
+  INativeExpression
 } from "nativejs-compiler";
 
 export class StandardBooleanHeader implements Header {
   public getType() {
     return BooleanHeaderType;
   }
-  public getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     return new Template();
   }
 }

@@ -1,4 +1,7 @@
 import * as ts from "typescript";
+import { StringMatchResolver } from "../standard/string/match";
+import { StandardCallHelper } from "./resolver";
+import { TemporaryVariables } from "./temporary/TemporaryVariables";
 import {
   ArrayType,
   DictType,
@@ -6,15 +9,12 @@ import {
   StructType
 } from "./types/NativeTypes";
 import { TypeVisitor } from "./types/TypeVisitor";
-import { StandardCallHelper } from "./resolver";
-import { StringMatchResolver } from "../standard/string/match";
-import { TemporaryVariables } from "./temporary/TemporaryVariables";
 
 import debug from "debug";
 
 const log = debug("memory");
 
-type VariableScopeInfo = {
+interface VariableScopeInfo {
   node: ts.Node;
   simple: boolean;
   array: boolean;
@@ -23,7 +23,7 @@ type VariableScopeInfo = {
   varName: string;
   scopeId: string;
   used: boolean;
-};
+}
 
 export class MemoryManager {
   private scopes: { [scopeId: string]: VariableScopeInfo[] } = {};
@@ -38,9 +38,9 @@ export class MemoryManager {
   ) {}
 
   public preprocessVariables() {
-    for (let k in this.typeVisitor.variables) {
-      let v = this.typeVisitor.variables[k];
-      if (v.requiresAllocation) this.scheduleNodeDisposal(v.declaration, false);
+    for (const k in this.typeVisitor.variables) {
+      const v = this.typeVisitor.variables[k];
+      if (v.requiresAllocation) { this.scheduleNodeDisposal(v.declaration, false); }
     }
   }
 
@@ -48,54 +48,59 @@ export class MemoryManager {
     switch (node.kind) {
       case ts.SyntaxKind.ArrayLiteralExpression:
         {
-          if (node.parent.kind === ts.SyntaxKind.VariableDeclaration) break;
+          if (node.parent.kind === ts.SyntaxKind.VariableDeclaration) { break; }
 
           if (
             node.parent.kind === ts.SyntaxKind.BinaryExpression &&
             node.parent.parent.kind === ts.SyntaxKind.ExpressionStatement
           ) {
-            let binExpr = <ts.BinaryExpression>node.parent;
-            if (binExpr.left.kind === ts.SyntaxKind.Identifier) break;
+            const binExpr = node.parent as ts.BinaryExpression;
+            if (binExpr.left.kind === ts.SyntaxKind.Identifier) { break; }
           }
 
-          let type = this.typeVisitor.inferNodeType(node);
-          if (type && type instanceof ArrayType && type.isDynamicArray)
+          const type = this.typeVisitor.inferNodeType(node);
+          if (type && type instanceof ArrayType && type.isDynamicArray) {
             this.scheduleNodeDisposal(node, true);
+          }
         }
         break;
       case ts.SyntaxKind.ObjectLiteralExpression:
         {
-          if (node.parent.kind === ts.SyntaxKind.VariableDeclaration) break;
+          if (node.parent.kind === ts.SyntaxKind.VariableDeclaration) { break; }
 
           if (
             node.parent.kind === ts.SyntaxKind.BinaryExpression &&
             node.parent.parent.kind === ts.SyntaxKind.ExpressionStatement
           ) {
-            let binExpr = <ts.BinaryExpression>node.parent;
-            if (binExpr.left.kind === ts.SyntaxKind.Identifier) break;
+            const binExpr = node.parent as ts.BinaryExpression;
+            if (binExpr.left.kind === ts.SyntaxKind.Identifier) { break; }
           }
 
-          let type = this.typeVisitor.inferNodeType(node);
-          if (type && (type instanceof StructType || type instanceof DictType))
+          const type = this.typeVisitor.inferNodeType(node);
+          if (type && (type instanceof StructType || type instanceof DictType)) {
             this.scheduleNodeDisposal(node, true);
+          }
         }
         break;
       case ts.SyntaxKind.BinaryExpression:
         {
-          let binExpr = <ts.BinaryExpression>node;
+          const binExpr = node as ts.BinaryExpression;
           if (
             binExpr.operatorToken.kind === ts.SyntaxKind.PlusToken ||
             binExpr.operatorToken.kind === ts.SyntaxKind.FirstCompoundAssignment
           ) {
-            let leftType = this.typeVisitor.inferNodeType(binExpr.left);
-            let rightType = this.typeVisitor.inferNodeType(binExpr.right);
-            if (leftType === StringType || rightType === StringType)
+            const leftType = this.typeVisitor.inferNodeType(binExpr.left);
+            const rightType = this.typeVisitor.inferNodeType(binExpr.right);
+            if (leftType === StringType || rightType === StringType) {
               this.scheduleNodeDisposal(binExpr, true);
+            }
 
-            if (binExpr.left.kind === ts.SyntaxKind.BinaryExpression)
+            if (binExpr.left.kind === ts.SyntaxKind.BinaryExpression) {
               this.preprocessTemporaryVariables(binExpr.left);
-            if (binExpr.right.kind === ts.SyntaxKind.BinaryExpression)
+            }
+            if (binExpr.right.kind === ts.SyntaxKind.BinaryExpression) {
               this.preprocessTemporaryVariables(binExpr.right);
+            }
 
             return;
           }
@@ -106,11 +111,11 @@ export class MemoryManager {
           if (
             StandardCallHelper.needsDisposal(
               this.typeVisitor,
-              <ts.CallExpression>node
+              node as ts.CallExpression
             )
           ) {
-            let nodeToDispose = this.tryReuseExistingVariable(node) || node;
-            let isTempVar = nodeToDispose === node;
+            const nodeToDispose = this.tryReuseExistingVariable(node) || node;
+            const isTempVar = nodeToDispose === node;
             if (!isTempVar) {
               this.reusedVariables[node.pos + "_" + node.end] =
                 nodeToDispose.pos + "_" + nodeToDispose.end;
@@ -127,13 +132,13 @@ export class MemoryManager {
   }
 
   public getGCVariablesForScope(node: ts.Node) {
-    let parentDecl = this.findParentFunctionNode(node);
-    let scopeId: string = (parentDecl && parentDecl.pos + 1 + "") || "main";
-    let realScopeId =
+    const parentDecl = this.findParentFunctionNode(node);
+    const scopeId: string = (parentDecl && parentDecl.pos + 1 + "") || "main";
+    const realScopeId =
       this.scopes[scopeId] &&
       this.scopes[scopeId].length &&
       this.scopes[scopeId][0].scopeId;
-    let gcVars = [];
+    const gcVars = [];
     if (
       this.scopes[scopeId] &&
       this.scopes[scopeId].filter(
@@ -164,36 +169,36 @@ export class MemoryManager {
   }
 
   public getGCVariableForNode(node: ts.Node) {
-    let parentDecl = this.findParentFunctionNode(node);
+    const parentDecl = this.findParentFunctionNode(node);
     let key = node.pos + "_" + node.end;
-    if (this.reusedVariables[key]) key = this.reusedVariables[key];
+    if (this.reusedVariables[key]) { key = this.reusedVariables[key]; }
 
     if (this.scopesOfVariables[key] && !this.scopesOfVariables[key].simple) {
-      if (this.scopesOfVariables[key].array)
+      if (this.scopesOfVariables[key].array) {
         return "gc_" + this.scopesOfVariables[key].scopeId + "_arrays";
-      else if (this.scopesOfVariables[key].arrayWithContents)
+      } else if (this.scopesOfVariables[key].arrayWithContents) {
         return "gc_" + this.scopesOfVariables[key].scopeId + "_arrays_c";
-      else if (this.scopesOfVariables[key].dict)
+           } else if (this.scopesOfVariables[key].dict) {
         return "gc_" + this.scopesOfVariables[key].scopeId + "_dicts";
-      else return "gc_" + this.scopesOfVariables[key].scopeId;
-    } else return null;
+           } else { return "gc_" + this.scopesOfVariables[key].scopeId; }
+    } else { return null; }
   }
 
   public getDestructorsForScope(node: ts.Node) {
-    let parentDecl = this.findParentFunctionNode(node);
-    let scopeId = (parentDecl && parentDecl.pos + 1) || "main";
-    let destructors: {
+    const parentDecl = this.findParentFunctionNode(node);
+    const scopeId = (parentDecl && parentDecl.pos + 1) || "main";
+    const destructors: Array<{
       varName: string;
       array: boolean;
       dict: boolean;
       string: boolean;
       arrayWithContents: boolean;
-    }[] = [];
+    }> = [];
     if (this.scopes[scopeId]) {
       // string match allocates array of strings, and each of those strings should be also disposed
-      for (let simpleVarScopeInfo of this.scopes[scopeId].filter(
+      for (const simpleVarScopeInfo of this.scopes[scopeId].filter(
         v => v.simple && v.used
-      ))
+      )) {
         destructors.push({
           varName: simpleVarScopeInfo.varName,
           array: simpleVarScopeInfo.array,
@@ -203,62 +208,65 @@ export class MemoryManager {
             StringType,
           arrayWithContents: simpleVarScopeInfo.arrayWithContents
         });
+      }
     }
     return destructors;
   }
 
   public variableWasReused(node: ts.Node) {
-    let key = node.pos + "_" + node.end;
+    const key = node.pos + "_" + node.end;
     return !!this.reusedVariables[key];
   }
 
   /** Variables that need to be disposed are tracked by memory manager */
   public getReservedTemporaryVarName(node: ts.Node) {
     let key = node.pos + "_" + node.end;
-    if (this.reusedVariables[key]) key = this.reusedVariables[key];
-    let scopeOfVar = this.scopesOfVariables[key];
+    if (this.reusedVariables[key]) { key = this.reusedVariables[key]; }
+    const scopeOfVar = this.scopesOfVariables[key];
     if (scopeOfVar) {
       scopeOfVar.used = true;
       return scopeOfVar.varName;
-    } else return null;
+    } else { return null; }
   }
 
   /** Sometimes we can reuse existing variable instead of creating a temporary one. */
   public tryReuseExistingVariable(node: ts.Node) {
     if (node.parent.kind === ts.SyntaxKind.BinaryExpression) {
-      let assignment = <ts.BinaryExpression>node.parent;
-      if (assignment.left.kind === ts.SyntaxKind.Identifier)
+      const assignment = node.parent as ts.BinaryExpression;
+      if (assignment.left.kind === ts.SyntaxKind.Identifier) {
         return assignment.left;
+      }
     }
     if (node.parent.kind === ts.SyntaxKind.VariableDeclaration) {
-      let assignment = <ts.VariableDeclaration>node.parent;
-      if (assignment.name.kind === ts.SyntaxKind.Identifier)
+      const assignment = node.parent as ts.VariableDeclaration;
+      if (assignment.name.kind === ts.SyntaxKind.Identifier) {
         return assignment.name;
+      }
     }
     return null;
   }
 
   private scheduleNodeDisposal(heapNode: ts.Node, isTemp: boolean) {
-    let varFuncNode = this.findParentFunctionNode(heapNode);
+    const varFuncNode = this.findParentFunctionNode(heapNode);
     let topScope: number | "main" =
       (varFuncNode && varFuncNode.pos + 1) || "main";
     let isSimple = true;
-    if (this.isInsideLoop(heapNode)) isSimple = false;
+    if (this.isInsideLoop(heapNode)) { isSimple = false; }
 
-    let scopeTree = {};
+    const scopeTree = {};
     scopeTree[topScope] = true;
 
-    let queue = [heapNode];
+    const queue = [heapNode];
     queue.push();
-    let visited = {};
+    const visited = {};
     while (queue.length > 0) {
-      let node = queue.shift();
-      if (visited[node.pos + "_" + node.end]) continue;
+      const node = queue.shift();
+      if (visited[node.pos + "_" + node.end]) { continue; }
 
       let refs = [node];
       if (node.kind === ts.SyntaxKind.Identifier) {
-        let varIdent = <ts.Identifier>node;
-        let nodeVarInfo = this.typeVisitor.getVariableInfo(varIdent);
+        const varIdent = node as ts.Identifier;
+        const nodeVarInfo = this.typeVisitor.getVariableInfo(varIdent);
         if (!nodeVarInfo) {
           log("WARNING: Cannot find references for " + node.getText());
           continue;
@@ -266,18 +274,19 @@ export class MemoryManager {
         refs = this.typeVisitor.getVariableInfo(varIdent).references;
       }
       let returned = false;
-      for (let ref of refs) {
+      for (const ref of refs) {
         visited[ref.pos + "_" + ref.end] = true;
-        let parentNode = this.findParentFunctionNode(ref);
-        if (!parentNode) topScope = "main";
+        const parentNode = this.findParentFunctionNode(ref);
+        if (!parentNode) { topScope = "main"; }
 
         if (ref.kind === ts.SyntaxKind.PropertyAccessExpression) {
-          let elemAccess = <ts.PropertyAccessExpression>ref;
+          let elemAccess = ref as ts.PropertyAccessExpression;
           while (
             elemAccess.expression.kind ===
             ts.SyntaxKind.PropertyAccessExpression
-          )
-            elemAccess = <ts.PropertyAccessExpression>elemAccess.expression;
+          ) {
+            elemAccess = elemAccess.expression as ts.PropertyAccessExpression;
+          }
           if (elemAccess.expression.kind === ts.SyntaxKind.Identifier) {
             log(
               heapNode.getText() +
@@ -290,7 +299,7 @@ export class MemoryManager {
         }
 
         if (ref.parent && ref.parent.kind === ts.SyntaxKind.BinaryExpression) {
-          let binaryExpr = <ts.BinaryExpression>ref.parent;
+          const binaryExpr = ref.parent as ts.BinaryExpression;
           if (
             binaryExpr.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
             binaryExpr.left.getText() === heapNode.getText()
@@ -331,30 +340,30 @@ export class MemoryManager {
         }
 
         if (ref.parent && ref.parent.kind === ts.SyntaxKind.CallExpression) {
-          let call = <ts.CallExpression>ref.parent;
+          const call = ref.parent as ts.CallExpression;
           if (
             call.expression.kind === ts.SyntaxKind.Identifier &&
             call.expression.pos === ref.pos
           ) {
             log(heapNode.getText() + " -> Found function call!");
             if (topScope !== "main") {
-              let funcNode = this.findParentFunctionNode(call);
+              const funcNode = this.findParentFunctionNode(call);
               topScope = (funcNode && funcNode.pos + 1) || "main";
-              let targetScope = node.parent.pos + 1 + "";
+              const targetScope = node.parent.pos + 1 + "";
               isSimple = false;
-              if (scopeTree[targetScope]) delete scopeTree[targetScope];
+              if (scopeTree[targetScope]) { delete scopeTree[targetScope]; }
               scopeTree[topScope] = targetScope;
             }
             this.addIfFoundInAssignment(heapNode, call, queue);
           } else {
-            let symbol = this.typeChecker.getSymbolAtLocation(call.expression);
+            const symbol = this.typeChecker.getSymbolAtLocation(call.expression);
             if (!symbol) {
-              let isStandardCall =
+              const isStandardCall =
                 StandardCallHelper.isStandardCall(this.typeVisitor, call) ||
                 call.expression.getText() === "log";
 
               if (isStandardCall) {
-                let standardCallEscapeNode = StandardCallHelper.getEscapeNode(
+                const standardCallEscapeNode = StandardCallHelper.getEscapeNode(
                   this.typeVisitor,
                   call
                 );
@@ -380,7 +389,7 @@ export class MemoryManager {
                 isSimple = false;
               }
             } else {
-              let funcDecl = <ts.FunctionDeclaration>symbol.valueDeclaration;
+              const funcDecl = symbol.valueDeclaration as ts.FunctionDeclaration;
               for (let i = 0; i < call.arguments.length; i++) {
                 if (
                   call.arguments[i].pos <= ref.pos &&
@@ -401,7 +410,7 @@ export class MemoryManager {
                         " as parameter " +
                         funcDecl.parameters[i].name.getText()
                     );
-                    queue.push(<ts.Identifier>funcDecl.parameters[i].name);
+                    queue.push(funcDecl.parameters[i].name as ts.Identifier);
                   }
                   isSimple = false;
                 }
@@ -420,65 +429,66 @@ export class MemoryManager {
               " -> Found variable returned from the function!"
           );
           isSimple = false;
-        } else this.addIfFoundInAssignment(heapNode, ref, queue);
+        } else { this.addIfFoundInAssignment(heapNode, ref, queue); }
       }
     }
 
-    let type = this.typeVisitor.inferNodeType(heapNode);
+    const type = this.typeVisitor.inferNodeType(heapNode);
     let varName: string;
-    if (heapNode.kind === ts.SyntaxKind.ArrayLiteralExpression)
+    if (heapNode.kind === ts.SyntaxKind.ArrayLiteralExpression) {
       varName = this.temporaryVariables.addNewTemporaryVariable(
         heapNode,
         "tmp_array"
       );
-    else if (heapNode.kind === ts.SyntaxKind.ObjectLiteralExpression)
+    } else if (heapNode.kind === ts.SyntaxKind.ObjectLiteralExpression) {
       varName = this.temporaryVariables.addNewTemporaryVariable(
         heapNode,
         "tmp_obj"
       );
-    else if (heapNode.kind === ts.SyntaxKind.BinaryExpression)
+         } else if (heapNode.kind === ts.SyntaxKind.BinaryExpression) {
       varName = this.temporaryVariables.addNewTemporaryVariable(
         heapNode,
         "tmp_string"
       );
-    else if (heapNode.kind === ts.SyntaxKind.CallExpression)
+         } else if (heapNode.kind === ts.SyntaxKind.CallExpression) {
       varName = this.temporaryVariables.addNewTemporaryVariable(
         heapNode,
         StandardCallHelper.getTempVarName(this.typeVisitor, heapNode)
       );
-    else varName = heapNode.getText().replace(/\./g, "->");
+         } else { varName = heapNode.getText().replace(/\./g, "->"); }
 
     let vnode = heapNode;
-    let key = vnode.pos + "_" + vnode.end;
+    const key = vnode.pos + "_" + vnode.end;
     let arrayWithContents = false;
-    if (this.originalNodes[key]) vnode = this.originalNodes[key];
+    if (this.originalNodes[key]) { vnode = this.originalNodes[key]; }
     if (
       vnode.kind === ts.SyntaxKind.CallExpression &&
       new StringMatchResolver().matchesNode(
         this.typeVisitor,
-        <ts.CallExpression>vnode
+        vnode as ts.CallExpression
       )
-    )
+    ) {
       arrayWithContents = true;
+    }
 
-    let foundScopes = topScope === "main" ? [topScope] : Object.keys(scopeTree);
-    let scopeInfo = {
+    const foundScopes = topScope === "main" ? [topScope] : Object.keys(scopeTree);
+    const scopeInfo = {
       node: heapNode,
       simple: isSimple,
-      arrayWithContents: arrayWithContents,
+      arrayWithContents,
       array:
         !arrayWithContents &&
         type &&
         type instanceof ArrayType &&
         type.isDynamicArray,
       dict: type && type instanceof DictType,
-      varName: varName,
+      varName,
       scopeId: foundScopes.join("_"),
       used: !isTemp
     };
     this.scopesOfVariables[heapNode.pos + "_" + heapNode.end] = scopeInfo;
 
-    for (let sc of foundScopes) {
+    for (const sc of foundScopes) {
       this.scopes[sc] = this.scopes[sc] || [];
       this.scopes[sc].push(scopeInfo);
     }
@@ -490,7 +500,7 @@ export class MemoryManager {
     queue: ts.Node[]
   ): boolean {
     if (ref.parent && ref.parent.kind === ts.SyntaxKind.VariableDeclaration) {
-      let varDecl = <ts.VariableDeclaration>ref.parent;
+      const varDecl = ref.parent as ts.VariableDeclaration;
       if (varDecl.initializer && varDecl.initializer.pos === ref.pos) {
         queue.push(varDecl.name);
         log(
@@ -504,7 +514,7 @@ export class MemoryManager {
       ref.parent &&
       ref.parent.kind === ts.SyntaxKind.BinaryExpression
     ) {
-      let binaryExpr = <ts.BinaryExpression>ref.parent;
+      const binaryExpr = ref.parent as ts.BinaryExpression;
       if (
         binaryExpr.operatorToken.kind === ts.SyntaxKind.FirstAssignment &&
         binaryExpr.right.pos === ref.pos
@@ -527,7 +537,7 @@ export class MemoryManager {
     while (parent && parent.kind != ts.SyntaxKind.FunctionDeclaration) {
       parent = parent.parent;
     }
-    return <ts.FunctionDeclaration>parent;
+    return parent as ts.FunctionDeclaration;
   }
 
   private isInsideLoop(node: ts.Node) {
@@ -546,6 +556,6 @@ export class MemoryManager {
   }
 
   private getSymbolId(node: ts.Node) {
-    return this.typeChecker.getSymbolAtLocation(node)["id"];
+    return this.typeChecker.getSymbolAtLocation(node).id;
   }
 }

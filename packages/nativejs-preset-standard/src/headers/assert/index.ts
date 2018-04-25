@@ -1,8 +1,8 @@
 import {
   AssertHeaderType,
-  CExpression,
   CodeTemplate,
   Header,
+  INativeExpression,
   IScope
 } from "nativejs-compiler";
 
@@ -10,7 +10,7 @@ export class StandardAssertHeader implements Header {
   public getType() {
     return AssertHeaderType;
   }
-  public getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     return new Template();
   }
 }

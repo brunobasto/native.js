@@ -1,7 +1,7 @@
 import {
-  CExpression,
   CodeTemplate,
   Header,
+  INativeExpression,
   IScope,
   StringHeaderType
 } from "nativejs-compiler";
@@ -10,7 +10,7 @@ export class StandardStringHeader implements Header {
   public getType() {
     return StringHeaderType;
   }
-  public getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     return new Template();
   }
 }

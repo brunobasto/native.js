@@ -1,8 +1,5 @@
 import * as ts from "typescript";
 import { ArrayCreateHeaderType, HeaderRegistry } from "../../core/header";
-import { CElementAccess } from "../../nodes/elementaccess";
-import { CExpression } from "../../nodes/expressions";
-import { CVariable } from "../../nodes/variable";
 import { IScope } from "../../core/program";
 import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
@@ -12,11 +9,14 @@ import {
   StringType
 } from "../../core/types/NativeTypes";
 import { TypeVisitor } from "../../core/types/TypeVisitor";
+import { CElementAccess } from "../../nodes/elementaccess";
+import { INativeExpression } from "../../nodes/expressions";
+import { CVariable } from "../../nodes/variable";
 
 @StandardCallResolver
 class ArraySliceResolver implements IResolver {
   public matchesNode(typeVisitor: TypeVisitor, call: ts.CallExpression) {
-    if (call.expression.kind != ts.SyntaxKind.PropertyAccessExpression) {
+    if (call.expression.kind !== ts.SyntaxKind.PropertyAccessExpression) {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
@@ -37,7 +37,7 @@ class ArraySliceResolver implements IResolver {
   public needsDisposal(typeVisitor: TypeVisitor, node: ts.CallExpression) {
     // if parent is expression statement, then this is the top expression
     // and thus return value is not used, so the temporary variable will not be created
-    return node.parent.kind != ts.SyntaxKind.ExpressionStatement;
+    return node.parent.kind !== ts.SyntaxKind.ExpressionStatement;
   }
   public getTempVarName(typeVisitor: TypeVisitor, node: ts.CallExpression) {
     return "tmp_slice";
@@ -77,8 +77,8 @@ class CArraySlice {
   public startVarName: string = "";
   public endVarName: string = "";
   public varAccess: CElementAccess;
-  public startIndexArg: CExpression;
-  public endIndexArg: CExpression;
+  public startIndexArg: INativeExpression;
+  public endIndexArg: INativeExpression;
   constructor(scope: IScope, call: ts.CallExpression) {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     this.varAccess = new CElementAccess(scope, propAccess.expression);

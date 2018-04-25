@@ -1,9 +1,9 @@
 import {
   ArrayTypeHeaderType,
-  CExpression,
   CodeTemplate,
   Header,
   HeaderRegistry,
+  INativeExpression,
   Int16HeaderType
 } from "nativejs-compiler";
 
@@ -12,7 +12,7 @@ export class StandardArrayTypeHeader implements Header {
     return ArrayTypeHeaderType;
   }
 
-  public getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     HeaderRegistry.declareDependency(Int16HeaderType);
 
     return new Template();

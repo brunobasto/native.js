@@ -1,8 +1,8 @@
 import * as ts from "typescript";
+import { IScope } from "../core/program";
+import { CodeTemplate } from "../core/template";
 import { CElementAccess, CSimpleElementAccess } from "../nodes/elementaccess";
 import { CVariable, CVariableDestructors } from "../nodes/variable";
-import { CodeTemplate } from "../core/template";
-import { IScope } from "../core/program";
 import { ScopeUtil } from "./scope/ScopeUtil";
 import {
   ArrayType,
@@ -20,11 +20,11 @@ import debug from "debug";
 const log = debug("gc");
 
 class TemporaryVariable {
-  escapeNode: ts.Node;
-  name: string;
-  scopeNode: ts.Node;
-  type: string;
-  disposeLater: boolean;
+  public escapeNode: ts.Node;
+  public name: string;
+  public scopeNode: ts.Node;
+  public type: string;
+  public disposeLater: boolean;
 
   constructor(scopeNode: ts.Node, name: string, type: string) {
     this.disposeLater = false;
@@ -34,11 +34,11 @@ class TemporaryVariable {
     this.type = type;
   }
 
-  setDisposeLater(disposeLater: boolean) {
+  public setDisposeLater(disposeLater: boolean) {
     this.disposeLater = disposeLater;
   }
 
-  escapeTo(node: ts.Node) {
+  public escapeTo(node: ts.Node) {
     this.escapeNode = node;
   }
 }
@@ -48,7 +48,7 @@ class TemporaryVariable {
 // Destroy {name} here
 {/statements}`)
 export class TemporaryVariableDestructor {
-  name: string;
+  public name: string;
   constructor(scope: IScope, name: string) {
     this.name = name;
   }
@@ -63,7 +63,7 @@ export class GarbageCollector {
     this.typeChecker = typeChecker;
   }
 
-  createTemporaryVariable(node: ts.Node, type: string): string {
+  public createTemporaryVariable(node: ts.Node, type: string): string {
     if (this.temporaryVariables.has(node)) {
       return this.getTemporaryVariable(node).name;
     }
@@ -74,7 +74,7 @@ export class GarbageCollector {
     return name;
   }
 
-  addScopeTemporaries(scope: IScope, node: ts.Node) {
+  public addScopeTemporaries(scope: IScope, node: ts.Node) {
     const temporaryVariableDestructors = this.getTemporaryVariableDestructors(
       scope,
       node
@@ -87,28 +87,28 @@ export class GarbageCollector {
     scope.variables = temporaryVariableDeclarators.concat(scope.variables);
   }
 
-  getUniqueName(): string {
+  public getUniqueName(): string {
     return `temporary${this.uniqueCounter++}`;
   }
 
-  getTemporaryVariable(node: ts.Node): TemporaryVariable {
+  public getTemporaryVariable(node: ts.Node): TemporaryVariable {
     return this.temporaryVariables.get(node);
   }
 
-  getDeclaredScope(identifier: ts.Identifier) {
-    let symbol: ts.Symbol = this.typeChecker.getSymbolAtLocation(identifier);
-    for (let declaration of symbol.declarations) {
+  public getDeclaredScope(identifier: ts.Identifier) {
+    const symbol: ts.Symbol = this.typeChecker.getSymbolAtLocation(identifier);
+    for (const declaration of symbol.declarations) {
       return ScopeUtil.getScopeNode(declaration);
     }
   }
 
-  resolveToTemporaryVariable(node: ts.Node) {
+  public resolveToTemporaryVariable(node: ts.Node) {
     if (this.temporaryVariables.has(node)) {
       return this.getTemporaryVariable(node);
     }
-    let symbol: ts.Symbol = this.typeChecker.getSymbolAtLocation(node);
+    const symbol: ts.Symbol = this.typeChecker.getSymbolAtLocation(node);
     if (symbol) {
-      for (let declaration of symbol.declarations) {
+      for (const declaration of symbol.declarations) {
         const temporaryVariable = this.resolveToTemporaryVariable(declaration);
         if (temporaryVariable) {
           return temporaryVariable;
@@ -118,11 +118,11 @@ export class GarbageCollector {
     return null;
   }
 
-  trackAssignmentToDict(scope: IScope, left: ts.Node, right: ts.Node) {
+  public trackAssignmentToDict(scope: IScope, left: ts.Node, right: ts.Node) {
     log("trackAssignmentToDict", left.getText(), right.getText());
-    const elementAccess = <ts.ElementAccessExpression>left;
+    const elementAccess = left as ts.ElementAccessExpression;
 
-    const argument = <ts.Expression>elementAccess.argumentExpression;
+    const argument = elementAccess.argumentExpression as ts.Expression;
     if (
       // if either the key of the map
       (argument && this.resolveToTemporaryVariable(argument)) ||
@@ -134,7 +134,7 @@ export class GarbageCollector {
       // if so, we should say that that temporary variable escapes the scope of this assignment
       if (elementAccess.expression.kind === ts.SyntaxKind.Identifier) {
         const declaredScope = this.getDeclaredScope(
-          <ts.Identifier>elementAccess.expression
+          elementAccess.expression as ts.Identifier
         );
 
         const argumentTempVar = this.resolveToTemporaryVariable(argument);
@@ -166,9 +166,9 @@ export class GarbageCollector {
     }
   }
 
-  trackAssignmentToTemporaryVariable(left: ts.Node, right: ts.Node) {
+  public trackAssignmentToTemporaryVariable(left: ts.Node, right: ts.Node) {
     log("trackAssignmentToTemporaryVariable", left.getText(), right.getText());
-    const declaredScope = this.getDeclaredScope(<ts.Identifier>right);
+    const declaredScope = this.getDeclaredScope(right as ts.Identifier);
     const temporaryVariable = this.resolveToTemporaryVariable(right);
     if (
       temporaryVariable &&
@@ -178,14 +178,14 @@ export class GarbageCollector {
     }
   }
 
-  trackAssignmentToVariable(left: ts.Node, right: ts.Node) {
+  public trackAssignmentToVariable(left: ts.Node, right: ts.Node) {
     log("trackAssignmentToVariable", left.getText(), right.getText());
     if (this.resolveToTemporaryVariable(right)) {
       this.temporaryVariables.set(left, this.getTemporaryVariable(right));
     }
   }
 
-  getTemporaryVariableDeclarators(scope: IScope, node: ts.Node) {
+  public getTemporaryVariableDeclarators(scope: IScope, node: ts.Node) {
     const variables = Array.from(this.temporaryVariables.values()).filter(
       (variable, index, list) => {
         return list.indexOf(variable) === index;
@@ -212,7 +212,7 @@ export class GarbageCollector {
     return simpleInitializers;
   }
 
-  getTemporaryVariableDestructors(scope: IScope, node: ts.Node): any[] {
+  public getTemporaryVariableDestructors(scope: IScope, node: ts.Node): any[] {
     const variables = Array.from(this.temporaryVariables.values()).filter(
       (variable, index, list) => {
         return list.indexOf(variable) === index;

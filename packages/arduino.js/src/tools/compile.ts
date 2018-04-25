@@ -1,11 +1,11 @@
+import { exec } from "child_process";
+import debug from "debug";
 import * as fs from "fs";
 import * as request from "request";
-import debug from "debug";
-import { exec } from "child_process";
 
 const log = debug("cloud-gcc");
 
-const endpoint = process.env["DEBUG"]
+const endpoint = process.env.DEBUG
   ? "http://localhost:3000/"
   : "https://gcc-avr.wedeploy.io/";
 

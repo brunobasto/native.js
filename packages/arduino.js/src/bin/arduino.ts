@@ -5,8 +5,8 @@ import * as path from "path";
 const Serialport = require("serialport");
 const os = require("os");
 
-import { transpile } from "../tools/transpile";
 import { compile } from "../tools/compile";
+import { transpile } from "../tools/transpile";
 const { tmpNameSync } = require("tmp");
 
 import * as Avrgirl from "avrgirl-arduino";
@@ -45,7 +45,7 @@ if (yargs.argv._.length === 0) {
 
 const logPrefix = "[arduino.js]";
 
-let fileName = yargs.argv._[0];
+const fileName = yargs.argv._[0];
 const source = fs.readFileSync(fileName);
 
 const tailConnection = (connection, baudRate) => {
@@ -88,16 +88,16 @@ const displayLoading = text => {
 
 transpile(source, cSource => {
   let cFileName = tmpNameSync({ tempFileTemplate });
-  if (yargs.argv["output"]) {
-    cFileName = yargs.argv["output"];
+  if (yargs.argv.output) {
+    cFileName = yargs.argv.output;
   }
   fs.writeFileSync(path.resolve(process.cwd(), cFileName), cSource);
   console.log(logPrefix, `${fileName} -> ${cFileName}`);
-  if (yargs.argv["flash"]) {
+  if (yargs.argv.flash) {
     const compiling = displayLoading(logPrefix + " Compiling");
     let boardName = "uno";
-    if (yargs.argv["board"]) {
-      boardName = yargs.argv["board"];
+    if (yargs.argv.board) {
+      boardName = yargs.argv.board;
     }
 
     let board = boards[boardName];
@@ -121,9 +121,9 @@ transpile(source, cSource => {
     };
 
     const compileOptions = {
-      BAUD: yargs.argv["baud"] || avrgirl.connection.board.baud,
-      MCU: yargs.argv["mcu"] || "atmega168",
-      F_CPU: yargs.argv["f_cpu"] || 16000000
+      BAUD: yargs.argv.baud || avrgirl.connection.board.baud,
+      MCU: yargs.argv.mcu || "atmega168",
+      F_CPU: yargs.argv.f_cpu || 16000000
     };
 
     compile(cFileName, compileOptions, hex => {
@@ -141,7 +141,7 @@ transpile(source, cSource => {
           console.log(logPrefix, error.message);
         } else {
           console.log(logPrefix, "Done flashing");
-          if (yargs.argv["tail"]) {
+          if (yargs.argv.tail) {
             tailConnection(response.connection, compileOptions.BAUD);
           }
         }

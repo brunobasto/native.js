@@ -1,23 +1,23 @@
 import * as ts from "typescript";
 import { ArrayPushHeaderType, HeaderRegistry } from "../../core/header";
-import { CElementAccess } from "../../nodes/elementaccess";
-import { CExpression } from "../../nodes/expressions";
-import { CVariable } from "../../nodes/variable";
 import { IScope } from "../../core/program";
 import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
-  NativeType,
   ArrayType,
   IntegerType,
+  NativeType,
   StringType
 } from "../../core/types/NativeTypes";
 import { TypeVisitor } from "../../core/types/TypeVisitor";
+import { CElementAccess } from "../../nodes/elementaccess";
+import { INativeExpression } from "../../nodes/expressions";
+import { CVariable } from "../../nodes/variable";
 
 @StandardCallResolver
 class ArrayPushResolver implements IResolver {
   public matchesNode(typeVisitor: TypeVisitor, call: ts.CallExpression) {
-    if (call.expression.kind != ts.SyntaxKind.PropertyAccessExpression) {
+    if (call.expression.kind !== ts.SyntaxKind.PropertyAccessExpression) {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
@@ -100,12 +100,12 @@ class CArrayPush {
 
 `)
 class CPushValue {
-  isString: boolean = false;
-  tempStringName: string;
+  public isString: boolean = false;
+  public tempStringName: string;
   constructor(
     scope: IScope,
     public varAccess: CElementAccess,
-    public value: CExpression,
+    public value: INativeExpression,
     public type: NativeType
   ) {
     if (type === StringType) {

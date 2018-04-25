@@ -1,7 +1,7 @@
 import {
-  CExpression,
   CodeTemplate,
   Header,
+  INativeExpression,
   MathHeaderType
 } from "nativejs-compiler";
 
@@ -9,7 +9,7 @@ export class StandardMathHeader implements Header {
   public getType() {
     return MathHeaderType;
   }
-  public getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     return new Template();
   }
 }

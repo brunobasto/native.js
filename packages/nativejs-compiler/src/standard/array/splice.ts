@@ -5,9 +5,6 @@ import {
   ArrayRemoveHeaderType,
   HeaderRegistry
 } from "../../core/header";
-import { CElementAccess } from "../../nodes/elementaccess";
-import { CExpression } from "../../nodes/expressions";
-import { CVariable } from "../../nodes/variable";
 import { IScope } from "../../core/program";
 import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
@@ -17,11 +14,14 @@ import {
   StringType
 } from "../../core/types/NativeTypes";
 import { TypeVisitor } from "../../core/types/TypeVisitor";
+import { CElementAccess } from "../../nodes/elementaccess";
+import { INativeExpression } from "../../nodes/expressions";
+import { CVariable } from "../../nodes/variable";
 
 @StandardCallResolver
 class ArraySpliceResolver implements IResolver {
   public matchesNode(typeVisitor: TypeVisitor, call: ts.CallExpression) {
-    if (call.expression.kind != ts.SyntaxKind.PropertyAccessExpression) {
+    if (call.expression.kind !== ts.SyntaxKind.PropertyAccessExpression) {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
@@ -42,7 +42,7 @@ class ArraySpliceResolver implements IResolver {
   public needsDisposal(typeVisitor: TypeVisitor, node: ts.CallExpression) {
     // if parent is expression statement, then this is the top expression
     // and thus return value is not used, so the temporary variable will not be created
-    return node.parent.kind != ts.SyntaxKind.ExpressionStatement;
+    return node.parent.kind !== ts.SyntaxKind.ExpressionStatement;
   }
   public getTempVarName(typeVisitor: TypeVisitor, node: ts.CallExpression) {
     return "tmp_removed_values";
@@ -51,7 +51,7 @@ class ArraySpliceResolver implements IResolver {
     return (node.expression as ts.PropertyAccessExpression).expression;
   }
 }
-
+/* tslint:disable:max-line-length */
 @CodeTemplate(`
 {#statements}
     {#if !topExpressionOfStatement}
@@ -70,13 +70,14 @@ class ArraySpliceResolver implements IResolver {
 {#else}
     {tempVarName}
 {/if}`)
+/* tslint:enable:max-line-length */
 class CArraySplice {
   public topExpressionOfStatement: boolean;
   public tempVarName: string = "";
   public iteratorVarName: string;
   public varAccess: CElementAccess = null;
-  public startPosArg: CExpression;
-  public deleteCountArg: CExpression;
+  public startPosArg: INativeExpression;
+  public deleteCountArg: INativeExpression;
   public insertValues: CInsertValue[] = [];
   public needsRemove: boolean = false;
   constructor(scope: IScope, call: ts.CallExpression) {
@@ -114,7 +115,7 @@ class CArraySplice {
       HeaderRegistry.declareDependency(ArrayInsertHeaderType);
     }
     if (call.arguments[1].kind === ts.SyntaxKind.NumericLiteral) {
-      this.needsRemove = call.arguments[1].getText() != "0";
+      this.needsRemove = call.arguments[1].getText() !== "0";
     }
     HeaderRegistry.declareDependency(ArrayRemoveHeaderType);
   }
@@ -125,7 +126,7 @@ class CInsertValue {
   constructor(
     scope: IScope,
     public varAccess: CElementAccess,
-    public startIndex: CExpression,
-    public value: CExpression
+    public startIndex: INativeExpression,
+    public value: INativeExpression
   ) {}
 }

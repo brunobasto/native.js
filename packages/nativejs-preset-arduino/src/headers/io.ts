@@ -1,18 +1,18 @@
-import { CExpression } from "nativejs-compiler";
+import { INativeExpression } from "nativejs-compiler";
 import { CodeTemplate } from "nativejs-compiler";
 import { Header, HeaderType } from "nativejs-compiler";
 
 export class IOHeaderType implements HeaderType {
-  NAME: string = "IOHeaderType";
-  UNIQUE: boolean = true;
+  public NAME: string = "IOHeaderType";
+  public UNIQUE: boolean = true;
 }
 
 export class IOHeader implements Header {
-  getType() {
+  public getType() {
     return IOHeaderType;
   }
 
-  getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     return new Template();
   }
 }

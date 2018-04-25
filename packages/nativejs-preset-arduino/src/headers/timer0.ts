@@ -1,20 +1,24 @@
-import { CExpression } from "nativejs-compiler";
-import { CodeTemplate } from "nativejs-compiler";
-import { Header, HeaderType, HeaderRegistry } from "nativejs-compiler";
-import { IOHeaderType } from "./io";
+import {
+  CodeTemplate,
+  Header,
+  HeaderRegistry,
+  HeaderType,
+  INativeExpression
+} from "nativejs-compiler";
 import { InterruptHeaderType } from "./interrupt";
+import { IOHeaderType } from "./io";
 
 export class Timer0HeaderType implements HeaderType {
-  NAME: string = "Timer0HeaderType";
-  UNIQUE: boolean = true;
+  public NAME: string = "Timer0HeaderType";
+  public UNIQUE: boolean = true;
 }
 
 export class Timer0Header implements Header {
-  getType() {
+  public getType() {
     return Timer0HeaderType;
   }
 
-  getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     HeaderRegistry.declareDependency(InterruptHeaderType);
     HeaderRegistry.declareDependency(IOHeaderType);
 
@@ -22,6 +26,7 @@ export class Timer0Header implements Header {
   }
 }
 
+/* tslint:disable:max-line-length */
 @CodeTemplate(`
 void timer0_init(int16_t value) {
   TIMSK0 = _BV(OCIE0A);  // Enable Interrupt TimerCounter0 Compare Match A (SIG_OUTPUT_COMPARE0A)
@@ -35,4 +40,5 @@ void timer0_init(int16_t value) {
   sei();
 }
 `)
+/* tslint:enable:max-line-length */
 class Template {}

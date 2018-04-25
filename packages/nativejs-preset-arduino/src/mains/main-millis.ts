@@ -2,7 +2,7 @@ import { CodeTemplate } from "nativejs-compiler";
 import { Main } from "nativejs-compiler";
 
 export class MillisMain implements Main {
-  getTemplate() {
+  public getTemplate() {
     return new MainTemplate();
   }
 }

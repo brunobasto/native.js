@@ -7,7 +7,7 @@ const customUno = {
 };
 
 const flash = (hex, callback) => {
-  let avrgirl = new Avrgirl({
+  const avrgirl = new Avrgirl({
     board: customUno
   });
   console.log(avrgirl);

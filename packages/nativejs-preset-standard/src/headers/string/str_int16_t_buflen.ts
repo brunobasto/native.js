@@ -1,8 +1,8 @@
 import {
-  CExpression,
   CodeTemplate,
   Header,
   HeaderRegistry,
+  INativeExpression,
   Int16HeaderType,
   IScope,
   LimitsHeaderType,
@@ -14,7 +14,7 @@ export class StandardStringAndIntBufferLengthHeader implements Header {
   public getType() {
     return StringAndIntBufferLengthHeaderType;
   }
-  public getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     HeaderRegistry.declareDependency(LimitsHeaderType);
     HeaderRegistry.declareDependency(Int16HeaderType);
 

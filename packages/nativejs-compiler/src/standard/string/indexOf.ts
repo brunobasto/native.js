@@ -1,9 +1,10 @@
 import * as ts from "typescript";
-import { CElementAccess } from "../../nodes/elementaccess";
-import { CExpression } from "../../nodes/expressions";
-import { CVariable } from "../../nodes/variable";
+import {
+  HeaderRegistry,
+  StringHeaderType,
+  StringPositionHeaderType
+} from "../../core/header";
 import { IScope } from "../../core/program";
-import { RegexBuilder, RegexMachine, RegexState } from "../../util/regex";
 import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
@@ -12,16 +13,15 @@ import {
   StringType
 } from "../../core/types/NativeTypes";
 import { TypeVisitor } from "../../core/types/TypeVisitor";
-import {
-  HeaderRegistry,
-  StringHeaderType,
-  StringPositionHeaderType
-} from "../../core/header";
+import { CElementAccess } from "../../nodes/elementaccess";
+import { INativeExpression } from "../../nodes/expressions";
+import { CVariable } from "../../nodes/variable";
+import { RegexBuilder, RegexMachine, RegexState } from "../../util/regex";
 
 @StandardCallResolver
 class StringIndexOfResolver implements IResolver {
   public matchesNode(typeVisitor: TypeVisitor, call: ts.CallExpression) {
-    if (call.expression.kind != ts.SyntaxKind.PropertyAccessExpression) {
+    if (call.expression.kind !== ts.SyntaxKind.PropertyAccessExpression) {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
@@ -51,7 +51,7 @@ class StringIndexOfResolver implements IResolver {
 {/if}`)
 class CStringIndexOf {
   public topExpressionOfStatement: boolean;
-  public arg1: CExpression;
+  public arg1: INativeExpression;
   public stringAccess: CElementAccess;
   constructor(scope: IScope, call: ts.CallExpression) {
     HeaderRegistry.declareDependency(StringHeaderType);

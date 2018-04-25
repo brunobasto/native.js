@@ -1,13 +1,18 @@
 {
   "extends": [
-    "tslint:latest",
-    "tslint-eslint-rules"
+    "tslint:recommended"
   ],
   "rules": {
     "arrow-parens": false,
     "no-console": [false, "log", "error"],
     "no-empty": false,
     "max-classes-per-file": [false, 1],
+    "no-empty-interface": [false],
+    "max-line-length": {
+        "options": {
+            "limit": 120
+        }
+    },
     "trailing-comma": [
             false,
             {

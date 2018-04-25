@@ -1,9 +1,9 @@
-import { CExpression } from "../nodes/expressions";
+import { INativeExpression } from "../nodes/expressions";
 
 const declaredBottoms = new Set<new () => Bottom>();
 
 export interface Bottom {
-  getTemplate(): CExpression;
+  getTemplate(): INativeExpression;
 }
 
 export class BottomRegistry {

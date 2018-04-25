@@ -8,11 +8,11 @@ export class TypeRegistry {
   public static init() {
     this._instance = new TypeRegistry();
   }
-  static getNodeType(node: ts.Node) {
+  public static getNodeType(node: ts.Node) {
     return this._instance.typesMap.get(node.pos);
   }
 
-  static declareNodeType(node: ts.Node, type: NativeType) {
+  public static declareNodeType(node: ts.Node, type: NativeType) {
     this._instance.typesMap.set(node.pos, type);
   }
 }

@@ -1,8 +1,8 @@
 import {
-  CExpression,
   CodeTemplate,
   Header,
   HeaderRegistry,
+  INativeExpression,
   Int16HeaderType,
   IScope,
   StdioHeaderType,
@@ -15,7 +15,7 @@ export class StandardStringAndIntConcatHeader implements Header {
   public getType() {
     return StringAndIntConcatHeaderType;
   }
-  public getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     HeaderRegistry.declareDependency(StringAndIntBufferLengthHeaderType);
     HeaderRegistry.declareDependency(Int16HeaderType);
     HeaderRegistry.declareDependency(StdioHeaderType);

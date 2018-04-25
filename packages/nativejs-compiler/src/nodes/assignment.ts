@@ -1,15 +1,15 @@
 import * as ts from "typescript";
-import { CodeTemplate, CodeTemplateFactory } from "../core/template";
 import { IScope } from "../core/program";
+import { CodeTemplate, CodeTemplateFactory } from "../core/template";
 import {
-  NativeType,
   ArrayType,
-  StructType,
   DictType,
-  StringType
+  NativeType,
+  StringType,
+  StructType
 } from "../core/types/NativeTypes";
 import { CElementAccess, CSimpleElementAccess } from "./elementaccess";
-import { CExpression } from "./expressions";
+import { INativeExpression } from "./expressions";
 import { CVariable } from "./variable";
 
 export class AssignmentHelper {
@@ -23,29 +23,31 @@ export class AssignmentHelper {
     let varType;
     let argumentExpression;
     if (left.kind === ts.SyntaxKind.ElementAccessExpression) {
-      let elemAccess = <ts.ElementAccessExpression>left;
+      const elemAccess = left as ts.ElementAccessExpression;
       varType = scope.root.typeVisitor.inferNodeType(elemAccess.expression);
-      if (elemAccess.expression.kind === ts.SyntaxKind.Identifier)
+      if (elemAccess.expression.kind === ts.SyntaxKind.Identifier) {
         accessor = elemAccess.expression.getText();
-      else accessor = new CElementAccess(scope, elemAccess.expression);
+      } else { accessor = new CElementAccess(scope, elemAccess.expression); }
 
       if (
         varType instanceof StructType &&
         elemAccess.argumentExpression.kind === ts.SyntaxKind.StringLiteral
       ) {
-        let ident = elemAccess.argumentExpression.getText().slice(1, -1);
-        if (ident.search(/^[_A-Za-z][_A-Za-z0-9]*$/) > -1)
+        const ident = elemAccess.argumentExpression.getText().slice(1, -1);
+        if (ident.search(/^[_A-Za-z][_A-Za-z0-9]*$/) > -1) {
           argumentExpression = ident;
-        else
+        } else {
           argumentExpression = CodeTemplateFactory.createForNode(
             scope,
             elemAccess.argumentExpression
           );
-      } else
+        }
+      } else {
         argumentExpression = CodeTemplateFactory.createForNode(
           scope,
           elemAccess.argumentExpression
         );
+      }
     } else {
       varType = scope.root.typeVisitor.inferNodeType(left);
       accessor = new CElementAccess(scope, left);
@@ -98,14 +100,14 @@ export class CAssignment {
   public isStruct: boolean = false;
   public isDict: boolean = false;
   public assignmentRemoved: boolean = false;
-  public expression: CExpression;
+  public expression: INativeExpression;
   public nodeText: string;
   public CR: string;
   public isStringValue: number = 0;
   constructor(
     scope: IScope,
     public accessor: CElementAccess | CSimpleElementAccess | string,
-    public argumentExpression: CExpression,
+    public argumentExpression: INativeExpression,
     type: NativeType,
     left: ts.Node,
     right: ts.Expression,
@@ -122,9 +124,9 @@ export class CAssignment {
     let argType = type;
     let argAccessor = accessor;
     if (argumentExpression) {
-      if (type instanceof StructType && typeof argumentExpression === "string")
+      if (type instanceof StructType && typeof argumentExpression === "string") {
         argType = type.properties[argumentExpression];
-      else if (type instanceof ArrayType) argType = type.elementType;
+      } else if (type instanceof ArrayType) { argType = type.elementType; }
       argAccessor = new CSimpleElementAccess(
         scope,
         type,
@@ -133,15 +135,15 @@ export class CAssignment {
       );
     }
 
-    let isTempVar = !!scope.root.memoryManager.getReservedTemporaryVarName(
+    const isTempVar = !!scope.root.memoryManager.getReservedTemporaryVarName(
       right
     );
     if (right.kind === ts.SyntaxKind.ObjectLiteralExpression && !isTempVar) {
       this.isObjLiteralAssignment = true;
-      let objLiteral = <ts.ObjectLiteralExpression>right;
+      const objLiteral = right as ts.ObjectLiteralExpression;
       this.objInitializers = objLiteral.properties
         .filter(p => p.kind === ts.SyntaxKind.PropertyAssignment)
-        .map(p => <ts.PropertyAssignment>p)
+        .map(p => p as ts.PropertyAssignment)
         .map(
           p =>
             new CAssignment(
@@ -158,7 +160,7 @@ export class CAssignment {
       !isTempVar
     ) {
       this.isArrayLiteralAssignment = true;
-      let arrLiteral = <ts.ArrayLiteralExpression>right;
+      const arrLiteral = right as ts.ArrayLiteralExpression;
       this.arrayLiteralSize = arrLiteral.elements.length;
       this.arrInitializers = arrLiteral.elements.map(
         (e, i) => new CAssignment(scope, argAccessor, "" + i, argType, left, e)
@@ -168,25 +170,25 @@ export class CAssignment {
     }
 
     if (this.argumentExpression === null) {
-      let expr =
+      const expr =
         typeof this.expression === "string"
           ? this.expression
           : this.expression &&
-            this.expression["resolve"] &&
-            this.expression["resolve"]();
-      let acc =
+            this.expression.resolve &&
+            this.expression.resolve();
+      const acc =
         typeof this.accessor === "string"
           ? this.accessor
           : this.accessor &&
-            this.accessor["resolve"] &&
-            this.accessor["resolve"]();
-      if (expr === "" || acc === expr) this.assignmentRemoved = true;
+            this.accessor.resolve &&
+            this.accessor.resolve();
+      if (expr === "" || acc === expr) { this.assignmentRemoved = true; }
     }
 
     if (this.isDict) {
-      const elementAccess = <ts.ElementAccessExpression>left;
+      const elementAccess = left as ts.ElementAccessExpression;
       // only do this when we have an argument expression
-      if (<ts.Expression>elementAccess.argumentExpression) {
+      if (elementAccess.argumentExpression as ts.Expression) {
         const isStringValue =
           scope.root.typeVisitor.inferNodeType(right) === StringType;
         if (isStringValue) {

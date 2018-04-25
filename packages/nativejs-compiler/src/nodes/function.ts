@@ -1,12 +1,12 @@
 import * as ts from "typescript";
-import { ArrayType, StringType, IntegerType } from "../core/types/NativeTypes";
-import { TypeVisitor } from "../core/types/TypeVisitor";
-import { CodeTemplate, CodeTemplateFactory } from "../core/template";
-import { CVariable, CVariableDestructors } from "./variable";
-import { IScope, CProgram } from "../core/program";
-import { StandardCallResolver, IResolver } from "../core/resolver";
-import { CExpression } from "./expressions";
+import { CProgram, IScope } from "../core/program";
+import { IResolver, StandardCallResolver } from "../core/resolver";
 import { StandardCallHelper } from "../core/resolver";
+import { CodeTemplate, CodeTemplateFactory } from "../core/template";
+import { ArrayType, IntegerType, StringType } from "../core/types/NativeTypes";
+import { TypeVisitor } from "../core/types/TypeVisitor";
+import { INativeExpression } from "./expressions";
+import { CVariable, CVariableDestructors } from "./variable";
 
 @CodeTemplate(`{returnType} {name}({parameters {, }=> {this}});`)
 export class CFunctionPrototype {
@@ -68,7 +68,7 @@ export class CFunction implements IScope {
       this.statements.push(CodeTemplateFactory.createForNode(this, s))
     );
     if (
-      node.body.statements[node.body.statements.length - 1].kind !=
+      node.body.statements[node.body.statements.length - 1].kind !==
       ts.SyntaxKind.ReturnStatement
     ) {
       this.destructors = new CVariableDestructors(this, node);

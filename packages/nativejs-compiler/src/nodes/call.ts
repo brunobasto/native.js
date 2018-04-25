@@ -1,11 +1,11 @@
-import { IScope, CProgram } from "../core/program";
+import * as ts from "typescript";
+import { HeaderRegistry, Int16HeaderType } from "../core/header";
+import { PluginRegistry } from "../core/PluginRegistry";
+import { CProgram, IScope } from "../core/program";
 import { StandardCallHelper } from "../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../core/template";
-import { CExpression } from "./expressions";
-import * as ts from "typescript";
+import { INativeExpression } from "./expressions";
 import { CFunction, CFunctionPrototype } from "./function";
-import { PluginRegistry } from "../core/PluginRegistry";
-import { HeaderRegistry, Int16HeaderType } from "../core/header";
 
 @CodeTemplate(
   `
@@ -19,10 +19,10 @@ import { HeaderRegistry, Int16HeaderType } from "../core/header";
   ts.SyntaxKind.CallExpression
 )
 export class CCallExpression {
-  public arguments: CExpression[];
+  public arguments: INativeExpression[];
   public funcName: string;
-  public pluginExpression: CExpression;
-  public standardCall: CExpression;
+  public pluginExpression: INativeExpression;
+  public standardCall: INativeExpression;
 
   constructor(scope: IScope, call: ts.CallExpression) {
     this.funcName = call.expression.getText();

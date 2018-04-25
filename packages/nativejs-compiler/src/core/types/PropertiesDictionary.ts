@@ -1,3 +1,3 @@
 import { NativeType } from "./NativeTypes";
 
-export type PropertiesDictionary = { [propName: string]: NativeType };
+export interface PropertiesDictionary { [propName: string]: NativeType; }

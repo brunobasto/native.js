@@ -1,18 +1,18 @@
 import * as ts from "typescript";
-import { CodeTemplate, CodeTemplateFactory } from "../core/template";
-import { IScope } from "../core/program";
-import { ArrayType, StructType, DictType } from "../core/types/NativeTypes";
-import { CVariable, CVariableAllocation } from "./variable";
-import { AssignmentHelper, CAssignment } from "./assignment";
-import { CRegexSearchFunction } from "./regexfunc";
 import {
-  HeaderRegistry,
   ArrayCreateHeaderType,
   ArrayPushHeaderType,
   BooleanHeaderType,
+  HeaderRegistry,
   RegexMatchHeaderType
 } from "../core/header";
+import { IScope } from "../core/program";
 import { ScopeUtil } from "../core/scope/ScopeUtil";
+import { CodeTemplate, CodeTemplateFactory } from "../core/template";
+import { ArrayType, DictType, StructType } from "../core/types/NativeTypes";
+import { AssignmentHelper, CAssignment } from "./assignment";
+import { CRegexSearchFunction } from "./regexfunc";
+import { CVariable, CVariableAllocation } from "./variable";
 
 import debug from "debug";
 
@@ -22,11 +22,11 @@ const log = debug("nodes");
 class CArrayLiteralExpression {
   public expression: string;
   constructor(scope: IScope, node: ts.ArrayLiteralExpression) {
-    let arrSize = node.elements.length;
-    let type = scope.root.typeVisitor.inferNodeType(node);
+    const arrSize = node.elements.length;
+    const type = scope.root.typeVisitor.inferNodeType(node);
     if (type instanceof ArrayType) {
       let varName: string;
-      let canUseInitializerList = node.elements.every(
+      const canUseInitializerList = node.elements.every(
         e =>
           e.kind === ts.SyntaxKind.NumericLiteral ||
           e.kind === ts.SyntaxKind.StringLiteral
@@ -38,12 +38,12 @@ class CArrayLiteralExpression {
         );
         let s = "{ ";
         for (let i = 0; i < arrSize; i++) {
-          if (i != 0) s += ", ";
-          let cExpr = CodeTemplateFactory.createForNode(
+          if (i !== 0) { s += ", "; }
+          const cExpr = CodeTemplateFactory.createForNode(
             scope,
             node.elements[i]
           );
-          s += typeof cExpr === "string" ? cExpr : (<any>cExpr).resolve();
+          s += typeof cExpr === "string" ? cExpr : (cExpr as any).resolve();
         }
         s += " }";
         scope.variables.push(
@@ -74,7 +74,7 @@ class CArrayLiteralExpression {
         }
 
         for (let i = 0; i < arrSize; i++) {
-          let assignment = new CAssignment(
+          const assignment = new CAssignment(
             scope,
             varName,
             i + "",
@@ -88,8 +88,9 @@ class CArrayLiteralExpression {
       this.expression = type.isDynamicArray
         ? "((void *)" + varName + ")"
         : varName;
-    } else
+    } else {
       this.expression = "/* Unsupported use of array literal expression */";
+    }
   }
 }
 
@@ -111,11 +112,11 @@ class CObjectLiteralExpression {
   public allocator: CVariableAllocation;
   public initializers: CAssignment[];
   constructor(scope: IScope, node: ts.ObjectLiteralExpression) {
-    let type = scope.root.typeVisitor.inferNodeType(node);
+    const type = scope.root.typeVisitor.inferNodeType(node);
     this.isStruct = type instanceof StructType;
     this.isDict = type instanceof DictType;
     if (this.isStruct || this.isDict) {
-      let varName = scope.root.memoryManager.getReservedTemporaryVarName(node);
+      const varName = scope.root.memoryManager.getReservedTemporaryVarName(node);
 
       scope.func.variables.push(
         new CVariable(scope, varName, type, { initializer: "NULL" })
@@ -124,7 +125,7 @@ class CObjectLiteralExpression {
       this.allocator = new CVariableAllocation(scope, varName, type, node);
       this.initializers = node.properties
         .filter(p => p.kind === ts.SyntaxKind.PropertyAssignment)
-        .map(p => <ts.PropertyAssignment>p)
+        .map(p => p as ts.PropertyAssignment)
         .map(
           p =>
             new CAssignment(
@@ -138,18 +139,19 @@ class CObjectLiteralExpression {
         );
 
       this.expression = varName;
-    } else
+    } else {
       this.expression = "/* Unsupported use of object literal expression */";
+    }
   }
 }
 
-let regexNames = {};
+const regexNames = {};
 
 @CodeTemplate(`{expression}`, ts.SyntaxKind.RegularExpressionLiteral)
 class CRegexLiteralExpression {
   public expression: string = "";
   constructor(scope: IScope, node: ts.RegularExpressionLiteral) {
-    let template = node.text;
+    const template = node.text;
     if (!regexNames[template]) {
       regexNames[
         template
@@ -173,7 +175,7 @@ export class CString {
     s = s.replace(/\\u([A-Fa-f0-9]{4})/g, (match, g1) =>
       String.fromCharCode(parseInt(g1, 16))
     );
-    if (s.indexOf("'") === 0)
+    if (s.indexOf("'") === 0) {
       this.value =
         '"' +
         s
@@ -181,7 +183,7 @@ export class CString {
           .replace(/([^\\])\\'/g, "$1'")
           .slice(1, -1) +
         '"';
-    else this.value = s;
+    } else { this.value = s; }
   }
 }
 
@@ -191,14 +193,14 @@ export class CNumber {
   constructor(scope: IScope, value: ts.Node) {
     const { typeVisitor } = scope.root;
     // look for parent binary expressions
-    let parent = ScopeUtil.findParentWithKind(
+    const parent = ScopeUtil.findParentWithKind(
       value,
       ts.SyntaxKind.BinaryExpression
     );
     // if it's inside a float expression
     if (
       parent &&
-      scope.root.typeInferencer.isFloatExpression(<ts.BinaryExpression>parent)
+      scope.root.typeInferencer.isFloatExpression(parent as ts.BinaryExpression)
     ) {
       this.value = `((float)${value.getText()})`;
     } else {

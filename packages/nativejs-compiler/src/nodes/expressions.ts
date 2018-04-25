@@ -1,36 +1,37 @@
-import { AssignmentHelper, CAssignment } from "./assignment";
 import * as ts from "typescript";
-import { CodeTemplate, CodeTemplateFactory } from "../core/template";
 import {
-  HeaderRegistry,
   ArrayPushHeaderType,
-  StringHeaderType,
-  StdlibHeaderType,
   AssertHeaderType,
+  HeaderRegistry,
+  StdlibHeaderType,
   StringAndIntCompareHeaderType,
-  StringAndIntConcatHeaderType
+  StringAndIntConcatHeaderType,
+  StringHeaderType
 } from "../core/header";
 import { IScope } from "../core/program";
+import { CodeTemplate, CodeTemplateFactory } from "../core/template";
 import {
-  NativeType,
   ArrayType,
-  StructType,
-  StringType,
-  RegexType,
-  IntegerType,
   BooleanType,
-  UniversalType,
+  IntegerType,
+  isNumericType,
+  NativeType,
   PointerType,
-  isNumericType
+  RegexType,
+  StringType,
+  StructType,
+  UniversalType
 } from "../core/types/NativeTypes";
-import { CVariable } from "./variable";
+import { AssignmentHelper, CAssignment } from "./assignment";
 import { CElementAccess } from "./elementaccess";
 import { CRegexAsString } from "./regexfunc";
-export interface CExpression {}
+import { CVariable } from "./variable";
+
+export interface INativeExpression {}
 
 @CodeTemplate(`{expression}`, ts.SyntaxKind.BinaryExpression)
 class CBinaryExpression {
-  public expression: CExpression;
+  public expression: INativeExpression;
   constructor(scope: IScope, node: ts.BinaryExpression) {
     if (node.operatorToken.kind === ts.SyntaxKind.FirstAssignment) {
       this.expression = AssignmentHelper.create(
@@ -42,9 +43,9 @@ class CBinaryExpression {
       return;
     }
     if (node.operatorToken.kind === ts.SyntaxKind.CommaToken) {
-      let nodeAsStatement = <ts.ExpressionStatement>ts.createNode(
+      const nodeAsStatement = ts.createNode(
         ts.SyntaxKind.ExpressionStatement
-      );
+      ) as ts.ExpressionStatement;
       nodeAsStatement.expression = node.left;
       nodeAsStatement.parent = node.getSourceFile();
       scope.statements.push(
@@ -54,10 +55,10 @@ class CBinaryExpression {
       return;
     }
 
-    let leftType = scope.root.typeVisitor.inferNodeType(node.left);
-    let left = CodeTemplateFactory.createForNode(scope, node.left);
-    let rightType = scope.root.typeVisitor.inferNodeType(node.right);
-    let right = CodeTemplateFactory.createForNode(scope, node.right);
+    const leftType = scope.root.typeVisitor.inferNodeType(node.left);
+    const left = CodeTemplateFactory.createForNode(scope, node.left);
+    const rightType = scope.root.typeVisitor.inferNodeType(node.right);
+    const right = CodeTemplateFactory.createForNode(scope, node.right);
     this.expression = new CSimpleBinaryExpression(
       scope,
       left,
@@ -117,15 +118,15 @@ export class CSimpleBinaryExpression {
   public numberPlusStr: boolean = false;
   constructor(
     scope: IScope,
-    public left: CExpression,
+    public left: INativeExpression,
     leftType: NativeType,
-    public right: CExpression,
+    public right: INativeExpression,
     rightType: NativeType,
     operatorKind: ts.SyntaxKind,
     node: ts.Node
   ) {
-    let operatorMap: { [token: number]: string } = {};
-    let callReplaceMap: { [token: number]: [string, string] } = {};
+    const operatorMap: { [token: number]: string } = {};
+    const callReplaceMap: { [token: number]: [string, string] } = {};
 
     if (leftType === RegexType && operatorKind === ts.SyntaxKind.PlusToken) {
       leftType = StringType;
@@ -199,7 +200,7 @@ export class CSimpleBinaryExpression {
         HeaderRegistry.declareDependency(StringAndIntCompareHeaderType);
         // str_int16_t_cmp expects certain order of arguments (string, number)
         if (leftType === IntegerType) {
-          let tmp = this.left;
+          const tmp = this.left;
           this.left = this.right;
           this.right = tmp;
         }
@@ -286,7 +287,7 @@ export class CSimpleBinaryExpression {
 class CUnaryExpression {
   public nodeText: string;
   public operator: string;
-  public operand: CExpression;
+  public operand: INativeExpression;
   public isPostfix: boolean;
   public replacedWithCall: boolean = false;
   public call: string;
@@ -295,9 +296,9 @@ class CUnaryExpression {
     scope: IScope,
     node: ts.PostfixUnaryExpression | ts.PrefixUnaryExpression
   ) {
-    let operatorMap: { [token: number]: string } = {};
-    let callReplaceMap: { [token: number]: [string, string] } = {};
-    let type = scope.root.typeVisitor.inferNodeType(node.operand);
+    const operatorMap: { [token: number]: string } = {};
+    const callReplaceMap: { [token: number]: [string, string] } = {};
+    const type = scope.root.typeVisitor.inferNodeType(node.operand);
     operatorMap[ts.SyntaxKind.ExclamationToken] = "!";
     const typeVisitor = scope.root.typeVisitor;
     if (isNumericType(type)) {
@@ -309,7 +310,7 @@ class CUnaryExpression {
     }
     if (type === StringType) {
       callReplaceMap[ts.SyntaxKind.PlusToken] = ["atoi", ""];
-      if (callReplaceMap[node.operator]) scope.root.headerFlags.atoi = true;
+      if (callReplaceMap[node.operator]) { scope.root.headerFlags.atoi = true; }
     }
     this.operator = operatorMap[node.operator];
     if (callReplaceMap[node.operator]) {
@@ -327,9 +328,9 @@ class CUnaryExpression {
   ts.SyntaxKind.ConditionalExpression
 )
 class CTernaryExpression {
-  public condition: CExpression;
-  public whenTrue: CExpression;
-  public whenFalse: CExpression;
+  public condition: INativeExpression;
+  public whenTrue: INativeExpression;
+  public whenFalse: INativeExpression;
   constructor(scope: IScope, node: ts.ConditionalExpression) {
     this.condition = CodeTemplateFactory.createForNode(scope, node.condition);
     this.whenTrue = CodeTemplateFactory.createForNode(scope, node.whenTrue);
@@ -339,7 +340,7 @@ class CTernaryExpression {
 
 @CodeTemplate(`({expression})`, ts.SyntaxKind.ParenthesizedExpression)
 class CGroupingExpression {
-  public expression: CExpression;
+  public expression: INativeExpression;
   constructor(scope: IScope, node: ts.ParenthesizedExpression) {
     this.expression = CodeTemplateFactory.createForNode(scope, node.expression);
   }

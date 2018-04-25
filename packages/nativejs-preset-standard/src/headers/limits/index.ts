@@ -1,7 +1,7 @@
 import {
-  CExpression,
   CodeTemplate,
   Header,
+  INativeExpression,
   IScope,
   LimitsHeaderType
 } from "nativejs-compiler";
@@ -10,7 +10,7 @@ export class StandardLimitsHeader implements Header {
   public getType() {
     return LimitsHeaderType;
   }
-  public getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     return new Template();
   }
 }

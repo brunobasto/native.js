@@ -1,9 +1,9 @@
 import {
-  CExpression,
   CodeTemplate,
   CVariable,
   Header,
   HeaderRegistry,
+  INativeExpression,
   IScope,
   StructHeaderType
 } from "nativejs-compiler";
@@ -12,7 +12,7 @@ export class StandardStructHeader implements Header {
   public getType() {
     return StructHeaderType;
   }
-  public getTemplate(params: any): CExpression {
+  public getTemplate(params: any): INativeExpression {
     const scope = HeaderRegistry.getProgramScope();
 
     return new Template(scope, params);

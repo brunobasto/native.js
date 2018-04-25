@@ -1,6 +1,8 @@
-import * as ts from "typescript";
 import debug from "debug";
+import * as ts from "typescript";
+import { CProgram } from "../program";
 import { StandardCallHelper } from "../resolver";
+import { ScopeUtil } from "../scope/ScopeUtil";
 import {
   ArrayType,
   BooleanType,
@@ -16,10 +18,8 @@ import {
   StructType,
   UniversalType
 } from "./NativeTypes";
-import { ScopeUtil } from "../scope/ScopeUtil";
 import { TypeRegistry } from "./TypeRegistry";
 import { TypeVisitor } from "./TypeVisitor";
-import { CProgram } from "../program";
 
 const log = debug("TypeInferencer");
 
@@ -48,7 +48,7 @@ export class TypeInferencer {
     if (
       binaryExpression.left.kind === ts.SyntaxKind.Identifier &&
       this.getTypeVisitor().getVariableInfo(
-        <ts.Identifier>binaryExpression.left
+        binaryExpression.left as ts.Identifier
       ).type === FloatType
     ) {
       return true;
@@ -56,7 +56,7 @@ export class TypeInferencer {
     if (
       binaryExpression.left.kind === ts.SyntaxKind.Identifier &&
       this.getTypeVisitor().getVariableInfo(
-        <ts.Identifier>binaryExpression.left
+        binaryExpression.left as ts.Identifier
       ).type === FloatType
     ) {
       return true;
@@ -64,36 +64,36 @@ export class TypeInferencer {
     // check for each binary expression inside the given expression
     if (
       binaryExpression.right.kind === ts.SyntaxKind.BinaryExpression &&
-      this.isFloatExpression(<ts.BinaryExpression>binaryExpression.right)
+      this.isFloatExpression(binaryExpression.right as ts.BinaryExpression)
     ) {
       return true;
     }
     if (
       binaryExpression.left.kind === ts.SyntaxKind.BinaryExpression &&
-      this.isFloatExpression(<ts.BinaryExpression>binaryExpression.left)
+      this.isFloatExpression(binaryExpression.left as ts.BinaryExpression)
     ) {
       return true;
     }
     // check if parenthesized expression
     if (binaryExpression.left.kind === ts.SyntaxKind.ParenthesizedExpression) {
-      const parenthesizedExpression = <ts.ParenthesizedExpression>binaryExpression.left;
+      const parenthesizedExpression = binaryExpression.left as ts.ParenthesizedExpression;
       if (
         parenthesizedExpression.expression.kind ==
           ts.SyntaxKind.BinaryExpression &&
         this.isFloatExpression(
-          <ts.BinaryExpression>parenthesizedExpression.expression
+          parenthesizedExpression.expression as ts.BinaryExpression
         )
       ) {
         return true;
       }
     }
     if (binaryExpression.right.kind === ts.SyntaxKind.ParenthesizedExpression) {
-      const parenthesizedExpression = <ts.ParenthesizedExpression>binaryExpression.right;
+      const parenthesizedExpression = binaryExpression.right as ts.ParenthesizedExpression;
       if (
         parenthesizedExpression.expression.kind ==
           ts.SyntaxKind.BinaryExpression &&
         this.isFloatExpression(
-          <ts.BinaryExpression>parenthesizedExpression.expression
+          parenthesizedExpression.expression as ts.BinaryExpression
         )
       ) {
         return true;
@@ -101,13 +101,13 @@ export class TypeInferencer {
     }
     if (
       binaryExpression.left.kind === ts.SyntaxKind.NumericLiteral &&
-      this.isFloatLiteral(<ts.NumericLiteral>binaryExpression.left)
+      this.isFloatLiteral(binaryExpression.left as ts.NumericLiteral)
     ) {
       return true;
     }
     if (
       binaryExpression.right.kind === ts.SyntaxKind.NumericLiteral &&
-      this.isFloatLiteral(<ts.NumericLiteral>binaryExpression.right)
+      this.isFloatLiteral(binaryExpression.right as ts.NumericLiteral)
     ) {
       return true;
     }
@@ -123,7 +123,7 @@ export class TypeInferencer {
     if (
       binaryExpression.left.kind === ts.SyntaxKind.Identifier &&
       this.getTypeVisitor().getVariableInfo(
-        <ts.Identifier>binaryExpression.left
+        binaryExpression.left as ts.Identifier
       ).type === LongType
     ) {
       return true;
@@ -131,7 +131,7 @@ export class TypeInferencer {
     if (
       binaryExpression.left.kind === ts.SyntaxKind.Identifier &&
       this.getTypeVisitor().getVariableInfo(
-        <ts.Identifier>binaryExpression.left
+        binaryExpression.left as ts.Identifier
       ).type === LongType
     ) {
       return true;
@@ -139,36 +139,36 @@ export class TypeInferencer {
     // check for each binary expression inside the given expression
     if (
       binaryExpression.right.kind === ts.SyntaxKind.BinaryExpression &&
-      this.isLongExpression(<ts.BinaryExpression>binaryExpression.right)
+      this.isLongExpression(binaryExpression.right as ts.BinaryExpression)
     ) {
       return true;
     }
     if (
       binaryExpression.left.kind === ts.SyntaxKind.BinaryExpression &&
-      this.isLongExpression(<ts.BinaryExpression>binaryExpression.left)
+      this.isLongExpression(binaryExpression.left as ts.BinaryExpression)
     ) {
       return true;
     }
     // check if parenthesized expression
     if (binaryExpression.left.kind === ts.SyntaxKind.ParenthesizedExpression) {
-      const parenthesizedExpression = <ts.ParenthesizedExpression>binaryExpression.left;
+      const parenthesizedExpression = binaryExpression.left as ts.ParenthesizedExpression;
       if (
         parenthesizedExpression.expression.kind ==
           ts.SyntaxKind.BinaryExpression &&
         this.isLongExpression(
-          <ts.BinaryExpression>parenthesizedExpression.expression
+          parenthesizedExpression.expression as ts.BinaryExpression
         )
       ) {
         return true;
       }
     }
     if (binaryExpression.right.kind === ts.SyntaxKind.ParenthesizedExpression) {
-      const parenthesizedExpression = <ts.ParenthesizedExpression>binaryExpression.right;
+      const parenthesizedExpression = binaryExpression.right as ts.ParenthesizedExpression;
       if (
         parenthesizedExpression.expression.kind ==
           ts.SyntaxKind.BinaryExpression &&
         this.isLongExpression(
-          <ts.BinaryExpression>parenthesizedExpression.expression
+          parenthesizedExpression.expression as ts.BinaryExpression
         )
       ) {
         return true;
@@ -184,21 +184,21 @@ export class TypeInferencer {
       return true;
     }
     // if it's a variable declaration
-    let parent = ScopeUtil.findParentWithKind(
+    const parent = ScopeUtil.findParentWithKind(
       node,
       ts.SyntaxKind.VariableDeclaration
     );
     if (parent) {
-      const declaration = <ts.VariableDeclaration>parent;
-      let varInfo = this.getTypeVisitor().getVariableInfo(declaration.name);
-      for (let ref of varInfo.references) {
+      const declaration = parent as ts.VariableDeclaration;
+      const varInfo = this.getTypeVisitor().getVariableInfo(declaration.name);
+      for (const ref of varInfo.references) {
         // and one of its references is a binary expression
         const binary = ScopeUtil.findParentWithKind(
           ref,
           ts.SyntaxKind.BinaryExpression
         );
         if (binary) {
-          if (this.isFloatExpression(<ts.BinaryExpression>binary)) {
+          if (this.isFloatExpression(binary as ts.BinaryExpression)) {
             log(`so [${declaration.name.getText()}] evaluates to float`);
             return true;
           }
@@ -233,15 +233,15 @@ export class TypeInferencer {
     );
     log(
       parentBinary.getText(),
-      this.isFloatExpression(<ts.BinaryExpression>parentBinary)
+      this.isFloatExpression(parentBinary as ts.BinaryExpression)
     );
-    if (this.isFloatExpression(<ts.BinaryExpression>parentBinary)) {
+    if (this.isFloatExpression(parentBinary as ts.BinaryExpression)) {
       return FloatType;
-    } else if (this.isLongExpression(<ts.BinaryExpression>parentBinary)) {
+    } else if (this.isLongExpression(parentBinary as ts.BinaryExpression)) {
       return LongType;
     } else {
-      let tsType = this.typeChecker.getTypeAtLocation(node);
-      let type = tsType && this.getTypeVisitor().convertType(tsType);
+      const tsType = this.typeChecker.getTypeAtLocation(node);
+      const type = tsType && this.getTypeVisitor().convertType(tsType);
       if (type != UniversalType && type != PointerType) {
         return type;
       }
@@ -251,11 +251,11 @@ export class TypeInferencer {
   private inferIdentifier(node: ts.Identifier) {
     // is parameter of a function
     if (node.parent.kind === ts.SyntaxKind.Parameter) {
-      let parentCall = ScopeUtil.findParentCallExpression(node);
+      const parentCall = ScopeUtil.findParentCallExpression(node);
       // the function is inside a call expression
       if (parentCall) {
-        const propAccess = <ts.PropertyAccessExpression>parentCall.expression;
-        let parentObjectType = this.inferNodeType(propAccess.expression);
+        const propAccess = parentCall.expression as ts.PropertyAccessExpression;
+        const parentObjectType = this.inferNodeType(propAccess.expression);
         // the call expression is on an Array
         if (parentObjectType instanceof ArrayType) {
           // return the type of the Array
@@ -263,64 +263,66 @@ export class TypeInferencer {
         }
       }
     }
-    let varInfo = this.getTypeVisitor().getVariableInfo(<ts.Identifier>node);
+    const varInfo = this.getTypeVisitor().getVariableInfo(node as ts.Identifier);
     return (varInfo && varInfo.type) || null;
   }
 
   private inferElementAccessExpression(node: ts.ElementAccessExpression) {
-    let elemAccess = <ts.ElementAccessExpression>node;
-    let parentObjectType = this.inferNodeType(elemAccess.expression);
-    if (parentObjectType instanceof ArrayType)
+    const elemAccess = node as ts.ElementAccessExpression;
+    const parentObjectType = this.inferNodeType(elemAccess.expression);
+    if (parentObjectType instanceof ArrayType) {
       return parentObjectType.elementType;
-    else if (parentObjectType instanceof StructType)
+    } else if (parentObjectType instanceof StructType) {
       return parentObjectType.properties[
         elemAccess.argumentExpression.getText().slice(1, -1)
       ];
-    else if (parentObjectType instanceof DictType)
+         } else if (parentObjectType instanceof DictType) {
       return parentObjectType.elementType;
+         }
     return null;
   }
 
   private inferPropertyAccessExpression(node: ts.PropertyAccessExpression) {
-    let propAccess = <ts.PropertyAccessExpression>node;
-    let parentObjectType = this.inferNodeType(propAccess.expression);
-    if (parentObjectType instanceof StructType)
+    const propAccess = node as ts.PropertyAccessExpression;
+    const parentObjectType = this.inferNodeType(propAccess.expression);
+    if (parentObjectType instanceof StructType) {
       return parentObjectType.properties[propAccess.name.getText()];
-    else if (
+    } else if (
       parentObjectType instanceof ArrayType &&
       propAccess.name.getText() === "length"
-    )
+    ) {
       return IntegerType;
-    else if (
+         } else if (
       parentObjectType === StringType &&
       propAccess.name.getText() === "length"
-    )
+    ) {
       return IntegerType;
+         }
     return null;
   }
 
   private inferCallExpression(node: ts.CallExpression) {
-    let call = <ts.CallExpression>node;
-    let retType = StandardCallHelper.getReturnType(this.getTypeVisitor(), call);
-    if (retType) return retType;
+    const call = node as ts.CallExpression;
+    const retType = StandardCallHelper.getReturnType(this.getTypeVisitor(), call);
+    if (retType) { return retType; }
 
     if (call.expression.kind === ts.SyntaxKind.PropertyAccessExpression) {
-      let propAccess = <ts.PropertyAccessExpression>call.expression;
-      let propName = propAccess.name.getText();
+      const propAccess = call.expression as ts.PropertyAccessExpression;
+      const propName = propAccess.name.getText();
       if (
         (propName === "indexOf" || propName === "lastIndexOf") &&
         call.arguments.length === 1
       ) {
-        let exprType = this.inferNodeType(propAccess.expression);
-        if (exprType && exprType === StringType) return IntegerType;
+        const exprType = this.inferNodeType(propAccess.expression);
+        if (exprType && exprType === StringType) { return IntegerType; }
       }
     } else if (call.expression.kind === ts.SyntaxKind.Identifier) {
       if (call.expression.getText() === "parseInt") {
         return IntegerType;
       }
-      let funcSymbol = this.typeChecker.getSymbolAtLocation(call.expression);
+      const funcSymbol = this.typeChecker.getSymbolAtLocation(call.expression);
       if (funcSymbol != null) {
-        let funcDeclPos = funcSymbol.valueDeclaration.pos;
+        const funcDeclPos = funcSymbol.valueDeclaration.pos;
         return this.getTypeVisitor().getVariableType(funcDeclPos);
       }
     }
@@ -330,7 +332,7 @@ export class TypeInferencer {
   public inferNodeType(node: ts.Node): NativeType {
     const typeVisitor = this.getTypeVisitor();
 
-    if (!node.kind) return null;
+    if (!node.kind) { return null; }
     // Look for known registered types
     const nodeType = TypeRegistry.getNodeType(node);
     if (nodeType) {
@@ -338,9 +340,9 @@ export class TypeInferencer {
     }
     switch (node.kind) {
       case ts.SyntaxKind.NumericLiteral:
-        return this.inferNumericLiteral(<ts.NumericLiteral>node);
+        return this.inferNumericLiteral(node as ts.NumericLiteral);
       case ts.SyntaxKind.BinaryExpression: {
-        return this.inferBinaryExpression(<ts.BinaryExpression>node);
+        return this.inferBinaryExpression(node as ts.BinaryExpression);
       }
       case ts.SyntaxKind.TrueKeyword:
       case ts.SyntaxKind.FalseKeyword:
@@ -348,23 +350,23 @@ export class TypeInferencer {
       case ts.SyntaxKind.StringLiteral:
         return StringType;
       case ts.SyntaxKind.Identifier: {
-        return this.inferIdentifier(<ts.Identifier>node);
+        return this.inferIdentifier(node as ts.Identifier);
       }
       case ts.SyntaxKind.ElementAccessExpression: {
         return this.inferElementAccessExpression(
-          <ts.ElementAccessExpression>node
+          node as ts.ElementAccessExpression
         );
       }
       case ts.SyntaxKind.PropertyAccessExpression: {
         return this.inferPropertyAccessExpression(
-          <ts.PropertyAccessExpression>node
+          node as ts.PropertyAccessExpression
         );
       }
       case ts.SyntaxKind.CallExpression: {
-        return this.inferCallExpression(<ts.CallExpression>node);
+        return this.inferCallExpression(node as ts.CallExpression);
       }
       case ts.SyntaxKind.PropertyAssignment:
-        const propertyAssignment = <ts.PropertyAssignment>node;
+        const propertyAssignment = node as ts.PropertyAssignment;
         return this.inferNodeType(propertyAssignment.initializer);
       case ts.SyntaxKind.FunctionExpression:
         // TODO - Actually infer function return type
@@ -380,9 +382,9 @@ export class TypeInferencer {
       }
       default:
         {
-          let tsType = this.typeChecker.getTypeAtLocation(node);
-          let type = tsType && this.getTypeVisitor().convertType(tsType);
-          if (type != UniversalType && type != PointerType) return type;
+          const tsType = this.typeChecker.getTypeAtLocation(node);
+          const type = tsType && this.getTypeVisitor().convertType(tsType);
+          if (type != UniversalType && type != PointerType) { return type; }
         }
         return null;
     }

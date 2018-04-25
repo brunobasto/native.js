@@ -1,7 +1,7 @@
 import {
-  CExpression,
   CodeTemplate,
   Header,
+  INativeExpression,
   StdlibHeaderType
 } from "nativejs-compiler";
 
@@ -9,7 +9,7 @@ export class StandardStdLibHeader implements Header {
   public getType() {
     return StdlibHeaderType;
   }
-  public getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     return new Template();
   }
 }

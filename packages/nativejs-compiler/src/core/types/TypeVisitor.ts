@@ -1,5 +1,8 @@
-import * as ts from "typescript";
 import debug from "debug";
+import * as ts from "typescript";
+import { PluginRegistry } from "../PluginRegistry";
+import { CProgram } from "../program";
+import { ScopeUtil } from "../scope/ScopeUtil";
 import {
   ArrayType,
   BooleanType,
@@ -12,27 +15,24 @@ import {
   StructType,
   UniversalType
 } from "./NativeTypes";
-import { PluginRegistry } from "../PluginRegistry";
 import { PropertiesDictionary } from "./PropertiesDictionary";
 import { Structures } from "./Structures";
-import { ScopeUtil } from "../scope/ScopeUtil";
 import { TypeInferencer } from "./TypeInferencer";
-import { CProgram } from "../program";
 
 const log = debug("types");
 
 /** Information about a variable */
 export class VariableInfo {
   /** Name of the variable */
-  name: string;
+  public name: string;
   /** The final determined C type for this variable */
-  type: NativeType;
+  public type: NativeType;
   /** Contains all references to this variable */
-  references: ts.Node[] = [];
+  public references: ts.Node[] = [];
   /** Where variable was declared */
-  declaration: ts.Node;
+  public declaration: ts.Node;
   /** Determines if the variable requires memory allocation */
-  requiresAllocation: boolean;
+  public requiresAllocation: boolean;
 }
 
 // forOfIterator ====> for <var> of <array_variable> ---> <var>.type = (type of <array_variable>).elementType
@@ -63,21 +63,21 @@ class TypePromise {
   ) {}
 }
 
-type PromiseDictionary = { [promiseId: string]: TypePromise };
+interface PromiseDictionary { [promiseId: string]: TypePromise; }
 
 class VariableData {
-  addedProperties: { [propName: string]: NativeType } = {};
-  arrLiteralAssigned: boolean = false;
-  isDict: boolean;
-  isDynamicArray: boolean;
-  parameterFuncDeclPos: number;
-  parameterIndex: number;
-  typePromises: { [id: string]: TypePromise } = {};
-  wasObjectLiteralAssigned: boolean = false;
+  public addedProperties: { [propName: string]: NativeType } = {};
+  public arrLiteralAssigned: boolean = false;
+  public isDict: boolean;
+  public isDynamicArray: boolean;
+  public parameterFuncDeclPos: number;
+  public parameterIndex: number;
+  public typePromises: { [id: string]: TypePromise } = {};
+  public wasObjectLiteralAssigned: boolean = false;
   /** references to variables that represent properties of this variable */
-  varDeclPosByPropName: { [propName: string]: number } = {};
+  public varDeclPosByPropName: { [propName: string]: number } = {};
   /** for debugging: log of how the type of this variable was determined */
-  typeResolutionLog: any[] = [];
+  public typeResolutionLog: any[] = [];
 }
 
 export class TypeVisitor {
@@ -107,7 +107,7 @@ export class TypeVisitor {
   /** Performs initialization of variables array */
   /** Call this before using getVariableInfo */
   public visit(sources: ts.SourceFile[]) {
-    for (let source of sources) {
+    for (const source of sources) {
       this.visitNode(source);
     }
 
@@ -115,7 +115,7 @@ export class TypeVisitor {
   }
 
   public ensureArrayStruct(elementType: NativeType) {
-    let elementTypeText = this.getTypeString(elementType);
+    const elementTypeText = this.getTypeString(elementType);
     // if (elementType instanceof ArrayType) {
     //   elementTypeText =
     //     this.getTypeString(<ArrayType>elementType.elementType) + " * ";
@@ -132,14 +132,14 @@ export class TypeVisitor {
 
   /** Get information of variable specified by ts.Node */
   public getVariableInfo(node: ts.Node, propKey?: string): VariableInfo {
-    let symbol = this.typeChecker.getSymbolAtLocation(node);
-    let varPos =
+    const symbol = this.typeChecker.getSymbolAtLocation(node);
+    const varPos =
       symbol && symbol.valueDeclaration
         ? symbol.valueDeclaration.pos
         : node.pos;
     let varInfo = this.variables[varPos];
     if (varInfo && propKey) {
-      let propPos = this.variablesData[varPos].varDeclPosByPropName[propKey];
+      const propPos = this.variablesData[varPos].varDeclPosByPropName[propKey];
       varInfo = this.variables[propPos];
     }
     return varInfo;
@@ -147,10 +147,10 @@ export class TypeVisitor {
 
   /** Get textual representation of type of the parameter for inserting into the C code */
   public getTypeString(source) {
-    if (source.flags != null && source.intrinsicName != null)
+    if (source.flags != null && source.intrinsicName != null) {
       // ts.Type
       source = this.convertType(source);
-    else if (
+    } else if (
       source.flags != null &&
       source.callSignatures != null &&
       source.constructSignatures != null
@@ -237,19 +237,21 @@ export class TypeVisitor {
 
   private visitCallExpression(node: ts.CallExpression) {
     if (node.expression.kind === ts.SyntaxKind.Identifier) {
-      let funcSymbol = this.typeChecker.getSymbolAtLocation(node.expression);
+      const funcSymbol = this.typeChecker.getSymbolAtLocation(node.expression);
       if (funcSymbol != null) {
-        let funcDeclPos = funcSymbol.valueDeclaration.pos + 1;
-        if (funcDeclPos > node.pos)
+        const funcDeclPos = funcSymbol.valueDeclaration.pos + 1;
+        if (funcDeclPos > node.pos) {
           this.functionPrototypes[
             funcDeclPos
-          ] = <ts.FunctionDeclaration>funcSymbol.valueDeclaration;
+          ] = funcSymbol.valueDeclaration as ts.FunctionDeclaration;
+        }
         for (let i = 0; i < node.arguments.length; i++) {
-          if (!this.functionCallsData[funcDeclPos])
+          if (!this.functionCallsData[funcDeclPos]) {
             this.functionCallsData[funcDeclPos] = [];
-          let callData = this.functionCallsData[funcDeclPos];
-          let argId = node.arguments[i].pos + "_" + node.arguments[i].end;
-          if (!callData[i]) callData[i] = {};
+          }
+          const callData = this.functionCallsData[funcDeclPos];
+          const argId = node.arguments[i].pos + "_" + node.arguments[i].end;
+          if (!callData[i]) { callData[i] = {}; }
           callData[i][argId] = new TypePromise(node.arguments[i]);
         }
       }
@@ -257,16 +259,16 @@ export class TypeVisitor {
   }
 
   private visitReturnStatement(node: ts.ReturnStatement) {
-    let parentFunc = ScopeUtil.findParentFunction(node);
-    let funcPos = parentFunc && parentFunc.pos;
+    const parentFunc = ScopeUtil.findParentFunction(node);
+    const funcPos = parentFunc && parentFunc.pos;
     if (funcPos != null) {
       if (node.expression) {
         if (node.expression.kind === ts.SyntaxKind.ObjectLiteralExpression) {
           this.addTypePromise(funcPos, node.expression);
-          let objLiteral = <ts.ObjectLiteralExpression>node.expression;
-          for (let propAssignment of objLiteral.properties
+          const objLiteral = node.expression as ts.ObjectLiteralExpression;
+          for (const propAssignment of objLiteral.properties
             .filter(p => p.kind === ts.SyntaxKind.PropertyAssignment)
-            .map(p => <ts.PropertyAssignment>p)) {
+            .map(p => p as ts.PropertyAssignment)) {
             this.addTypePromise(
               funcPos,
               propAssignment.initializer,
@@ -274,7 +276,7 @@ export class TypeVisitor {
               propAssignment.name.getText()
             );
           }
-        } else this.addTypePromise(funcPos, node.expression);
+        } else { this.addTypePromise(funcPos, node.expression); }
       } else {
         this.addTypePromise(funcPos, node, TypePromiseKind.void);
       }
@@ -283,26 +285,27 @@ export class TypeVisitor {
 
   private visitArrayLiteralExpression(node: ts.ArrayLiteralExpression) {
     if (!this.arrayLiteralsTypes[node.pos]) {
-      this.determineArrayType(<ts.ArrayLiteralExpression>node);
+      this.determineArrayType(node as ts.ArrayLiteralExpression);
     }
 
-    let arrType = this.arrayLiteralsTypes[node.pos];
+    const arrType = this.arrayLiteralsTypes[node.pos];
     if (
       arrType instanceof ArrayType &&
       node.parent.kind === ts.SyntaxKind.PropertyAccessExpression &&
       node.parent.parent.kind === ts.SyntaxKind.CallExpression
     ) {
-      let propAccess = <ts.PropertyAccessExpression>node.parent;
+      const propAccess = node.parent as ts.PropertyAccessExpression;
       // if array literal is concatenated, we need to ensure that we
       // have corresponding dynamic array type for the temporary variable
-      if (propAccess.name.getText() === "concat")
+      if (propAccess.name.getText() === "concat") {
         this.ensureArrayStruct(arrType.elementType);
+      }
     }
   }
 
   private visitObjectLiteralExpression(node: ts.ObjectLiteralExpression) {
     if (!this.objectLiteralsTypes[node.pos]) {
-      let type = this.structures.generateStructure(
+      const type = this.structures.generateStructure(
         this.typeChecker.getTypeAtLocation(node)
       );
       this.objectLiteralsTypes[node.pos] = type;
@@ -315,7 +318,7 @@ export class TypeVisitor {
     let varData = null;
     let varNode = null;
 
-    let symbol = this.typeChecker.getSymbolAtLocation(node);
+    const symbol = this.typeChecker.getSymbolAtLocation(node);
     if (symbol) {
       if (
         symbol.declarations &&
@@ -346,19 +349,19 @@ export class TypeVisitor {
     let varData = null;
     let varNode = null;
 
-    let propAccess = <ts.PropertyAccessExpression>node;
-    let propName = propAccess.name.getText();
+    const propAccess = node as ts.PropertyAccessExpression;
+    const propName = propAccess.name.getText();
     // drill down to identifier
     let topPropAccess = propAccess;
-    let propsChain: ts.Identifier[] = [];
+    const propsChain: ts.Identifier[] = [];
     while (
       topPropAccess.expression.kind === ts.SyntaxKind.PropertyAccessExpression
     ) {
-      topPropAccess = <ts.PropertyAccessExpression>topPropAccess.expression;
+      topPropAccess = topPropAccess.expression as ts.PropertyAccessExpression;
       propsChain.push(topPropAccess.name);
     }
     if (topPropAccess.expression.kind === ts.SyntaxKind.Identifier) {
-      let topSymbol = this.typeChecker.getSymbolAtLocation(
+      const topSymbol = this.typeChecker.getSymbolAtLocation(
         topPropAccess.expression
       );
       if (topSymbol) {
@@ -366,7 +369,7 @@ export class TypeVisitor {
         varPos = topSymbol.valueDeclaration.pos;
         let varName = topSymbol.name;
         while (propsChain.length) {
-          let propIdent = propsChain.pop();
+          const propIdent = propsChain.pop();
           varName += "." + propIdent.getText();
           let nextVarPos = this.variablesData[varPos].varDeclPosByPropName[
             propIdent.getText()
@@ -402,21 +405,21 @@ export class TypeVisitor {
     if (PluginRegistry.matchesNode(node)) {
       PluginRegistry.processTypesForNode(node);
     } else if (node.kind === ts.SyntaxKind.CallExpression) {
-      this.visitCallExpression(<ts.CallExpression>node);
+      this.visitCallExpression(node as ts.CallExpression);
     } else if (node.kind === ts.SyntaxKind.ReturnStatement) {
-      this.visitReturnStatement(<ts.ReturnStatement>node);
+      this.visitReturnStatement(node as ts.ReturnStatement);
     } else if (node.kind === ts.SyntaxKind.ArrayLiteralExpression) {
-      this.visitArrayLiteralExpression(<ts.ArrayLiteralExpression>node);
+      this.visitArrayLiteralExpression(node as ts.ArrayLiteralExpression);
     } else if (node.kind === ts.SyntaxKind.ObjectLiteralExpression) {
-      this.visitObjectLiteralExpression(<ts.ObjectLiteralExpression>node);
+      this.visitObjectLiteralExpression(node as ts.ObjectLiteralExpression);
     } else if (
       node.kind === ts.SyntaxKind.Identifier ||
       node.kind === ts.SyntaxKind.PropertyAccessExpression
     ) {
       if (node.kind === ts.SyntaxKind.PropertyAccessExpression) {
-        this.visitPropertyAccessExpression(<ts.PropertyAccessExpression>node);
+        this.visitPropertyAccessExpression(node as ts.PropertyAccessExpression);
       } else if (node.kind === ts.SyntaxKind.Identifier) {
-        this.visitIdentifier(<ts.Identifier>node);
+        this.visitIdentifier(node as ts.Identifier);
       }
     }
 
@@ -424,7 +427,7 @@ export class TypeVisitor {
   }
 
   private createVariableDeclarationPromise(varData, varNode, varPos) {
-    let varDecl = <ts.VariableDeclaration>varNode.parent;
+    const varDecl = varNode.parent as ts.VariableDeclaration;
     if (varDecl.name.getText() === varNode.getText()) {
       this.addTypePromise(varPos, varDecl.initializer);
       if (
@@ -432,10 +435,10 @@ export class TypeVisitor {
         varDecl.initializer.kind === ts.SyntaxKind.ObjectLiteralExpression
       ) {
         varData.wasObjectLiteralAssigned = true;
-        let objLiteral = <ts.ObjectLiteralExpression>varDecl.initializer;
-        for (let propAssignment of objLiteral.properties
+        const objLiteral = varDecl.initializer as ts.ObjectLiteralExpression;
+        for (const propAssignment of objLiteral.properties
           .filter(p => p.kind === ts.SyntaxKind.PropertyAssignment)
-          .map(p => <ts.PropertyAssignment>p)) {
+          .map(p => p as ts.PropertyAssignment)) {
           this.addTypePromise(
             varPos,
             propAssignment.initializer,
@@ -447,19 +450,20 @@ export class TypeVisitor {
       if (
         varDecl.initializer &&
         varDecl.initializer.kind === ts.SyntaxKind.ArrayLiteralExpression
-      )
+      ) {
         varData.arrLiteralAssigned = true;
+      }
       if (
         varDecl.parent &&
         varDecl.parent.parent &&
         varDecl.parent.parent.kind === ts.SyntaxKind.ForOfStatement
       ) {
-        let forOfStatement = <ts.ForOfStatement>varDecl.parent.parent;
+        const forOfStatement = varDecl.parent.parent as ts.ForOfStatement;
         if (
           forOfStatement.initializer.kind ==
           ts.SyntaxKind.VariableDeclarationList
         ) {
-          let forOfInitializer = <ts.VariableDeclarationList>forOfStatement.initializer;
+          const forOfInitializer = forOfStatement.initializer as ts.VariableDeclarationList;
           if (forOfInitializer.declarations[0].pos === varDecl.pos) {
             this.addTypePromise(
               varPos,
@@ -473,12 +477,12 @@ export class TypeVisitor {
         varDecl.parent.parent &&
         varDecl.parent.parent.kind === ts.SyntaxKind.ForInStatement
       ) {
-        let forInStatement = <ts.ForInStatement>varDecl.parent.parent;
+        const forInStatement = varDecl.parent.parent as ts.ForInStatement;
         if (
           forInStatement.initializer.kind ==
           ts.SyntaxKind.VariableDeclarationList
         ) {
-          let forInInitializer = <ts.VariableDeclarationList>forInStatement.initializer;
+          const forInInitializer = forInStatement.initializer as ts.VariableDeclarationList;
           if (forInInitializer.declarations[0].pos === varDecl.pos) {
             this.addTypePromise(
               varPos,
@@ -492,10 +496,10 @@ export class TypeVisitor {
   }
 
   private createParameterPromise(varData, varNode, varPos) {
-    let funcDecl = <ts.FunctionDeclaration>varNode.parent.parent;
+    const funcDecl = varNode.parent.parent as ts.FunctionDeclaration;
     for (let i = 0; i < funcDecl.parameters.length; i++) {
       if (funcDecl.parameters[i].pos === varNode.pos) {
-        let param = funcDecl.parameters[i];
+        const param = funcDecl.parameters[i];
         varData.parameterIndex = i;
         varData.parameterFuncDeclPos = funcDecl.pos + 1;
         this.addTypePromise(varPos, param.name);
@@ -510,7 +514,7 @@ export class TypeVisitor {
   }
 
   private createBinaryExpressionPromise(varData, varNode, varPos) {
-    let binExpr = <ts.BinaryExpression>varNode.parent;
+    const binExpr = varNode.parent as ts.BinaryExpression;
     if (
       binExpr.left.kind === ts.SyntaxKind.Identifier &&
       binExpr.left.getText() === varNode.getText() &&
@@ -523,10 +527,10 @@ export class TypeVisitor {
         binExpr.right.kind === ts.SyntaxKind.ObjectLiteralExpression
       ) {
         varData.wasObjectLiteralAssigned = true;
-        let objLiteral = <ts.ObjectLiteralExpression>binExpr.right;
-        for (let propAssignment of objLiteral.properties
+        const objLiteral = binExpr.right as ts.ObjectLiteralExpression;
+        for (const propAssignment of objLiteral.properties
           .filter(p => p.kind === ts.SyntaxKind.PropertyAssignment)
-          .map(p => <ts.PropertyAssignment>p)) {
+          .map(p => p as ts.PropertyAssignment)) {
           this.addTypePromise(
             varPos,
             propAssignment.initializer,
@@ -538,19 +542,20 @@ export class TypeVisitor {
       if (
         binExpr.right &&
         binExpr.right.kind === ts.SyntaxKind.ArrayLiteralExpression
-      )
+      ) {
         varData.arrLiteralAssigned = true;
+      }
     }
   }
 
   private createPropertyAccessExpressionPromise(varData, varNode, varPos) {
-    let propAccess = <ts.PropertyAccessExpression>varNode.parent;
-    let propName = propAccess.name.getText();
+    const propAccess = varNode.parent as ts.PropertyAccessExpression;
+    const propName = propAccess.name.getText();
     if (
       propAccess.expression.pos === varNode.pos &&
       propAccess.parent.kind === ts.SyntaxKind.BinaryExpression
     ) {
-      let binExpr = <ts.BinaryExpression>propAccess.parent;
+      const binExpr = propAccess.parent as ts.BinaryExpression;
       if (
         binExpr.left.pos === propAccess.pos &&
         binExpr.operatorToken.kind === ts.SyntaxKind.EqualsToken
@@ -575,9 +580,10 @@ export class TypeVisitor {
         propAccess.parent &&
         propAccess.parent.kind === ts.SyntaxKind.CallExpression
       ) {
-        let call = <ts.CallExpression>propAccess.parent;
-        for (let arg of call.arguments)
+        const call = propAccess.parent as ts.CallExpression;
+        for (const arg of call.arguments) {
           this.addTypePromise(varPos, arg, TypePromiseKind.dynamicArrayOf);
+        }
       }
     }
     if (propName === "pop" || propName === "shift") {
@@ -586,21 +592,24 @@ export class TypeVisitor {
         propAccess.parent &&
         propAccess.parent.kind === ts.SyntaxKind.CallExpression
       ) {
-        let call = <ts.CallExpression>propAccess.parent;
-        if (call.arguments.length === 0)
+        const call = propAccess.parent as ts.CallExpression;
+        if (call.arguments.length === 0) {
           this.addTypePromise(varPos, call, TypePromiseKind.dynamicArrayOf);
+        }
       }
     }
     if (
       propAccess.expression.kind === ts.SyntaxKind.Identifier &&
       propName === "sort"
-    )
+    ) {
       varData.isDynamicArray = true;
+    }
     if (
       propAccess.expression.kind === ts.SyntaxKind.Identifier &&
       propName === "reverse"
-    )
+    ) {
       varData.isDynamicArray = true;
+    }
     if (
       propAccess.expression.kind === ts.SyntaxKind.Identifier &&
       propName === "splice"
@@ -610,10 +619,11 @@ export class TypeVisitor {
         propAccess.parent &&
         propAccess.parent.kind === ts.SyntaxKind.CallExpression
       ) {
-        let call = <ts.CallExpression>propAccess.parent;
+        const call = propAccess.parent as ts.CallExpression;
         if (call.arguments.length > 2) {
-          for (let arg of call.arguments.slice(2))
+          for (const arg of call.arguments.slice(2)) {
             this.addTypePromise(varPos, arg, TypePromiseKind.dynamicArrayOf);
+          }
         }
         if (call.arguments.length >= 2) {
           this.addTypePromise(varPos, call);
@@ -629,7 +639,7 @@ export class TypeVisitor {
         propAccess.parent &&
         propAccess.parent.kind === ts.SyntaxKind.CallExpression
       ) {
-        let call = <ts.CallExpression>propAccess.parent;
+        const call = propAccess.parent as ts.CallExpression;
         if (call.arguments.length >= 1) {
           this.addTypePromise(varPos, call);
         }
@@ -638,7 +648,7 @@ export class TypeVisitor {
   }
 
   private createElementAccessExpressionPromise(varData, varNode, varPos) {
-    let elemAccess = <ts.ElementAccessExpression>varNode.parent;
+    const elemAccess = varNode.parent as ts.ElementAccessExpression;
     if (elemAccess.expression.pos === varNode.pos) {
       let propName;
       let promiseKind;
@@ -660,7 +670,7 @@ export class TypeVisitor {
         elemAccess.parent &&
         elemAccess.parent.kind === ts.SyntaxKind.BinaryExpression
       ) {
-        let binExpr = <ts.BinaryExpression>elemAccess.parent;
+        const binExpr = elemAccess.parent as ts.BinaryExpression;
         if (
           binExpr.left.pos === elemAccess.pos &&
           binExpr.operatorToken.kind === ts.SyntaxKind.EqualsToken
@@ -678,7 +688,7 @@ export class TypeVisitor {
   }
 
   private createForOfStatementPromise(varData, varNode, varPos) {
-    let forOfStatement = <ts.ForOfStatement>varNode.parent;
+    const forOfStatement = varNode.parent as ts.ForOfStatement;
     if (
       forOfStatement.initializer.kind === ts.SyntaxKind.Identifier &&
       forOfStatement.initializer.pos === varNode.pos
@@ -692,7 +702,7 @@ export class TypeVisitor {
   }
 
   private createForInStatementPromise(varData, varNode, varPos) {
-    let forInStatement = <ts.ForInStatement>varNode.parent;
+    const forInStatement = varNode.parent as ts.ForInStatement;
     if (
       forInStatement.initializer.kind === ts.SyntaxKind.Identifier &&
       forInStatement.initializer.pos === varNode.pos
@@ -757,16 +767,17 @@ export class TypeVisitor {
     do {
       somePromisesAreResolved = this.tryResolvePromises();
 
-      for (let k of Object.keys(this.variables).map(k => +k)) {
-        let promises = Object.keys(this.variablesData[k].typePromises).map(
+      for (const k of Object.keys(this.variables).map(k => +k)) {
+        const promises = Object.keys(this.variablesData[k].typePromises).map(
           p => this.variablesData[k].typePromises[p]
         );
-        let variableBestTypes = promises
+        const variableBestTypes = promises
           .filter(p => p.promiseKind != TypePromiseKind.propertyType)
           .map(p => p.bestType);
 
-        if (this.variables[k].type)
+        if (this.variables[k].type) {
           variableBestTypes.push(this.variables[k].type);
+        }
 
         let varType = variableBestTypes.length
           ? variableBestTypes.reduce((c, n) => this.mergeTypes(c, n).type)
@@ -778,18 +789,20 @@ export class TypeVisitor {
             this.variablesData[k].isDynamicArray &&
             !this.variablesData[k].parameterFuncDeclPos &&
             this.variablesData[k].arrLiteralAssigned
-          )
+          ) {
             this.variables[k].requiresAllocation = true;
+          }
           varType.isDynamicArray =
             varType.isDynamicArray || this.variablesData[k].isDynamicArray;
         } else if (varType instanceof StructType) {
-          if (this.variablesData[k].wasObjectLiteralAssigned)
+          if (this.variablesData[k].wasObjectLiteralAssigned) {
             this.variables[k].requiresAllocation = true;
-          let keys1 = Object.keys(this.variablesData[k].addedProperties);
-          let keys2 = Object.keys(this.variablesData[k].varDeclPosByPropName);
-          let allPropKeys = keys1.concat(keys2);
-          for (let propKey of allPropKeys) {
-            let propVarPos = this.variablesData[k].varDeclPosByPropName[
+          }
+          const keys1 = Object.keys(this.variablesData[k].addedProperties);
+          const keys2 = Object.keys(this.variablesData[k].varDeclPosByPropName);
+          const allPropKeys = keys1.concat(keys2);
+          for (const propKey of allPropKeys) {
+            const propVarPos = this.variablesData[k].varDeclPosByPropName[
               propKey
             ];
             const type1 = propVarPos && this.variables[propVarPos].type;
@@ -797,13 +810,14 @@ export class TypeVisitor {
             varType.properties[propKey] = this.mergeTypes(type1, type2).type;
           }
         } else if (varType instanceof DictType) {
-          if (!this.variablesData[k].parameterFuncDeclPos)
+          if (!this.variablesData[k].parameterFuncDeclPos) {
             this.variables[k].requiresAllocation = true;
+          }
           let elemType = varType.elementType;
           const keys1 = Object.keys(this.variablesData[k].addedProperties);
           const keys2 = Object.keys(this.variablesData[k].varDeclPosByPropName);
-          let allPropKeys = keys1.concat(keys2);
-          for (let propKey of allPropKeys) {
+          const allPropKeys = keys1.concat(keys2);
+          for (const propKey of allPropKeys) {
             const propVarPos = this.variablesData[k].varDeclPosByPropName[
               propKey
             ];
@@ -819,11 +833,11 @@ export class TypeVisitor {
       }
     } while (somePromisesAreResolved);
 
-    for (let k of Object.keys(this.variables).map(k => +k)) {
-      let varInfo = this.variables[k];
-      for (let ref of varInfo.references) {
+    for (const k of Object.keys(this.variables).map(k => +k)) {
+      const varInfo = this.variables[k];
+      for (const ref of varInfo.references) {
         if (ref.parent.kind === ts.SyntaxKind.BinaryExpression) {
-          const binaryExpression = <ts.BinaryExpression>ref.parent;
+          const binaryExpression = ref.parent as ts.BinaryExpression;
           if (
             binaryExpression.operatorToken.kind === ts.SyntaxKind.SlashToken
           ) {
@@ -831,16 +845,17 @@ export class TypeVisitor {
           }
         }
         if (ref.parent.kind === ts.SyntaxKind.PropertyAssignment) {
-          let propAssignment = <ts.PropertyAssignment>ref.parent;
+          const propAssignment = ref.parent as ts.PropertyAssignment;
           if (
             propAssignment.initializer &&
             propAssignment.initializer.kind ==
               ts.SyntaxKind.ArrayLiteralExpression
           ) {
-            let type = this.inferNodeType(ref.parent.parent);
-            if (type && type instanceof StructType)
+            const type = this.inferNodeType(ref.parent.parent);
+            if (type && type instanceof StructType) {
               this.arrayLiteralsTypes[propAssignment.initializer.pos] =
                 type.properties[varInfo.name];
+            }
           }
         }
       }
@@ -851,42 +866,43 @@ export class TypeVisitor {
     let somePromisesAreResolved = false;
 
     /** Function parameters */
-    for (let varPos of Object.keys(this.variables).map(k => +k)) {
-      let funcDeclPos = this.variablesData[varPos].parameterFuncDeclPos;
+    for (const varPos of Object.keys(this.variables).map(k => +k)) {
+      const funcDeclPos = this.variablesData[varPos].parameterFuncDeclPos;
       if (funcDeclPos && this.functionCallsData[funcDeclPos]) {
-        let paramIndex = this.variablesData[varPos].parameterIndex;
-        let functionCallsPromises = this.functionCallsData[funcDeclPos][
+        const paramIndex = this.variablesData[varPos].parameterIndex;
+        const functionCallsPromises = this.functionCallsData[funcDeclPos][
           paramIndex
         ];
-        let variablePromises = this.variablesData[varPos].typePromises;
-        for (let id in functionCallsPromises) {
+        const variablePromises = this.variablesData[varPos].typePromises;
+        for (const id in functionCallsPromises) {
           if (!variablePromises[id]) {
             variablePromises[id] = functionCallsPromises[id];
             somePromisesAreResolved = true;
           }
-          let currentType = variablePromises[id].bestType || PointerType;
-          let resolvedType = this.inferNodeType(
+          const currentType = variablePromises[id].bestType || PointerType;
+          const resolvedType = this.inferNodeType(
             functionCallsPromises[id].associatedNode
           );
-          let mergeResult = this.mergeTypes(currentType, resolvedType);
-          if (mergeResult.replaced) somePromisesAreResolved = true;
+          const mergeResult = this.mergeTypes(currentType, resolvedType);
+          if (mergeResult.replaced) { somePromisesAreResolved = true; }
           variablePromises[id].bestType = mergeResult.type;
         }
       }
     }
 
     /** Variables */
-    for (let varPos of Object.keys(this.variables).map(k => +k)) {
-      for (let promiseId in this.variablesData[varPos].typePromises) {
-        let promise = this.variablesData[varPos].typePromises[promiseId];
-        let resolvedType =
+    for (const varPos of Object.keys(this.variables).map(k => +k)) {
+      for (const promiseId in this.variablesData[varPos].typePromises) {
+        const promise = this.variablesData[varPos].typePromises[promiseId];
+        const resolvedType =
           this.inferNodeType(promise.associatedNode) || PointerType;
 
         let finalType = resolvedType;
         if (promise.promiseKind === TypePromiseKind.dynamicArrayOf) {
           // nested arrays should also be dynamic
-          if (resolvedType instanceof ArrayType)
+          if (resolvedType instanceof ArrayType) {
             resolvedType.isDynamicArray = true;
+          }
           finalType = new ArrayType(resolvedType, 0, true);
         } else if (promise.promiseKind === TypePromiseKind.arrayOf) {
           finalType = new ArrayType(resolvedType, 0, false);
@@ -908,24 +924,24 @@ export class TypeVisitor {
 
         let bestType = promise.bestType;
         if (promise.promiseKind === TypePromiseKind.propertyType) {
-          let propVarPos = this.variablesData[varPos].varDeclPosByPropName[
+          const propVarPos = this.variablesData[varPos].varDeclPosByPropName[
             promise.propertyName
           ];
-          if (propVarPos) bestType = this.variables[propVarPos].type;
-          else
+          if (propVarPos) { bestType = this.variables[propVarPos].type; } else {
             bestType = this.variablesData[varPos].addedProperties[
               promise.propertyName
             ];
+          }
         }
 
-        let mergeResult = this.mergeTypes(bestType, finalType);
+        const mergeResult = this.mergeTypes(bestType, finalType);
         if (mergeResult.replaced) {
           somePromisesAreResolved = true;
           this.variablesData[varPos].typeResolutionLog.push({
             prop: promise.propertyName,
             result: mergeResult.type,
-            finalType: finalType,
-            promise: promise
+            finalType,
+            promise
           });
         }
         promise.bestType = mergeResult.type;
@@ -934,13 +950,13 @@ export class TypeVisitor {
           promise.promiseKind === TypePromiseKind.propertyType &&
           mergeResult.replaced
         ) {
-          let propVarPos = this.variablesData[varPos].varDeclPosByPropName[
+          const propVarPos = this.variablesData[varPos].varDeclPosByPropName[
             promise.propertyName
           ];
-          if (propVarPos) this.variables[propVarPos].type = mergeResult.type;
-          else
+          if (propVarPos) { this.variables[propVarPos].type = mergeResult.type; } else {
             this.variablesData[varPos].addedProperties[promise.propertyName] =
               mergeResult.type;
+          }
         }
       }
     }
@@ -950,13 +966,13 @@ export class TypeVisitor {
 
   public determineArrayType(arrLiteral: ts.ArrayLiteralExpression): ArrayType {
     let elementType: NativeType = PointerType;
-    let cap = arrLiteral.elements.length;
+    const cap = arrLiteral.elements.length;
     if (cap > 0) {
       if (
         arrLiteral.elements[0].kind === ts.SyntaxKind.ArrayLiteralExpression
       ) {
         elementType = this.determineArrayType(
-          <ts.ArrayLiteralExpression>arrLiteral.elements[0]
+          arrLiteral.elements[0] as ts.ArrayLiteralExpression
         );
       } else {
         elementType = this.inferNodeType(arrLiteral.elements[0]);
@@ -968,7 +984,7 @@ export class TypeVisitor {
       }
     }
 
-    let type = new ArrayType(elementType, cap, false);
+    const type = new ArrayType(elementType, cap, false);
     this.arrayLiteralsTypes[arrLiteral.pos] = type;
     return type;
   }
@@ -982,7 +998,7 @@ export class TypeVisitor {
   }
 
   public getVariableType(pos: number) {
-    let varInfo = this.variables[pos];
+    const varInfo = this.variables[pos];
     return varInfo && varInfo.type;
   }
 
@@ -992,52 +1008,44 @@ export class TypeVisitor {
     promiseKind: TypePromiseKind = TypePromiseKind.variable,
     propName: string = null
   ) {
-    if (!associatedNode) return;
+    if (!associatedNode) { return; }
     if (associatedNode.kind === ts.SyntaxKind.ConditionalExpression) {
-      let ternary = <ts.ConditionalExpression>associatedNode;
+      const ternary = associatedNode as ts.ConditionalExpression;
       this.addTypePromise(varPos, ternary.whenTrue, promiseKind, propName);
       this.addTypePromise(varPos, ternary.whenFalse, promiseKind, propName);
       return;
     }
 
-    let promiseId = associatedNode.pos + "_" + associatedNode.end;
-    let promise = new TypePromise(associatedNode, promiseKind, propName);
+    const promiseId = associatedNode.pos + "_" + associatedNode.end;
+    const promise = new TypePromise(associatedNode, promiseKind, propName);
     this.variablesData[varPos].typePromises[promiseId] = promise;
   }
 
   private mergeTypes(currentType: NativeType, newType: NativeType) {
-    let newResult = { type: newType, replaced: true };
-    let currentResult = { type: currentType, replaced: false };
+    const newResult = { type: newType, replaced: true };
+    const currentResult = { type: currentType, replaced: false };
 
-    if (!currentType && newType) return newResult;
-    else if (!newType) return currentResult;
-    else if (this.getTypeString(currentType) === this.getTypeString(newType))
+    if (!currentType && newType) { return newResult; } else if (!newType) { return currentResult; } else if (this.getTypeString(currentType) === this.getTypeString(newType)) {
       return currentResult;
-    else if (currentType === "void") return newResult;
-    else if (newType === "void") return currentResult;
-    else if (currentType === PointerType) return newResult;
-    else if (newType === PointerType) return currentResult;
-    else if (currentType === UniversalType) return newResult;
-    else if (newType === UniversalType) return currentResult;
-    else if (currentType === IntegerType && newType === FloatType)
+         } else if (currentType === "void") { return newResult; } else if (newType === "void") { return currentResult; } else if (currentType === PointerType) { return newResult; } else if (newType === PointerType) { return currentResult; } else if (currentType === UniversalType) { return newResult; } else if (newType === UniversalType) { return currentResult; } else if (currentType === IntegerType && newType === FloatType) {
       return newResult;
-    else if (currentType === FloatType && newType === IntegerType)
+         } else if (currentType === FloatType && newType === IntegerType) {
       return currentResult;
-    else if (currentType instanceof ArrayType && newType instanceof ArrayType) {
-      let cap = Math.max(newType.capacity, currentType.capacity);
+         } else if (currentType instanceof ArrayType && newType instanceof ArrayType) {
+      const cap = Math.max(newType.capacity, currentType.capacity);
       newType.capacity = cap;
       currentType.capacity = cap;
-      let isDynamicArray = newType.isDynamicArray || currentType.isDynamicArray;
+      const isDynamicArray = newType.isDynamicArray || currentType.isDynamicArray;
       newType.isDynamicArray = isDynamicArray;
       currentType.isDynamicArray = isDynamicArray;
 
-      let mergeResult = this.mergeTypes(
+      const mergeResult = this.mergeTypes(
         currentType.elementType,
         newType.elementType
       );
       newType.elementType = mergeResult.type;
       currentType.elementType = mergeResult.type;
-      if (mergeResult.replaced) return newResult;
+      if (mergeResult.replaced) { return newResult; }
 
       return currentResult;
     } else if (
@@ -1047,8 +1055,9 @@ export class TypeVisitor {
       if (
         newType.elementType === currentType.elementType ||
         currentType.elementType === PointerType
-      )
+      ) {
         return newResult;
+      }
     } else if (
       currentType instanceof ArrayType &&
       newType instanceof DictType
@@ -1056,8 +1065,9 @@ export class TypeVisitor {
       if (
         newType.elementType === currentType.elementType ||
         newType.elementType === PointerType
-      )
+      ) {
         return currentResult;
+      }
     } else if (
       currentType instanceof StructType &&
       newType instanceof DictType
@@ -1067,8 +1077,9 @@ export class TypeVisitor {
       if (
         newType.elementType != PointerType &&
         currentType.elementType === PointerType
-      )
+      ) {
         return newResult;
+      }
 
       return currentResult;
     }

@@ -1,7 +1,7 @@
+import { expect, use } from "chai";
 import "mocha";
 import { assertArrayResult } from "../../utils/assert";
 import { evaluator } from "../../utils/evaluator";
-import { expect, use } from "chai";
 
 describe("Array Methods", () => {
   describe("push", () => {

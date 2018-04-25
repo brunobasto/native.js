@@ -1,10 +1,10 @@
-import * as ts from "typescript";
-import { CExpression } from "nativejs-compiler";
-import { TypeRegistry, IntegerType } from "nativejs-compiler";
+import { INativeExpression } from "nativejs-compiler";
+import { IntegerType, TypeRegistry } from "nativejs-compiler";
 import { CodeTemplate, CodeTemplateFactory } from "nativejs-compiler";
 import { HeaderRegistry } from "nativejs-compiler";
 import { IScope } from "nativejs-compiler";
 import { Plugin } from "nativejs-compiler";
+import * as ts from "typescript";
 import { AdcHeaderType } from "../headers/adc";
 
 @CodeTemplate(`ADCsingleREAD({arguments})`)
@@ -12,7 +12,7 @@ class AnalogReadTemplate {
   public arguments: any[] = [];
 
   constructor(scope: IScope, node: ts.Node) {
-    const call = <ts.CallExpression>node;
+    const call = node as ts.CallExpression;
 
     if (call.arguments.length === 0) {
       throw new Error("Analog.read needs an argument.");
@@ -27,24 +27,24 @@ class AnalogReadTemplate {
 }
 
 export class AnalogReadPlugin implements Plugin {
-  execute(scope: IScope, node: ts.Node, handler: Object): CExpression {
-    const call = <ts.CallExpression>node;
+  public execute(scope: IScope, node: ts.Node): INativeExpression {
+    const call = node as ts.CallExpression;
 
     return new AnalogReadTemplate(scope, call);
   }
 
-  processTypes(node: ts.Node) {
-    const call = <ts.CallExpression>node;
+  public processTypes(node: ts.Node) {
+    const call = node as ts.CallExpression;
 
     TypeRegistry.declareNodeType(call, IntegerType);
   }
 
-  matchesNode(node: ts.Node): boolean {
-    if (node.kind != ts.SyntaxKind.CallExpression) {
+  public matchesNode(node: ts.Node): boolean {
+    if (node.kind !== ts.SyntaxKind.CallExpression) {
       return false;
     }
 
-    const call = <ts.CallExpression>node;
+    const call = node as ts.CallExpression;
 
     return (
       call.expression.kind === ts.SyntaxKind.PropertyAccessExpression &&

@@ -1,18 +1,18 @@
-import { CExpression } from "nativejs-compiler";
+import { INativeExpression } from "nativejs-compiler";
 import { CodeTemplate } from "nativejs-compiler";
 import { Header, HeaderType } from "nativejs-compiler";
 
 export class ArduinoHeaderType implements HeaderType {
-  NAME: string = "ArduinoHeaderType";
-  UNIQUE: boolean = true;
+  public NAME: string = "ArduinoHeaderType";
+  public UNIQUE: boolean = true;
 }
 
 export class ArduinoHeader implements Header {
-  getType() {
+  public getType() {
     return ArduinoHeaderType;
   }
 
-  getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     return new Template();
   }
 }

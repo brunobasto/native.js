@@ -1,26 +1,26 @@
-import { CExpression } from "nativejs-compiler";
+import { INativeExpression } from "nativejs-compiler";
 import { CodeTemplate } from "nativejs-compiler";
-import { Header, HeaderType, HeaderRegistry } from "nativejs-compiler";
-import { MainRegistry, Main } from "nativejs-compiler";
+import { Header, HeaderRegistry, HeaderType } from "nativejs-compiler";
+import { Main, MainRegistry } from "nativejs-compiler";
 import { IOHeaderType } from "./io";
 
 export class AdcMainInitializer implements Main {
-  getTemplate() {
+  public getTemplate() {
     return new MainTemplate();
   }
 }
 
 export class AdcHeaderType implements HeaderType {
-  NAME: string = "AdcHeaderType";
-  UNIQUE: boolean = true;
+  public NAME: string = "AdcHeaderType";
+  public UNIQUE: boolean = true;
 }
 
 export class AdcHeader implements Header {
-  getType() {
+  public getType() {
     return AdcHeaderType;
   }
 
-  getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     HeaderRegistry.declareDependency(IOHeaderType);
     MainRegistry.declareDependency(AdcMainInitializer);
 

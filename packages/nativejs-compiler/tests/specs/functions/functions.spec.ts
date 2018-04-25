@@ -1,7 +1,7 @@
+import { expect, use } from "chai";
 import "mocha";
 import { assertStringResult } from "../../utils/assert";
 import { evaluator } from "../../utils/evaluator";
-import { expect, use } from "chai";
 
 describe("Functions", () => {
   it("should allow declaring named functions with integer return type", done => {

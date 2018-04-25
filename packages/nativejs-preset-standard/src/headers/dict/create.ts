@@ -2,12 +2,12 @@ import {
   ArrayCreateHeaderType,
   ArrayPushHeaderType,
   ArrayTypeHeaderType,
-  CExpression,
   CodeTemplate,
   DictCreateHeaderType,
   Header,
   HeaderRegistry,
   HeaderType,
+  INativeExpression,
   Int16HeaderType,
   StdioHeaderType,
   StdlibHeaderType,
@@ -19,7 +19,7 @@ export class StandardDictCreateHeader implements Header {
     return DictCreateHeaderType;
   }
 
-  public getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     HeaderRegistry.declareDependency(StdlibHeaderType);
     HeaderRegistry.declareDependency(ArrayTypeHeaderType);
     HeaderRegistry.declareDependency(ArrayCreateHeaderType);
@@ -30,6 +30,7 @@ export class StandardDictCreateHeader implements Header {
   }
 }
 
+/* tslint:disable:max-line-length */
 @CodeTemplate(`
 #define DICT(T) struct { \\
     ARRAY(const char *) index; \\
@@ -93,3 +94,4 @@ int16_t tmp_dict_pos;
 } while(0)
 `)
 class Template {}
+/* tslint:enable:max-line-length */

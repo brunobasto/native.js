@@ -1,8 +1,8 @@
 import {
-  CExpression,
   CodeTemplate,
   Header,
   HeaderRegistry,
+  INativeExpression,
   Int16HeaderType,
   IScope,
   StringPositionHeaderType
@@ -12,7 +12,7 @@ export class StandardStringPositionHeader implements Header {
   public getType() {
     return StringPositionHeaderType;
   }
-  public getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     HeaderRegistry.declareDependency(Int16HeaderType);
 
     return new Template();

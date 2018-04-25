@@ -6,7 +6,7 @@ export class ScopeUtil {
     while (parentFunc && parentFunc.kind != ts.SyntaxKind.FunctionDeclaration) {
       parentFunc = parentFunc.parent;
     }
-    return <ts.FunctionDeclaration>parentFunc;
+    return parentFunc as ts.FunctionDeclaration;
   }
 
   public static findParentCallExpression(node: ts.Node): ts.CallExpression {
@@ -14,13 +14,13 @@ export class ScopeUtil {
     while (parentCall && parentCall.kind != ts.SyntaxKind.CallExpression) {
       parentCall = parentCall.parent;
     }
-    return <ts.CallExpression>parentCall;
+    return parentCall as ts.CallExpression;
   }
 
   public static isChildOfBitwiseOperation(node: ts.Node) {
     let parent = this.findParentWithKind(node, ts.SyntaxKind.BinaryExpression);
     while (parent) {
-      const parentBinary = <ts.BinaryExpression>parent;
+      const parentBinary = parent as ts.BinaryExpression;
       if (parentBinary.operatorToken.kind === ts.SyntaxKind.AmpersandToken) {
         return true;
       }
@@ -40,7 +40,7 @@ export class ScopeUtil {
     return parent;
   }
 
-  static isOutsideScope(scope: ts.Node, node: ts.Node) {
+  public static isOutsideScope(scope: ts.Node, node: ts.Node) {
     let parent = node;
     while (parent) {
       if (parent.pos === scope.pos) {
@@ -51,7 +51,7 @@ export class ScopeUtil {
     return true;
   }
 
-  static isInsideScope(scope: ts.Node, node: ts.Node) {
+  public static isInsideScope(scope: ts.Node, node: ts.Node) {
     let parent = node;
     while (parent) {
       if (parent === scope) {
@@ -62,7 +62,7 @@ export class ScopeUtil {
     return false;
   }
 
-  static isInsideLoop(node: ts.Node) {
+  public static isInsideLoop(node: ts.Node) {
     let parent = node;
     while (
       parent &&
@@ -77,7 +77,7 @@ export class ScopeUtil {
     return !!parent;
   }
 
-  static getScopeNode(node: ts.Node): ts.Node {
+  public static getScopeNode(node: ts.Node): ts.Node {
     if (node === null) {
       return null;
     }
@@ -95,7 +95,7 @@ export class ScopeUtil {
       parent = parent.parent;
     }
     if (parent && parent.kind === ts.SyntaxKind.IfStatement) {
-      const ifStatement = <ts.IfStatement>parent;
+      const ifStatement = parent as ts.IfStatement;
 
       if (this.isInsideScope(ifStatement.thenStatement, node)) {
         return ifStatement.thenStatement;

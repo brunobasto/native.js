@@ -1,18 +1,18 @@
+import { exec } from "child_process";
+import debug from "debug";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import debug from "debug";
-import { exec } from "child_process";
 import { fileSync, tmpNameSync } from "tmp";
 
 const log = debug("gcc");
 
 const gcc = (source, callback) => {
   const sourceTempFile = fileSync({
-    keep: process.env["DEBUG"],
+    keep: process.env.DEBUG,
     postfix: ".c"
   });
-  let sourceFileName = sourceTempFile.name;
+  const sourceFileName = sourceTempFile.name;
   fs.writeFile(sourceFileName, source, () => {
     log("compiling file", sourceFileName);
     const template = path.join(os.tmpdir(), "tmp-XXXXXX");

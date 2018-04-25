@@ -1,22 +1,22 @@
-import * as ts from "typescript";
-import { CExpression } from "nativejs-compiler";
+import { INativeExpression } from "nativejs-compiler";
 import { CodeTemplate, CodeTemplateFactory } from "nativejs-compiler";
 import { HeaderRegistry, StdioHeaderType } from "nativejs-compiler";
 import { IScope } from "nativejs-compiler";
 import { Plugin } from "nativejs-compiler";
+import { IntegerType, TypeRegistry } from "nativejs-compiler";
+import * as ts from "typescript";
 import { UARTHeaderType } from "../headers/uart";
-import { TypeRegistry, IntegerType } from "nativejs-compiler";
 
 import { ConsoleLogPlugin } from "nativejs-preset-standard/src/plugins/console";
 
 export class SerialConsoleLogPlugin extends ConsoleLogPlugin {
-  execute(scope: IScope, node: ts.Node): CExpression {
+  public execute(scope: IScope, node: ts.Node): INativeExpression {
     HeaderRegistry.declareDependency(UARTHeaderType);
 
     return super.execute(scope, node);
   }
 
-  processTypes(node: ts.Node) {
+  public processTypes(node: ts.Node) {
     TypeRegistry.declareNodeType(node, "void");
   }
 }
@@ -38,7 +38,7 @@ class SerialConsoleReadTemplate {
 }
 
 export class SerialConsoleReadPlugin implements Plugin {
-  public execute(scope: IScope, node: ts.Node, handler: Object): CExpression {
+  public execute(scope: IScope, node: ts.Node): INativeExpression {
     const call = node as ts.CallExpression;
 
     HeaderRegistry.declareDependency(StdioHeaderType);
@@ -49,7 +49,7 @@ export class SerialConsoleReadPlugin implements Plugin {
   public processTypes(node: ts.Node) {}
 
   public matchesNode(node: ts.Node): boolean {
-    if (node.kind != ts.SyntaxKind.CallExpression) {
+    if (node.kind !== ts.SyntaxKind.CallExpression) {
       return false;
     }
 

@@ -1,13 +1,13 @@
-import { CExpression } from "../nodes/expressions";
+import { INativeExpression } from "../nodes/expressions";
 
 const declaredMains = new Set<new () => Main>();
 
 export interface Main {
-  getTemplate(): CExpression;
+  getTemplate(): INativeExpression;
 }
 
 export class MainRegistry {
-  public static getDeclaredDependencies(): CExpression[] {
+  public static getDeclaredDependencies(): INativeExpression[] {
     return [...declaredMains].map(main => new main().getTemplate());
   }
 

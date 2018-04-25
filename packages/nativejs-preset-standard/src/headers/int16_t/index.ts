@@ -1,7 +1,7 @@
 import {
-  CExpression,
   CodeTemplate,
   Header,
+  INativeExpression,
   Int16HeaderType,
   IScope
 } from "nativejs-compiler";
@@ -10,7 +10,7 @@ export class StandardInt16Header implements Header {
   public getType() {
     return Int16HeaderType;
   }
-  public getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     return new Template();
   }
 }

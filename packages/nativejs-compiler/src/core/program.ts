@@ -1,56 +1,56 @@
 import * as ts from "typescript";
-import { MemoryManager } from "./memory";
-import { ArrayType, StructType } from "./types/NativeTypes";
-import { TypeRegistry } from "./types/TypeRegistry";
-import { TypeVisitor } from "./types/TypeVisitor";
-import { TypeInferencer } from "./types/TypeInferencer";
-import { CodeTemplate, CodeTemplateFactory } from "./template";
 import { CFunction, CFunctionPrototype } from "../nodes/function";
 import { CVariable, CVariableDestructors } from "../nodes/variable";
-import { Preset } from "./preset";
-import { Plugin, PluginRegistry } from "./PluginRegistry";
-import {
-  Header,
-  HeaderRegistry,
-  BooleanHeaderType,
-  Uint8HeaderType,
-  StructHeaderType
-} from "./header";
-import { Main, MainRegistry } from "./main";
 import { Bottom, BottomRegistry } from "./bottom";
 import { GarbageCollector } from "./gc";
+import {
+  BooleanHeaderType,
+  Header,
+  HeaderRegistry,
+  StructHeaderType,
+  Uint8HeaderType
+} from "./header";
+import { Main, MainRegistry } from "./main";
+import { MemoryManager } from "./memory";
+import { Plugin, PluginRegistry } from "./PluginRegistry";
+import { Preset } from "./preset";
+import { CodeTemplate, CodeTemplateFactory } from "./template";
 import { TemporaryVariables } from "./temporary/TemporaryVariables";
+import { ArrayType, StructType } from "./types/NativeTypes";
+import { TypeInferencer } from "./types/TypeInferencer";
+import { TypeRegistry } from "./types/TypeRegistry";
+import { TypeVisitor } from "./types/TypeVisitor";
 
 // these imports are here only because it is necessary to run decorators
-import "../nodes/statements";
-import "../nodes/expressions";
 import "../nodes/call";
+import "../nodes/expressions";
 import "../nodes/literals";
+import "../nodes/statements";
 
-import "../standard/array/forEach";
-import "../standard/array/push";
-import "../standard/array/pop";
-import "../standard/array/unshift";
-import "../standard/array/shift";
-import "../standard/array/splice";
-import "../standard/array/slice";
 import "../standard/array/concat";
-import "../standard/array/join";
+import "../standard/array/forEach";
 import "../standard/array/indexOf";
+import "../standard/array/join";
 import "../standard/array/lastIndexOf";
-import "../standard/array/sort";
+import "../standard/array/pop";
+import "../standard/array/push";
 import "../standard/array/reverse";
+import "../standard/array/shift";
+import "../standard/array/slice";
+import "../standard/array/sort";
+import "../standard/array/splice";
+import "../standard/array/unshift";
 
-import "../standard/string/search";
-import "../standard/string/charCodeAt";
 import "../standard/string/charAt";
+import "../standard/string/charCodeAt";
 import "../standard/string/concat";
-import "../standard/string/substring";
-import "../standard/string/slice";
-import "../standard/string/toString";
 import "../standard/string/indexOf";
 import "../standard/string/lastIndexOf";
 import "../standard/string/match";
+import "../standard/string/search";
+import "../standard/string/slice";
+import "../standard/string/substring";
+import "../standard/string/toString";
 
 export interface IScope {
   parent: IScope;
@@ -61,15 +61,15 @@ export interface IScope {
 }
 
 class HeaderFlags {
-  js_var: boolean = false;
-  array_int16_t_cmp: boolean = false;
-  array_str_cmp: boolean = false;
-  gc_iterator: boolean = false;
-  gc_iterator2: boolean = false;
-  str_char_code_at: boolean = false;
-  str_slice: boolean = false;
-  atoi: boolean = false;
-  parseInt: boolean = false;
+  public js_var: boolean = false;
+  public array_int16_t_cmp: boolean = false;
+  public array_str_cmp: boolean = false;
+  public gc_iterator: boolean = false;
+  public gc_iterator2: boolean = false;
+  public str_char_code_at: boolean = false;
+  public str_slice: boolean = false;
+  public atoi: boolean = false;
+  public parseInt: boolean = false;
 }
 
 @CodeTemplate(`
@@ -193,15 +193,15 @@ export class CProgram implements IScope {
     collectedHeaders: Header[],
     collectedPlugins: Plugin[]
   ) {
-    for (let plugin of preset.getPlugins()) {
+    for (const plugin of preset.getPlugins()) {
       collectedPlugins.push(plugin);
     }
 
-    for (let header of preset.getHeaders()) {
+    for (const header of preset.getHeaders()) {
       collectedHeaders.push(header);
     }
 
-    for (let p of preset.getPresets()) {
+    for (const p of preset.getPresets()) {
       this.resolvePreset(p, collectedHeaders, collectedPlugins);
     }
   }
@@ -227,15 +227,15 @@ export class CProgram implements IScope {
     const collectedPlugins: Plugin[] = [];
     const collectedHeaders: Header[] = [];
 
-    for (let preset of presets) {
+    for (const preset of presets) {
       this.resolvePreset(preset, collectedHeaders, collectedPlugins);
     }
 
-    for (let header of collectedHeaders) {
+    for (const header of collectedHeaders) {
       HeaderRegistry.registerHeader(header.getType(), header);
     }
 
-    for (let plugin of collectedPlugins) {
+    for (const plugin of collectedPlugins) {
       PluginRegistry.registerPlugin(plugin);
     }
 
@@ -253,19 +253,19 @@ export class CProgram implements IScope {
     HeaderRegistry.declareDependency(BooleanHeaderType);
     HeaderRegistry.declareDependency(Uint8HeaderType);
 
-    for (let source of sourceFiles) {
+    for (const source of sourceFiles) {
       this.memoryManager.preprocessTemporaryVariables(source);
     }
 
-    for (let source of sourceFiles) {
-      for (let s of source.statements) {
-        if (s.kind === ts.SyntaxKind.FunctionDeclaration)
-          this.functions.push(new CFunction(this, <any>s));
-        else this.statements.push(CodeTemplateFactory.createForNode(this, s));
+    for (const source of sourceFiles) {
+      for (const s of source.statements) {
+        if (s.kind === ts.SyntaxKind.FunctionDeclaration) {
+          this.functions.push(new CFunction(this, s as any));
+        } else { this.statements.push(CodeTemplateFactory.createForNode(this, s)); }
       }
     }
 
-    let structs = this.typeVisitor.getDeclaredStructs();
+    const structs = this.typeVisitor.getDeclaredStructs();
 
     structs.forEach((s: any) => {
       HeaderRegistry.declareDependency(StructHeaderType, {
@@ -274,7 +274,7 @@ export class CProgram implements IScope {
       });
     });
 
-    let functionPrototypes = this.typeVisitor.getFunctionPrototypes();
+    const functionPrototypes = this.typeVisitor.getFunctionPrototypes();
 
     this.functionPrototypes = functionPrototypes.map(
       fp => new CFunctionPrototype(this, fp)

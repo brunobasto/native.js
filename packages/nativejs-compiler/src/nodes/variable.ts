@@ -1,27 +1,27 @@
 import * as ts from "typescript";
-import { CodeTemplate, CodeTemplateFactory } from "../core/template";
+import {
+  ArrayCreateHeaderType,
+  ArrayPushHeaderType,
+  AssertHeaderType,
+  DictCreateHeaderType,
+  HeaderRegistry,
+  Int16HeaderType,
+  StdlibHeaderType,
+  Uint8HeaderType
+} from "../core/header";
 import { IScope } from "../core/program";
+import { CodeTemplate, CodeTemplateFactory } from "../core/template";
 import {
   ArrayType,
-  StructType,
-  DictType,
-  StringType,
-  IntegerType,
   BooleanType,
-  NativeType
+  DictType,
+  IntegerType,
+  NativeType,
+  StringType,
+  StructType
 } from "../core/types/NativeTypes";
 import { AssignmentHelper, CAssignment } from "./assignment";
 import { CElementAccess, CSimpleElementAccess } from "./elementaccess";
-import {
-  HeaderRegistry,
-  Uint8HeaderType,
-  Int16HeaderType,
-  ArrayCreateHeaderType,
-  ArrayPushHeaderType,
-  DictCreateHeaderType,
-  StdlibHeaderType,
-  AssertHeaderType
-} from "../core/header";
 
 @CodeTemplate(`{declarations}`, ts.SyntaxKind.VariableStatement)
 export class CVariableStatement {
@@ -54,23 +54,25 @@ export class CVariableDeclaration {
   public initializer: CAssignment | string = "";
 
   constructor(scope: IScope, varDecl: ts.VariableDeclaration) {
-    let varInfo = scope.root.typeVisitor.getVariableInfo(
-      <ts.Identifier>varDecl.name
+    const varInfo = scope.root.typeVisitor.getVariableInfo(
+      varDecl.name as ts.Identifier
     );
     scope.variables.push(new CVariable(scope, varInfo.name, varInfo.type));
-    if (varInfo.requiresAllocation)
+    if (varInfo.requiresAllocation) {
       this.allocator = new CVariableAllocation(
         scope,
         varInfo.name,
         varInfo.type,
         varDecl.name
       );
-    if (varDecl.initializer)
+    }
+    if (varDecl.initializer) {
       this.initializer = AssignmentHelper.create(
         scope,
         varDecl.name,
         varDecl.initializer
       );
+    }
   }
 }
 
@@ -202,7 +204,7 @@ export class CVariableDestructors {
   }
 }
 
-interface CVariableOptions {
+interface ICVariableOptions {
   removeStorageSpecifier?: boolean;
   initializer?: string;
 }
@@ -213,29 +215,32 @@ export class CVariable {
     scope: IScope,
     public name: string,
     private typeSource,
-    options?: CVariableOptions
+    options?: ICVariableOptions
   ) {
-    let typeString = scope.root.typeVisitor.getTypeString(typeSource);
+    const typeString = scope.root.typeVisitor.getTypeString(typeSource);
 
     if (typeString === IntegerType) {
       HeaderRegistry.declareDependency(Int16HeaderType);
     } else if (typeString === BooleanType) {
       HeaderRegistry.declareDependency(Uint8HeaderType);
     }
-    if (typeString.indexOf("{var}") > -1)
+    if (typeString.indexOf("{var}") > -1) {
       this.varString = typeString.replace("{var}", name);
-    else this.varString = typeString + " " + name;
+    } else { this.varString = typeString + " " + name; }
 
     // root scope, make variables file-scoped by default
-    if (scope.parent === null && this.varString.indexOf("static") != 0)
+    if (scope.parent === null && this.varString.indexOf("static") !== 0) {
       this.varString = "static " + this.varString;
+    }
 
-    if (options && options.removeStorageSpecifier)
+    if (options && options.removeStorageSpecifier) {
       this.varString = this.varString.replace(/^static /, "");
-    if (options && options.initializer)
+    }
+    if (options && options.initializer) {
       this.varString += " = " + options.initializer;
+    }
   }
-  resolve() {
+  public resolve() {
     return this.varString;
   }
 }

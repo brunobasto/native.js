@@ -14,14 +14,18 @@ export const UniversalType = "struct js_let *";
 /** Type that represents static or dynamic array */
 export class ArrayType {
   public static getArrayStructName(elementTypeText: string) {
-    while (elementTypeText.indexOf(IntegerType) > -1)
+    while (elementTypeText.indexOf(IntegerType) > -1) {
       elementTypeText = elementTypeText.replace(IntegerType, "number");
-    while (elementTypeText.indexOf(StringType) > -1)
+    }
+    while (elementTypeText.indexOf(StringType) > -1) {
       elementTypeText = elementTypeText.replace(StringType, "string");
-    while (elementTypeText.indexOf(PointerType) > -1)
+    }
+    while (elementTypeText.indexOf(PointerType) > -1) {
       elementTypeText = elementTypeText.replace(PointerType, "pointer");
-    while (elementTypeText.indexOf(BooleanType) > -1)
+    }
+    while (elementTypeText.indexOf(BooleanType) > -1) {
       elementTypeText = elementTypeText.replace(BooleanType, "bool");
+    }
 
     elementTypeText = elementTypeText.replace(
       /^struct array_(.*)_t \*$/,
@@ -43,15 +47,13 @@ export class ArrayType {
 
   private structName: string;
   public getText() {
-    let elementType = this.elementType;
+    const elementType = this.elementType;
     let elementTypeText;
-    if (typeof elementType === "string") elementTypeText = elementType;
-    else elementTypeText = elementType.getText();
+    if (typeof elementType === "string") { elementTypeText = elementType; } else { elementTypeText = elementType.getText(); }
 
     this.structName = ArrayType.getArrayStructName(elementTypeText);
 
-    if (this.isDynamicArray) return "struct " + this.structName + " *";
-    else return "static " + elementTypeText + " {var}[" + this.capacity + "]";
+    if (this.isDynamicArray) { return "struct " + this.structName + " *"; } else { return "static " + elementTypeText + " {var}[" + this.capacity + "]"; }
   }
   constructor(
     public elementType: NativeType,
@@ -63,10 +65,9 @@ export class ArrayType {
 /** Type that represents JS object with dynamic properties (implemented as dynamic dictionary) */
 export class DictType {
   public getText() {
-    let elementType = this.elementType;
+    const elementType = this.elementType;
     let elementTypeText;
-    if (typeof elementType === "string") elementTypeText = elementType;
-    else elementTypeText = elementType.getText();
+    if (typeof elementType === "string") { elementTypeText = elementType; } else { elementTypeText = elementType.getText(); }
 
     return "DICT(" + elementTypeText + ")";
   }

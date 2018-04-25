@@ -6,10 +6,10 @@ import {
   PointerType,
   StructType
 } from "./NativeTypes";
-import { TypeVisitor } from "./TypeVisitor";
 import { PropertiesDictionary } from "./PropertiesDictionary";
+import { TypeVisitor } from "./TypeVisitor";
 
-type StructData = { [name: string]: StructType };
+interface StructData { [name: string]: StructType; }
 
 export class Structures {
   private declaredStructs: StructData = {};
@@ -25,18 +25,18 @@ export class Structures {
 
   private getStructureBodyString(properties: PropertiesDictionary) {
     let userStructCode = "{\n";
-    for (let propName in properties) {
-      let propType = properties[propName];
+    for (const propName in properties) {
+      const propType = properties[propName];
       if (typeof propType === "string") {
         userStructCode += "    " + propType + " " + propName + ";\n";
       } else if (propType instanceof ArrayType) {
-        let propTypeText = propType.getText();
-        if (propTypeText.indexOf("{var}") > -1)
+        const propTypeText = propType.getText();
+        if (propTypeText.indexOf("{var}") > -1) {
           userStructCode +=
             "    " +
             propTypeText.replace(/^static /, "").replace("{var}", propName) +
             ";\n";
-        else userStructCode += "    " + propTypeText + " " + propName + ";\n";
+        } else { userStructCode += "    " + propTypeText + " " + propName + ";\n"; }
       } else {
         userStructCode += "    " + propType.getText() + " " + propName + ";\n";
       }
@@ -48,48 +48,49 @@ export class Structures {
   public generateStructure(tsType: ts.Type, ident?: ts.Identifier): StructType {
     let structName =
       "struct_" + Object.keys(this.declaredStructs).length + "_t";
-    let varName = ident && ident.getText();
+    const varName = ident && ident.getText();
     if (varName) {
-      if (this.declaredStructs[varName + "_t"] === null)
+      if (this.declaredStructs[varName + "_t"] === null) {
         structName = varName + "_t";
-      else {
+      } else {
         let i = 2;
-        while (this.declaredStructs[varName + "_" + i + "_t"] != null) i++;
+        while (this.declaredStructs[varName + "_" + i + "_t"] != null) { i++; }
         structName = varName + "_" + i + "_t";
       }
     }
-    let userStructInfo: PropertiesDictionary = {};
-    for (let prop of tsType.getProperties()) {
-      let propTsType = this.typeChecker.getTypeOfSymbolAtLocation(
+    const userStructInfo: PropertiesDictionary = {};
+    for (const prop of tsType.getProperties()) {
+      const propTsType = this.typeChecker.getTypeOfSymbolAtLocation(
         prop,
         prop.valueDeclaration
       );
       let propType = this.typeVisitor.convertType(
         propTsType,
-        <ts.Identifier>prop.valueDeclaration.name
+        prop.valueDeclaration.name as ts.Identifier
       );
       if (
         propType === PointerType &&
         prop.valueDeclaration.kind === ts.SyntaxKind.PropertyAssignment
       ) {
-        let propAssignment = <ts.PropertyAssignment>prop.valueDeclaration;
+        const propAssignment = prop.valueDeclaration as ts.PropertyAssignment;
         if (
           propAssignment.initializer &&
           propAssignment.initializer.kind ==
             ts.SyntaxKind.ArrayLiteralExpression
-        )
+        ) {
           propType = this.typeVisitor.determineArrayType(
-            <ts.ArrayLiteralExpression>propAssignment.initializer
+            propAssignment.initializer as ts.ArrayLiteralExpression
           );
+        }
       }
       userStructInfo[prop.name] = propType;
     }
 
-    let userStructCode = this.getStructureBodyString(userStructInfo);
+    const userStructCode = this.getStructureBodyString(userStructInfo);
 
     let found = false;
     if (Object.keys(userStructInfo).length > 0) {
-      for (let s in this.declaredStructs) {
+      for (const s in this.declaredStructs) {
         if (
           this.getStructureBodyString(this.declaredStructs[s].properties) ==
           userStructCode
@@ -101,11 +102,12 @@ export class Structures {
       }
     }
 
-    if (!found)
+    if (!found) {
       this.declaredStructs[structName] = new StructType(
         "struct " + structName + " *",
         userStructInfo
       );
+    }
     return this.declaredStructs[structName];
   }
 

@@ -1,17 +1,17 @@
 import * as ts from "typescript";
-import { CodeTemplate, CodeTemplateFactory } from "../core/template";
-import { IScope } from "../core/program";
-import {
-  NativeType,
-  ArrayType,
-  StructType,
-  DictType,
-  StringType,
-  UniversalType,
-  PointerType
-} from "../core/types/NativeTypes";
 import { HeaderRegistry, StringLengthHeaderType } from "../core/header";
-import { CExpression } from "./expressions";
+import { IScope } from "../core/program";
+import { CodeTemplate, CodeTemplateFactory } from "../core/template";
+import {
+  ArrayType,
+  DictType,
+  NativeType,
+  PointerType,
+  StringType,
+  StructType,
+  UniversalType
+} from "../core/types/NativeTypes";
+import { INativeExpression } from "./expressions";
 
 @CodeTemplate(`{simpleAccessor}`, [
   ts.SyntaxKind.ElementAccessExpression,
@@ -32,32 +32,35 @@ export class CElementAccess {
         (node.parent.kind === ts.SyntaxKind.IfStatement ||
           node.parent.kind === ts.SyntaxKind.WhileStatement ||
           node.parent.kind === ts.SyntaxKind.DoStatement) &&
-        node.parent["expression"] === node;
+        node.parent.expression === node;
       if (
         !isLogicalContext &&
         node.parent.kind === ts.SyntaxKind.ForStatement &&
-        node.parent["condition"] === node
-      )
+        (node.parent as ts.ForStatement).condition === node
+      ) {
         isLogicalContext = true;
+      }
       if (
         !isLogicalContext &&
         node.parent.kind === ts.SyntaxKind.BinaryExpression
       ) {
-        let binExpr = <ts.BinaryExpression>node.parent;
+        const binExpr = node.parent as ts.BinaryExpression;
         if (
           binExpr.operatorToken.kind ===
             ts.SyntaxKind.AmpersandAmpersandToken ||
           binExpr.operatorToken.kind === ts.SyntaxKind.BarBarToken
-        )
+        ) {
           isLogicalContext = true;
+        }
       }
       if (
         !isLogicalContext &&
         node.parent.kind === ts.SyntaxKind.PrefixUnaryExpression
       ) {
-        let binExpr = <ts.PrefixUnaryExpression>node.parent;
-        if (binExpr.operator === ts.SyntaxKind.ExclamationToken)
+        const binExpr = node.parent as ts.PrefixUnaryExpression;
+        if (binExpr.operator === ts.SyntaxKind.ExclamationToken) {
           isLogicalContext = true;
+        }
       }
 
       if (
@@ -68,35 +71,37 @@ export class CElementAccess {
         argumentExpression = "0";
       }
     } else if (node.kind === ts.SyntaxKind.PropertyAccessExpression) {
-      let propAccess = <ts.PropertyAccessExpression>node;
+      const propAccess = node as ts.PropertyAccessExpression;
       type = scope.root.typeVisitor.inferNodeType(propAccess.expression);
-      if (propAccess.expression.kind === ts.SyntaxKind.Identifier)
+      if (propAccess.expression.kind === ts.SyntaxKind.Identifier) {
         elementAccess = propAccess.expression.getText();
-      else elementAccess = new CElementAccess(scope, propAccess.expression);
+      } else { elementAccess = new CElementAccess(scope, propAccess.expression); }
       argumentExpression = propAccess.name.getText();
     } else if (node.kind === ts.SyntaxKind.ElementAccessExpression) {
-      let elemAccess = <ts.ElementAccessExpression>node;
+      const elemAccess = node as ts.ElementAccessExpression;
       type = scope.root.typeVisitor.inferNodeType(elemAccess.expression);
-      if (elemAccess.expression.kind === ts.SyntaxKind.Identifier)
+      if (elemAccess.expression.kind === ts.SyntaxKind.Identifier) {
         elementAccess = elemAccess.expression.getText();
-      else elementAccess = new CElementAccess(scope, elemAccess.expression);
+      } else { elementAccess = new CElementAccess(scope, elemAccess.expression); }
       if (
         type instanceof StructType &&
         elemAccess.argumentExpression.kind === ts.SyntaxKind.StringLiteral
       ) {
-        let ident = elemAccess.argumentExpression.getText().slice(1, -1);
-        if (ident.search(/^[_A-Za-z][_A-Za-z0-9]*$/) > -1)
+        const ident = elemAccess.argumentExpression.getText().slice(1, -1);
+        if (ident.search(/^[_A-Za-z][_A-Za-z0-9]*$/) > -1) {
           argumentExpression = ident;
-        else
+        } else {
           argumentExpression = CodeTemplateFactory.createForNode(
             scope,
             elemAccess.argumentExpression
           );
-      } else
+        }
+      } else {
         argumentExpression = CodeTemplateFactory.createForNode(
           scope,
           elemAccess.argumentExpression
         );
+      }
     } else {
       type = scope.root.typeVisitor.inferNodeType(node);
       elementAccess = CodeTemplateFactory.createForNode(scope, node);
@@ -143,10 +148,10 @@ export class CSimpleElementAccess {
     scope: IScope,
     type: NativeType,
     public elementAccess: CElementAccess | CSimpleElementAccess | string,
-    public argumentExpression: CExpression
+    public argumentExpression: INativeExpression
   ) {
     this.isSimpleVar =
-      typeof type === "string" && type != UniversalType && type != PointerType;
+      typeof type === "string" && type !== UniversalType && type !== PointerType;
     this.isDynamicArray = type instanceof ArrayType && type.isDynamicArray;
     this.isStaticArray = type instanceof ArrayType && !type.isDynamicArray;
     this.arrayCapacity =
@@ -154,7 +159,8 @@ export class CSimpleElementAccess {
     this.isDict = type instanceof DictType;
     this.isStruct = type instanceof StructType;
     this.isString = type === StringType;
-    if (this.isString && this.argumentExpression === "length")
+    if (this.isString && this.argumentExpression === "length") {
       HeaderRegistry.declareDependency(StringLengthHeaderType);
+    }
   }
 }

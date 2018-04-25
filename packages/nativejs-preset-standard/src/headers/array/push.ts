@@ -1,10 +1,10 @@
 import {
   ArrayPushHeaderType,
   AssertHeaderType,
-  CExpression,
   CodeTemplate,
   Header,
   HeaderRegistry,
+  INativeExpression,
   StdioHeaderType,
   StdlibHeaderType,
   StringHeaderType
@@ -15,7 +15,7 @@ export class StandardArrayPushHeader implements Header {
     return ArrayPushHeaderType;
   }
 
-  public getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     HeaderRegistry.declareDependency(StdlibHeaderType);
     // sizeof depend on stdio.h
     HeaderRegistry.declareDependency(StdioHeaderType);

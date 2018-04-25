@@ -1,10 +1,10 @@
 import * as ts from "typescript";
-import { CExpression } from "../nodes/expressions";
 import { IScope } from "../core/program";
+import { INativeExpression } from "../nodes/expressions";
 
 export interface Header {
   getType(): new () => HeaderType;
-  getTemplate(params: any): CExpression;
+  getTemplate(params: any): INativeExpression;
 }
 
 export interface HeaderType {
@@ -142,7 +142,7 @@ export class HeaderRegistry {
   private headers = new Map<new () => HeaderType, Header>();
   private programScope: IScope = null;
   private static _instance: HeaderRegistry;
-  private templates: CExpression[] = [];
+  private templates: INativeExpression[] = [];
 
   public static setProgramScope(scope: IScope) {
     this._instance.programScope = scope;
@@ -156,7 +156,7 @@ export class HeaderRegistry {
     return this._instance.programScope;
   }
 
-  public static getDeclaredDependencies(): CExpression[] {
+  public static getDeclaredDependencies(): INativeExpression[] {
     return this._instance.templates;
   }
 

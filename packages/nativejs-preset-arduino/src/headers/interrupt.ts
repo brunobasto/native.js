@@ -1,18 +1,18 @@
-import { CExpression } from "nativejs-compiler";
+import { INativeExpression } from "nativejs-compiler";
 import { CodeTemplate } from "nativejs-compiler";
 import { Header, HeaderType } from "nativejs-compiler";
 
 export class InterruptHeaderType implements HeaderType {
-  NAME: string = "InterruptHeaderType";
-  UNIQUE: boolean = true;
+  public NAME: string = "InterruptHeaderType";
+  public UNIQUE: boolean = true;
 }
 
 export class InterruptHeader implements Header {
-  getType() {
+  public getType() {
     return InterruptHeaderType;
   }
 
-  getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     return new Template();
   }
 }

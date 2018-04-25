@@ -1,11 +1,8 @@
 import * as ts from "typescript";
 import { ArrayPopHeaderType, HeaderRegistry } from "../../core/header";
-import { CElementAccess } from "../../nodes/elementaccess";
-import { CExpression } from "../../nodes/expressions";
-import { ScopeUtil } from "../../core/scope/ScopeUtil";
-import { CVariable } from "../../nodes/variable";
 import { IScope } from "../../core/program";
 import { IResolver, StandardCallResolver } from "../../core/resolver";
+import { ScopeUtil } from "../../core/scope/ScopeUtil";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
   ArrayType,
@@ -13,11 +10,14 @@ import {
   StringType
 } from "../../core/types/NativeTypes";
 import { TypeVisitor } from "../../core/types/TypeVisitor";
+import { CElementAccess } from "../../nodes/elementaccess";
+import { INativeExpression } from "../../nodes/expressions";
+import { CVariable } from "../../nodes/variable";
 
 @StandardCallResolver
 class ArrayPopResolver implements IResolver {
   public matchesNode(typeVisitor: TypeVisitor, call: ts.CallExpression) {
-    if (call.expression.kind != ts.SyntaxKind.PropertyAccessExpression) {
+    if (call.expression.kind !== ts.SyntaxKind.PropertyAccessExpression) {
       return false;
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
@@ -63,7 +63,6 @@ class CArrayPop {
   constructor(scope: IScope, call: ts.CallExpression) {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     this.varAccess = new CElementAccess(scope, propAccess.expression);
-    call.parent.kind === ts.SyntaxKind.Block;
     // do not use returned value if it's a direct statement
     if (call.parent.kind === ts.SyntaxKind.ExpressionStatement) {
       this.useReturnValue = false;

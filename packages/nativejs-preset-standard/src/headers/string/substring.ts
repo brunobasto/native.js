@@ -1,9 +1,9 @@
 import {
   AssertHeaderType,
-  CExpression,
   CodeTemplate,
   Header,
   HeaderRegistry,
+  INativeExpression,
   IScope,
   StdlibHeaderType,
   StringHeaderType,
@@ -15,7 +15,7 @@ export class StandardSubStringHeader implements Header {
   public getType() {
     return SubStringHeaderType;
   }
-  public getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     HeaderRegistry.declareDependency(AssertHeaderType);
     HeaderRegistry.declareDependency(StdlibHeaderType);
     HeaderRegistry.declareDependency(StringHeaderType);

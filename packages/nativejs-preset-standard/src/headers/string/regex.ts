@@ -2,10 +2,10 @@ import {
   ArrayCreateHeaderType,
   ArrayType,
   BooleanHeaderType,
-  CExpression,
   CodeTemplate,
   Header,
   HeaderRegistry,
+  INativeExpression,
   Int16HeaderType,
   IntegerType,
   IScope,
@@ -54,7 +54,7 @@ export class StandardRegexMatchHeader implements Header {
     return RegexMatchHeaderType;
   }
 
-  public getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     HeaderRegistry.declareDependency(ArrayCreateHeaderType);
     HeaderRegistry.declareDependency(BooleanHeaderType);
     HeaderRegistry.declareDependency(Int16HeaderType);

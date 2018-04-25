@@ -1,7 +1,7 @@
 import {
-  CExpression,
   CodeTemplate,
   Header,
+  INativeExpression,
   Uint8HeaderType
 } from "nativejs-compiler";
 
@@ -9,7 +9,7 @@ export class StandardUint8Header implements Header {
   public getType() {
     return Uint8HeaderType;
   }
-  public getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     return new Template();
   }
 }

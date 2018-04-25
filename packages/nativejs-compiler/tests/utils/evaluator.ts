@@ -28,7 +28,7 @@ const execute = (executablePath, callback) => {
   });
 };
 
-const evaluator = (jsSource, callback: Function) => {
+const evaluator = (jsSource, callback: (result) => void) => {
   // compile source to c
   compileToC(jsSource, cSource => {
     // compile c to executable

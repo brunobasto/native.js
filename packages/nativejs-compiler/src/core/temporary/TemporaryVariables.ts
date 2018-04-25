@@ -10,13 +10,14 @@ export class TemporaryVariables {
    * Generated name is guarantied not to conflict with any existing names in specified scope.
    */
   public addNewIteratorVariable(scopeNode: ts.Node): string {
-    let parentFunc = ScopeUtil.findParentFunction(scopeNode);
-    let scopeId = (parentFunc && parentFunc.pos + 1) || "main";
+    const parentFunc = ScopeUtil.findParentFunction(scopeNode);
+    const scopeId = (parentFunc && parentFunc.pos + 1) || "main";
     let existingSymbolNames = this.typeChecker
       .getSymbolsInScope(scopeNode, ts.SymbolFlags.Variable)
       .map(s => s.name);
-    if (!this.temporaryVariables[scopeId])
+    if (!this.temporaryVariables[scopeId]) {
       this.temporaryVariables[scopeId] = [];
+    }
     existingSymbolNames = existingSymbolNames.concat(
       this.temporaryVariables[scopeId]
     );
@@ -24,14 +25,15 @@ export class TemporaryVariables {
     while (
       i < this.iteratorVarNames.length &&
       existingSymbolNames.indexOf(this.iteratorVarNames[i]) > -1
-    )
+    ) {
       i++;
+    }
     let iteratorVarName;
     if (i === this.iteratorVarNames.length) {
       i = 2;
-      while (existingSymbolNames.indexOf("i_" + i) > -1) i++;
+      while (existingSymbolNames.indexOf("i_" + i) > -1) { i++; }
       iteratorVarName = "i_" + i;
-    } else iteratorVarName = this.iteratorVarNames[i];
+    } else { iteratorVarName = this.iteratorVarNames[i]; }
 
     this.temporaryVariables[scopeId].push(iteratorVarName);
     return iteratorVarName;
@@ -44,22 +46,23 @@ export class TemporaryVariables {
     scopeNode: ts.Node,
     proposedName: string
   ): string {
-    let parentFunc = ScopeUtil.findParentFunction(scopeNode);
-    let scopeId = (parentFunc && parentFunc.pos + 1) || "main";
+    const parentFunc = ScopeUtil.findParentFunction(scopeNode);
+    const scopeId = (parentFunc && parentFunc.pos + 1) || "main";
     let existingSymbolNames =
       scopeNode === null
         ? []
         : this.typeChecker
             .getSymbolsInScope(scopeNode, ts.SymbolFlags.Variable)
             .map(s => s.name);
-    if (!this.temporaryVariables[scopeId])
+    if (!this.temporaryVariables[scopeId]) {
       this.temporaryVariables[scopeId] = [];
+    }
     existingSymbolNames = existingSymbolNames.concat(
       this.temporaryVariables[scopeId]
     );
     if (existingSymbolNames.indexOf(proposedName) > -1) {
       let i = 2;
-      while (existingSymbolNames.indexOf(proposedName + "_" + i) > -1) i++;
+      while (existingSymbolNames.indexOf(proposedName + "_" + i) > -1) { i++; }
       proposedName = proposedName + "_" + i;
     }
 

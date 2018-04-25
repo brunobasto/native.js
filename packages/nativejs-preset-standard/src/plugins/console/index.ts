@@ -1,7 +1,7 @@
 import {
-  CExpression,
   CodeTemplate,
   HeaderRegistry,
+  INativeExpression,
   IScope,
   Plugin,
   StdioHeaderType
@@ -37,7 +37,7 @@ class ConsoleLogTemplate {
 }
 
 export class ConsoleLogPlugin implements Plugin {
-  public execute(scope: IScope, node: ts.Node): CExpression {
+  public execute(scope: IScope, node: ts.Node): INativeExpression {
     const call = node as ts.CallExpression;
 
     return new ConsoleLogTemplate(scope, call);

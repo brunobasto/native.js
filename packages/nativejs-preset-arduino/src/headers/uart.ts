@@ -1,32 +1,32 @@
-import { IOHeaderType } from "./io";
 import {
+  CodeTemplate,
   Header,
-  MainRegistry,
-  Main,
   HeaderRegistry,
   HeaderType,
-  StdioHeaderType,
-  CodeTemplate,
-  CExpression
+  INativeExpression,
+  Main,
+  MainRegistry,
+  StdioHeaderType
 } from "nativejs-compiler";
+import { IOHeaderType } from "./io";
 
 export class UARTHeaderType implements HeaderType {
-  NAME: string = "UARTHeaderType";
-  UNIQUE: boolean = true;
+  public NAME: string = "UARTHeaderType";
+  public UNIQUE: boolean = true;
 }
 
 export class UARTMainInitializer implements Main {
-  getTemplate() {
+  public getTemplate() {
     return new MainTemplate();
   }
 }
 
 export class UARTHeader implements Header {
-  getType() {
+  public getType() {
     return UARTHeaderType;
   }
 
-  getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     HeaderRegistry.declareDependency(IOHeaderType);
     HeaderRegistry.declareDependency(StdioHeaderType);
     MainRegistry.declareDependency(UARTMainInitializer);

@@ -1,24 +1,24 @@
-import { CExpression } from "nativejs-compiler";
+import { INativeExpression } from "nativejs-compiler";
 import { CodeTemplate } from "nativejs-compiler";
-import { Header, HeaderType, HeaderRegistry } from "nativejs-compiler";
-import { MainRegistry, Main } from "nativejs-compiler";
-import { BottomRegistry, Bottom } from "nativejs-compiler";
-import { IOHeaderType } from "./io";
-import { InterruptHeaderType } from "./interrupt";
+import { Header, HeaderRegistry, HeaderType } from "nativejs-compiler";
+import { Main, MainRegistry } from "nativejs-compiler";
+import { Bottom, BottomRegistry } from "nativejs-compiler";
 import { Timer1OverflowBottom } from "../bottoms/bottom-timer1-overflow";
 import { MillisMain } from "../mains/main-millis";
+import { InterruptHeaderType } from "./interrupt";
+import { IOHeaderType } from "./io";
 
 export class MillisHeaderType implements HeaderType {
-  NAME: string = "MillisHeaderType";
-  UNIQUE: boolean = true;
+  public NAME: string = "MillisHeaderType";
+  public UNIQUE: boolean = true;
 }
 
 export class MillisHeader implements Header {
-  getType() {
+  public getType() {
     return MillisHeaderType;
   }
 
-  getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     HeaderRegistry.declareDependency(IOHeaderType);
     HeaderRegistry.declareDependency(InterruptHeaderType);
     MainRegistry.declareDependency(MillisMain);

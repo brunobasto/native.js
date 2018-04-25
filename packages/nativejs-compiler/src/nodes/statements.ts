@@ -1,16 +1,16 @@
 import * as ts from "typescript";
-import { CodeTemplate, CodeTemplateFactory } from "../core/template";
 import { CProgram, IScope } from "../core/program";
-import { ArrayType, StructType, IntegerType } from "../core/types/NativeTypes";
+import { CodeTemplate, CodeTemplateFactory } from "../core/template";
+import { ArrayType, IntegerType, StructType } from "../core/types/NativeTypes";
+import { AssignmentHelper } from "./assignment";
+import { CElementAccess } from "./elementaccess";
+import { INativeExpression } from "./expressions";
+import { CString } from "./literals";
 import {
   CVariable,
   CVariableDeclaration,
   CVariableDestructors
 } from "./variable";
-import { CExpression } from "./expressions";
-import { CString } from "./literals";
-import { CElementAccess } from "./elementaccess";
-import { AssignmentHelper } from "./assignment";
 
 @CodeTemplate(`break;\n`, ts.SyntaxKind.BreakStatement)
 export class CBreakStatement {
@@ -33,7 +33,7 @@ return {expression};
   ts.SyntaxKind.ReturnStatement
 )
 export class CReturnStatement {
-  public expression: CExpression;
+  public expression: INativeExpression;
   public destructors: CVariableDestructors;
   constructor(scope: IScope, node: ts.ReturnStatement) {
     this.expression = CodeTemplateFactory.createForNode(scope, node.expression);
@@ -53,7 +53,7 @@ if ({condition})
   ts.SyntaxKind.IfStatement
 )
 export class CIfStatement {
-  public condition: CExpression;
+  public condition: INativeExpression;
   public thenBlock: CBlock;
   public elseBlock: CBlock;
   public hasElseBlock: boolean;
@@ -73,7 +73,7 @@ while ({condition})
   ts.SyntaxKind.WhileStatement
 )
 export class CWhileStatement {
-  public condition: CExpression;
+  public condition: INativeExpression;
   public block: CBlock;
   constructor(scope: IScope, node: ts.WhileStatement) {
     this.block = new CBlock(scope, node.statement);
@@ -89,7 +89,7 @@ while ({condition});`,
   ts.SyntaxKind.DoStatement
 )
 export class CDoWhileStatement {
-  public condition: CExpression;
+  public condition: INativeExpression;
   public block: CBlock;
   constructor(scope: IScope, node: ts.WhileStatement) {
     this.block = new CBlock(scope, node.statement);
@@ -107,19 +107,20 @@ for ({init};{condition};{increment})
   ts.SyntaxKind.ForStatement
 )
 export class CForStatement {
-  public init: CExpression;
-  public condition: CExpression;
-  public increment: CExpression;
+  public init: INativeExpression;
+  public condition: INativeExpression;
+  public increment: INativeExpression;
   public block: CBlock;
   public varDecl: CVariableDeclaration = null;
   constructor(scope: IScope, node: ts.ForStatement) {
     this.block = new CBlock(scope, node.statement);
     if (node.initializer.kind === ts.SyntaxKind.VariableDeclarationList) {
-      let declList = <ts.VariableDeclarationList>node.initializer;
+      const declList = node.initializer as ts.VariableDeclarationList;
       this.varDecl = new CVariableDeclaration(scope, declList.declarations[0]);
       this.init = "";
-    } else
+    } else {
       this.init = CodeTemplateFactory.createForNode(scope, node.initializer);
+    }
     this.condition = CodeTemplateFactory.createForNode(scope, node.condition);
     this.increment = CodeTemplateFactory.createForNode(scope, node.incrementor);
   }
@@ -144,7 +145,7 @@ export class CForStatement {
   ts.SyntaxKind.ForOfStatement
 )
 export class CForOfStatement implements IScope {
-  public init: CExpression;
+  public init: INativeExpression;
   public iteratorVarName: string;
   public variables: CVariable[] = [];
   public statements: any[] = [];
@@ -166,16 +167,17 @@ export class CForOfStatement implements IScope {
       new CVariable(scope, this.iteratorVarName, IntegerType)
     );
     this.arrayAccess = new CElementAccess(scope, node.expression);
-    let arrayVarType = scope.root.typeVisitor.inferNodeType(node.expression);
+    const arrayVarType = scope.root.typeVisitor.inferNodeType(node.expression);
     if (arrayVarType && arrayVarType instanceof ArrayType) {
       this.isDynamicArray = arrayVarType.isDynamicArray;
       this.arrayCapacity = arrayVarType.capacity + "";
-      let elemType = arrayVarType.elementType;
-      if (elemType instanceof ArrayType && elemType.isDynamicArray)
+      const elemType = arrayVarType.elementType;
+      if (elemType instanceof ArrayType && elemType.isDynamicArray) {
         this.cast = "(void *)";
+      }
     }
     if (node.initializer.kind === ts.SyntaxKind.VariableDeclarationList) {
-      let declInit = (<ts.VariableDeclarationList>node.initializer)
+      const declInit = (node.initializer as ts.VariableDeclarationList)
         .declarations[0];
       scope.variables.push(
         new CVariable(scope, declInit.name.getText(), declInit.name)
@@ -223,26 +225,28 @@ export class CForInStatement implements IScope {
       new CVariable(scope, this.iteratorVarName, IntegerType)
     );
     this.varAccess = new CElementAccess(scope, node.expression);
-    let dictVarType = scope.root.typeVisitor.inferNodeType(node.expression);
+    const dictVarType = scope.root.typeVisitor.inferNodeType(node.expression);
     // TODO: do something with dictVarType
 
     if (node.initializer.kind === ts.SyntaxKind.VariableDeclarationList) {
-      let declInit = (<ts.VariableDeclarationList>node.initializer)
+      const declInit = (node.initializer as ts.VariableDeclarationList)
         .declarations[0];
       scope.variables.push(
         new CVariable(scope, declInit.name.getText(), declInit.name)
       );
       this.init = declInit.name.getText();
-    } else this.init = new CElementAccess(scope, node.initializer);
+    } else { this.init = new CElementAccess(scope, node.initializer); }
 
     if (node.statement.kind === ts.SyntaxKind.Block) {
-      let block = <ts.Block>node.statement;
-      for (let s of block.statements)
+      const block = node.statement as ts.Block;
+      for (const s of block.statements) {
         this.statements.push(CodeTemplateFactory.createForNode(this, s));
-    } else
+      }
+    } else {
       this.statements.push(
         CodeTemplateFactory.createForNode(this, node.statement)
       );
+    }
     // scope.variables = scope.variables.concat(this.variables);
 
     scope.root.gc.addScopeTemporaries(this, node);
@@ -254,17 +258,17 @@ class CProperty {
     public varAccess: CElementAccess,
     public index: string,
     public name: CString,
-    public init: CExpression
+    public init: INativeExpression
   ) {}
 }
 
 @CodeTemplate(`{expression}{SemicolonCR}`, ts.SyntaxKind.ExpressionStatement)
-export class CExpressionStatement {
-  public expression: CExpression;
+export class INativeExpressionStatement {
+  public expression: INativeExpression;
   public SemicolonCR: string = ";\n";
   constructor(scope: IScope, node: ts.ExpressionStatement) {
     if (node.expression.kind === ts.SyntaxKind.BinaryExpression) {
-      let binExpr = <ts.BinaryExpression>node.expression;
+      const binExpr = node.expression as ts.BinaryExpression;
       if (binExpr.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
         this.expression = AssignmentHelper.create(
           scope,
@@ -274,11 +278,12 @@ export class CExpressionStatement {
         this.SemicolonCR = "";
       }
     }
-    if (!this.expression)
+    if (!this.expression) {
       this.expression = CodeTemplateFactory.createForNode(
         scope,
         node.expression
       );
+    }
   }
 }
 
@@ -310,7 +315,7 @@ export class CBlock implements IScope {
     this.root = scope.root;
 
     if (node.kind === ts.SyntaxKind.Block) {
-      let block = <ts.Block>node;
+      const block = node as ts.Block;
       block.statements.forEach(s =>
         this.statements.push(CodeTemplateFactory.createForNode(this, s))
       );

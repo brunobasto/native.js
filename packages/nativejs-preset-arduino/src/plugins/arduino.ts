@@ -1,19 +1,19 @@
-import * as ts from "typescript";
-import { CExpression } from "nativejs-compiler";
+import { INativeExpression } from "nativejs-compiler";
 import { CodeTemplate } from "nativejs-compiler";
 import { HeaderRegistry } from "nativejs-compiler";
 import { IScope } from "nativejs-compiler";
 import { Plugin } from "nativejs-compiler";
+import * as ts from "typescript";
 import { ArduinoHeaderType } from "../headers/arduino";
 
 export class ArduinoPlugin implements Plugin {
-  execute(scope: IScope, node: ts.Node, handler: Object): CExpression {
+  public execute(scope: IScope, node: ts.Node): INativeExpression {
     return null;
   }
 
-  processTypes(node: ts.Node) {}
+  public processTypes(node: ts.Node) {}
 
-  matchesNode(node: ts.Node): boolean {
+  public matchesNode(node: ts.Node): boolean {
     HeaderRegistry.declareDependency(ArduinoHeaderType);
 
     return false;

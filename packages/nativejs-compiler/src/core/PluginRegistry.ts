@@ -1,6 +1,6 @@
 import * as ts from "typescript";
-import { CExpression } from "../nodes/expressions";
 import { IScope } from "../core/program";
+import { INativeExpression } from "../nodes/expressions";
 
 const plugins: Plugin[] = [];
 
@@ -9,7 +9,7 @@ export class PluginRegistry {
     scope: IScope,
     node: ts.Node,
     handler: Object
-  ): CExpression {
+  ): INativeExpression {
     const matchingPlugins = plugins.filter(p => p.matchesNode(node));
 
     if (matchingPlugins.length === 0) {
@@ -46,7 +46,7 @@ export class PluginRegistry {
 }
 
 export interface Plugin {
-  execute(scope: IScope, node: ts.Node, handler: Object): CExpression;
+  execute(scope: IScope, node: ts.Node, handler: Object): INativeExpression;
   matchesNode(node: ts.Node): boolean;
   processTypes(node: ts.Node);
 }

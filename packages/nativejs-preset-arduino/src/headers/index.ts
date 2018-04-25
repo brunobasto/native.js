@@ -1,11 +1,11 @@
-import { IOHeader } from "./io";
-import { UARTHeader } from "./uart";
 import { AdcHeader } from "./adc";
+import { ArduinoHeader } from "./arduino";
 import { Int16Header } from "./int16_t";
+import { InterruptHeader } from "./interrupt";
+import { IOHeader } from "./io";
 import { MillisHeader } from "./millis";
 import { Timer0Header } from "./timer0";
-import { InterruptHeader } from "./interrupt";
-import { ArduinoHeader } from "./arduino";
+import { UARTHeader } from "./uart";
 
 export {
   AdcHeader,

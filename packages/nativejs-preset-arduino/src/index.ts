@@ -1,25 +1,25 @@
 import { Plugin, Preset } from "nativejs-compiler";
 import { StandardPreset } from "nativejs-preset-standard";
 import {
+  AdcHeader,
+  ArduinoHeader,
+  Int16Header,
+  InterruptHeader,
+  IOHeader,
+  MillisHeader,
+  Timer0Header,
+  UARTHeader
+} from "./headers";
+import { AnalogReadPlugin } from "./plugins/analog";
+import { ArduinoPlugin } from "./plugins/arduino";
+import {
   SerialConsoleLogPlugin,
   SerialConsoleReadPlugin
 } from "./plugins/console";
-import { AnalogReadPlugin } from "./plugins/analog";
-import { ArduinoPlugin } from "./plugins/arduino";
 import { DigitalWritePlugin } from "./plugins/digital";
+import { MillisPlugin } from "./plugins/millis";
 import { SetIntervalPlugin } from "./plugins/setInterval";
 import { Timer0Plugin } from "./plugins/timer0";
-import { MillisPlugin } from "./plugins/millis";
-import {
-  AdcHeader,
-  ArduinoHeader,
-  IOHeader,
-  UARTHeader,
-  Int16Header,
-  MillisHeader,
-  Timer0Header,
-  InterruptHeader
-} from "./headers";
 
 export class ArduinoPreset extends StandardPreset {
   public getBlacklist() {

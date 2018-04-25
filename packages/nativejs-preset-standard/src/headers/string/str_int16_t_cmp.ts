@@ -1,8 +1,8 @@
 import {
-  CExpression,
   CodeTemplate,
   Header,
   HeaderRegistry,
+  INativeExpression,
   Int16HeaderType,
   IScope,
   StdioHeaderType,
@@ -15,7 +15,7 @@ export class StandardStringAndIntCompareHeader implements Header {
   public getType() {
     return StringAndIntCompareHeaderType;
   }
-  public getTemplate(): CExpression {
+  public getTemplate(): INativeExpression {
     HeaderRegistry.declareDependency(StringAndIntBufferLengthHeaderType);
     HeaderRegistry.declareDependency(Int16HeaderType);
     HeaderRegistry.declareDependency(StdioHeaderType);
