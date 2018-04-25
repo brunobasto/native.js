@@ -34,6 +34,6 @@ export class MillisPlugin implements Plugin {
 
     const call = <ts.CallExpression>node;
 
-    return call.expression.getText() == "millis";
+    return call.expression.getText() === "millis";
   }
 }

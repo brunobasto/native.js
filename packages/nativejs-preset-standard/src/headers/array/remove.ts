@@ -1,6 +1,9 @@
-import { ArrayRemoveHeaderType, Header } from "nativejs-compiler";
-import { CExpression } from "nativejs-compiler";
-import { CodeTemplate } from "nativejs-compiler";
+import {
+  ArrayRemoveHeaderType,
+  CExpression,
+  CodeTemplate,
+  Header
+} from "nativejs-compiler";
 
 export class StandardArrayRemoveHeader implements Header {
   public getType() {

@@ -1,20 +1,20 @@
-import * as ts from "typescript";
 import {
   ArrayCreateHeaderType,
+  ArrayType,
   BooleanHeaderType,
+  CExpression,
+  CodeTemplate,
   Header,
   HeaderRegistry,
   Int16HeaderType,
+  IntegerType,
+  IScope,
   RegexMatchHeaderType,
-  SubStringHeaderType,
-  StructHeaderType,
-  ArrayType,
   StringType,
-  IntegerType
+  StructHeaderType,
+  SubStringHeaderType
 } from "nativejs-compiler";
-import { CExpression } from "nativejs-compiler";
-import { IScope } from "nativejs-compiler";
-import { CodeTemplate } from "nativejs-compiler";
+import * as ts from "typescript";
 
 const regexClearMatches = `
 void regex_clear_matches(struct regex_match_struct_t *match_info, int16_t groupN) {

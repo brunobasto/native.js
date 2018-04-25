@@ -21,7 +21,7 @@ export class ScopeUtil {
     let parent = this.findParentWithKind(node, ts.SyntaxKind.BinaryExpression);
     while (parent) {
       const parentBinary = <ts.BinaryExpression>parent;
-      if (parentBinary.operatorToken.kind == ts.SyntaxKind.AmpersandToken) {
+      if (parentBinary.operatorToken.kind === ts.SyntaxKind.AmpersandToken) {
         return true;
       }
       parent = this.findParentWithKind(
@@ -43,7 +43,7 @@ export class ScopeUtil {
   static isOutsideScope(scope: ts.Node, node: ts.Node) {
     let parent = node;
     while (parent) {
-      if (parent.pos == scope.pos) {
+      if (parent.pos === scope.pos) {
         return false;
       }
       parent = parent.parent;
@@ -66,11 +66,11 @@ export class ScopeUtil {
     let parent = node;
     while (
       parent &&
-      (parent.kind == ts.SyntaxKind.ForInStatement ||
-        parent.kind == ts.SyntaxKind.ForOfStatement ||
-        parent.kind == ts.SyntaxKind.ForStatement ||
-        parent.kind == ts.SyntaxKind.WhileStatement ||
-        parent.kind == ts.SyntaxKind.DoStatement)
+      (parent.kind === ts.SyntaxKind.ForInStatement ||
+        parent.kind === ts.SyntaxKind.ForOfStatement ||
+        parent.kind === ts.SyntaxKind.ForStatement ||
+        parent.kind === ts.SyntaxKind.WhileStatement ||
+        parent.kind === ts.SyntaxKind.DoStatement)
     ) {
       parent = parent.parent;
     }
@@ -78,7 +78,7 @@ export class ScopeUtil {
   }
 
   static getScopeNode(node: ts.Node): ts.Node {
-    if (node == null) {
+    if (node === null) {
       return null;
     }
     let parent = node;

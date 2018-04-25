@@ -1,4 +1,4 @@
-var int_arr = [10, 20];
+let int_arr = [10, 20];
 int_arr.pop();
 int_arr.push(100);
 int_arr.push(200);

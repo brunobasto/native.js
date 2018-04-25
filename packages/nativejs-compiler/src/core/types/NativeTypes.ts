@@ -9,7 +9,7 @@ export const RegexMatchType = "struct regex_match_struct_t";
 export const RegexType = "struct regex_struct_t";
 export const SignedType = "long";
 export const StringType = "const char *";
-export const UniversalType = "struct js_var *";
+export const UniversalType = "struct js_let *";
 
 /** Type that represents static or dynamic array */
 export class ArrayType {

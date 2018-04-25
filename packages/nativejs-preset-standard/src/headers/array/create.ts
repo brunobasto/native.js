@@ -1,14 +1,14 @@
 import {
   ArrayCreateHeaderType,
   AssertHeaderType,
+  CExpression,
+  CodeTemplate,
   Header,
   HeaderRegistry,
   StdioHeaderType,
   StdlibHeaderType,
   StringHeaderType
 } from "nativejs-compiler";
-import { CExpression } from "nativejs-compiler";
-import { CodeTemplate } from "nativejs-compiler";
 
 export class StandardArrayCreateHeader implements Header {
   public getType() {

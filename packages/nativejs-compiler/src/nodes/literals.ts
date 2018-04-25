@@ -28,8 +28,8 @@ class CArrayLiteralExpression {
       let varName: string;
       let canUseInitializerList = node.elements.every(
         e =>
-          e.kind == ts.SyntaxKind.NumericLiteral ||
-          e.kind == ts.SyntaxKind.StringLiteral
+          e.kind === ts.SyntaxKind.NumericLiteral ||
+          e.kind === ts.SyntaxKind.StringLiteral
       );
       if (!type.isDynamicArray && canUseInitializerList) {
         varName = scope.root.temporaryVariables.addNewTemporaryVariable(
@@ -123,7 +123,7 @@ class CObjectLiteralExpression {
 
       this.allocator = new CVariableAllocation(scope, varName, type, node);
       this.initializers = node.properties
-        .filter(p => p.kind == ts.SyntaxKind.PropertyAssignment)
+        .filter(p => p.kind === ts.SyntaxKind.PropertyAssignment)
         .map(p => <ts.PropertyAssignment>p)
         .map(
           p =>
@@ -143,7 +143,7 @@ class CObjectLiteralExpression {
   }
 }
 
-var regexNames = {};
+let regexNames = {};
 
 @CodeTemplate(`{expression}`, ts.SyntaxKind.RegularExpressionLiteral)
 class CRegexLiteralExpression {
@@ -173,7 +173,7 @@ export class CString {
     s = s.replace(/\\u([A-Fa-f0-9]{4})/g, (match, g1) =>
       String.fromCharCode(parseInt(g1, 16))
     );
-    if (s.indexOf("'") == 0)
+    if (s.indexOf("'") === 0)
       this.value =
         '"' +
         s
@@ -214,7 +214,7 @@ export class CNumber {
 export class CBoolean {
   public value: string;
   constructor(scope: IScope, value: ts.Node) {
-    this.value = value.kind == ts.SyntaxKind.TrueKeyword ? "TRUE" : "FALSE";
+    this.value = value.kind === ts.SyntaxKind.TrueKeyword ? "TRUE" : "FALSE";
     HeaderRegistry.declareDependency(BooleanHeaderType);
   }
 }

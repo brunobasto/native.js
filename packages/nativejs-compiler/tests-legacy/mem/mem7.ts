@@ -4,7 +4,7 @@ let value = 0;
 
 while (value < 10) {
   value++;
-  if (value % 2 == 0) {
+  if (value % 2 === 0) {
     const key1 = "key1_" + value;
     // escapes
     map[key1] = value;

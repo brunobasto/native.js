@@ -22,7 +22,7 @@ class ArraySliceResolver implements IResolver {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeVisitor.inferNodeType(propAccess.expression);
     return (
-      propAccess.name.getText() == "slice" &&
+      propAccess.name.getText() === "slice" &&
       objType instanceof ArrayType &&
       objType.isDynamicArray
     );
@@ -86,9 +86,9 @@ class CArraySlice {
       CodeTemplateFactory.createForNode(scope, a)
     );
     this.startIndexArg = args[0];
-    this.endIndexArg = args.length == 2 ? args[1] : null;
+    this.endIndexArg = args.length === 2 ? args[1] : null;
     this.topExpressionOfStatement =
-      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
+      call.parent.kind === ts.SyntaxKind.ExpressionStatement;
     if (!this.topExpressionOfStatement) {
       this.tempVarName = scope.root.memoryManager.getReservedTemporaryVarName(
         call
@@ -115,7 +115,7 @@ class CArraySlice {
       scope.variables.push(
         new CVariable(scope, this.startVarName, IntegerType)
       );
-      if (args.length == 2) {
+      if (args.length === 2) {
         this.endVarName = scope.root.temporaryVariables.addNewTemporaryVariable(
           propAccess,
           "slice_end"

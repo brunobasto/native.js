@@ -38,8 +38,8 @@ struct regex_match_struct_t {regexName}_search(const char *str, int16_t capture)
 
 {stateBlocks}
 
-        if (next == -1) {
-            if ({finals { || }=> state == {this}})
+        if (next === -1) {
+            if ({finals { || }=> state === {this}})
                 break;
             iterator = index;
             index++;
@@ -56,7 +56,7 @@ struct regex_match_struct_t {regexName}_search(const char *str, int16_t capture)
             next = -1;
         }
 
-        if (iterator == len-1 && index < len-1 && {finals { && }=> state != {this}}) {
+        if (iterator === len-1 && index < len-1 && {finals { && }=> state != {this}}) {
             if (end > -1)
                 break;
             iterator = index;
@@ -70,10 +70,10 @@ struct regex_match_struct_t {regexName}_search(const char *str, int16_t capture)
 {/if}
         }
     }
-    if (end == -1 && {finals { && }=> state != {this}})
+    if (end === -1 && {finals { && }=> state != {this}})
         index = -1;
     result.index = index;
-    result.end = end == -1 ? iterator : end;
+    result.end = end === -1 ? iterator : end;
     result.matches_count = {groupNumber};
     return result;
 }
@@ -112,15 +112,15 @@ export class CRegexSearchFunction {
           s &&
           s.transitions.filter(
             c =>
-              typeof c.condition == "string" ||
+              typeof c.condition === "string" ||
               c.condition.fromChar ||
               c.condition.tokens.length > 0
           )
       ).length > 0;
     for (let s = 0; s < regexMachine.states.length; s++) {
       if (
-        regexMachine.states[s] == null ||
-        regexMachine.states[s].transitions.length == 0
+        regexMachine.states[s] === null ||
+        regexMachine.states[s].transitions.length === 0
       )
         continue;
       this.stateBlocks.push(
@@ -143,13 +143,13 @@ export class CRegexSearchFunction {
 }
 
 @CodeTemplate(`
-        if (state == {stateNumber}) {
+        if (state === {stateNumber}) {
 {#if final}
                 end = iterator;
 {/if}
 {conditions {\n}=> {this}}
 {#if groupNumber && groupsToReset.length}
-                if (capture && next == -1) {
+                if (capture && next === -1) {
                     {groupsToReset {\n                    }=> started[{this}] = 0;}
                 }
 {/if}
@@ -173,8 +173,8 @@ class CStateBlock {
           .concat(t.startGroup || [])
           .concat(t.endGroup || []))
     );
-    for (var i = 0; i < groupNumber; i++)
-      if (allGroups.indexOf(i + 1) == -1) this.groupsToReset.push(i + "");
+    for (let i = 0; i < groupNumber; i++)
+      if (allGroups.indexOf(i + 1) === -1) this.groupsToReset.push(i + "");
     for (let tr of state.transitions) {
       this.conditions.push(new CharCondition(tr, groupNumber));
     }
@@ -183,13 +183,13 @@ class CStateBlock {
 
 @CodeTemplate(`
 {#if anyCharExcept}
-                if (next == -1 && {except { && }=> ch != '{this}'}{fixedConditions}) {nextCode}
+                if (next === -1 && {except { && }=> ch != '{this}'}{fixedConditions}) {nextCode}
 {#elseif anyChar}
-                if (next == -1{fixedConditions}) {nextCode}
+                if (next === -1{fixedConditions}) {nextCode}
 {#elseif charClass}
                 if (ch >= '{chFrom}' && ch <= '{ch}'{fixedConditions}) {nextCode}
 {#else}
-                if (ch == '{ch}'{fixedConditions}) {nextCode}
+                if (ch === '{ch}'{fixedConditions}) {nextCode}
 {/if}`)
 class CharCondition {
   public anyCharExcept: boolean = false;
@@ -201,8 +201,8 @@ class CharCondition {
   public fixedConditions: string = "";
   public nextCode;
   constructor(tr: RegexStateTransition, groupN: number) {
-    if (tr.fixedStart) this.fixedConditions = " && iterator == 0";
-    else if (tr.fixedEnd) this.fixedConditions = " && iterator == len - 1";
+    if (tr.fixedStart) this.fixedConditions = " && iterator === 0";
+    else if (tr.fixedEnd) this.fixedConditions = " && iterator === len - 1";
 
     if (typeof tr.condition === "string")
       this.ch = tr.condition.replace("\\", "\\\\").replace("'", "\\'");
@@ -218,7 +218,7 @@ class CharCondition {
     } else this.anyChar = true;
 
     let groupCaptureCode = "";
-    for (var g of tr.startGroup || [])
+    for (let g of tr.startGroup || [])
       groupCaptureCode +=
         " if (capture && (!started[" +
         (g - 1) +
@@ -229,7 +229,7 @@ class CharCondition {
         "] = 1; result.matches[" +
         (g - 1) +
         "].index = iterator; }";
-    for (var g of tr.endGroup || [])
+    for (let g of tr.endGroup || [])
       groupCaptureCode +=
         " if (capture && started[" +
         (g - 1) +

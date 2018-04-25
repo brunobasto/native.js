@@ -1,5 +1,5 @@
-var s1 = "simple test";
-var s2 = "áäöß€𐍈";
+let s1 = "simple test";
+let s2 = "áäöß€𐍈";
 
 console.log(s1.substring(1, 5));
 console.log(s2.substring(-1, 2));

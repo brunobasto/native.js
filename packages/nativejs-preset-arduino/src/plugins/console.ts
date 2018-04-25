@@ -55,6 +55,6 @@ export class SerialConsoleReadPlugin implements Plugin {
 
     const call = node as ts.CallExpression;
 
-    return call.expression.getText() == "serialRead";
+    return call.expression.getText() === "serialRead";
   }
 }

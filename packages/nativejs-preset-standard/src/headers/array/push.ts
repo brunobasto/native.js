@@ -1,14 +1,14 @@
 import {
   ArrayPushHeaderType,
   AssertHeaderType,
+  CExpression,
+  CodeTemplate,
   Header,
   HeaderRegistry,
   StdioHeaderType,
   StdlibHeaderType,
   StringHeaderType
 } from "nativejs-compiler";
-import { CExpression } from "nativejs-compiler";
-import { CodeTemplate } from "nativejs-compiler";
 
 export class StandardArrayPushHeader implements Header {
   public getType() {

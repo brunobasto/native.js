@@ -12,38 +12,38 @@ export interface IResolver {
   getEscapeNode(s: TypeVisitor, n: ts.Node): ts.Node;
 }
 
-var standardCallResolvers: IResolver[] = [];
+let standardCallResolvers: IResolver[] = [];
 export function StandardCallResolver(target: any) {
   standardCallResolvers.push(new target());
 }
 export class StandardCallHelper {
   public static isStandardCall(typeVisitor: TypeVisitor, node: ts.Node) {
-    for (var resolver of standardCallResolvers)
+    for (let resolver of standardCallResolvers)
       if (resolver.matchesNode(typeVisitor, node)) return true;
 
     return false;
   }
   public static createTemplate(scope: IScope, node: ts.Node) {
-    for (var resolver of standardCallResolvers)
+    for (let resolver of standardCallResolvers)
       if (resolver.matchesNode(scope.root.typeVisitor, node))
         return resolver.createTemplate(scope, node);
 
     return null;
   }
   public static getReturnType(typeVisitor: TypeVisitor, node: ts.Node) {
-    for (var resolver of standardCallResolvers)
+    for (let resolver of standardCallResolvers)
       if (resolver.matchesNode(typeVisitor, node))
         return resolver.returnType(typeVisitor, node);
     return null;
   }
   public static needsDisposal(typeVisitor: TypeVisitor, node: ts.Node) {
-    for (var resolver of standardCallResolvers)
+    for (let resolver of standardCallResolvers)
       if (resolver.matchesNode(typeVisitor, node))
         return resolver.needsDisposal(typeVisitor, node);
     return false;
   }
   public static getTempVarName(typeVisitor: TypeVisitor, node: ts.Node) {
-    for (var resolver of standardCallResolvers)
+    for (let resolver of standardCallResolvers)
       if (resolver.matchesNode(typeVisitor, node))
         return resolver.getTempVarName(typeVisitor, node);
     console.log(
@@ -54,7 +54,7 @@ export class StandardCallHelper {
     return "tmp";
   }
   public static getEscapeNode(typeVisitor: TypeVisitor, node: ts.Node) {
-    for (var resolver of standardCallResolvers)
+    for (let resolver of standardCallResolvers)
       if (resolver.matchesNode(typeVisitor, node))
         return resolver.getEscapeNode(typeVisitor, node);
 

@@ -5,10 +5,10 @@ import {
   HeaderRegistry,
   Int16HeaderType,
   IScope,
-  StringHeaderType,
-  StringAndIntConcatHeaderType,
+  StdioHeaderType,
   StringAndIntBufferLengthHeaderType,
-  StdioHeaderType
+  StringAndIntConcatHeaderType,
+  StringHeaderType
 } from "nativejs-compiler";
 
 export class StandardStringAndIntConcatHeader implements Header {

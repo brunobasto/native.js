@@ -84,7 +84,7 @@ describe("Array Methods", () => {
   describe("indexOf", () => {
     it("should return 0 for the for the first element", done => {
       const expression = `
-			var array = [1, 2, 3];
+			let array = [1, 2, 3];
 			const result = array.indexOf(1);
 			`;
       assertArrayResult(expression, done);
@@ -92,7 +92,7 @@ describe("Array Methods", () => {
 
     it("should return 1 for the for the second element", done => {
       const expression = `
-			var array = [1, 2, 3];
+			let array = [1, 2, 3];
 			const result = array.indexOf(2);
 			`;
       assertArrayResult(expression, done);
@@ -100,7 +100,7 @@ describe("Array Methods", () => {
 
     it("should return 2 for the for the third element", done => {
       const expression = `
-			var array = [1, 2, 3];
+			let array = [1, 2, 3];
 			const result = array.indexOf(3);
 			`;
       assertArrayResult(expression, done);
@@ -108,7 +108,7 @@ describe("Array Methods", () => {
 
     it("should find elements added later", done => {
       const expression = `
-			var array = [1, 2, 3];
+			let array = [1, 2, 3];
 			array.push(4);
 			const result = array.indexOf(4);
 			`;
@@ -117,7 +117,7 @@ describe("Array Methods", () => {
 
     it("should not find removed elements", done => {
       const expression = `
-			var array = [1, 2, 3];
+			let array = [1, 2, 3];
 			array.pop();
 			const result = array.indexOf(3);
 			`;
@@ -126,7 +126,7 @@ describe("Array Methods", () => {
 
     it("should return -1 when element not found", done => {
       const expression = `
-			var array = [1, 2, 3];
+			let array = [1, 2, 3];
 			const result = array.indexOf(4);
 			`;
       assertArrayResult(expression, done);

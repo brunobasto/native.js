@@ -27,7 +27,7 @@ export class TemporaryVariables {
     )
       i++;
     let iteratorVarName;
-    if (i == this.iteratorVarNames.length) {
+    if (i === this.iteratorVarNames.length) {
       i = 2;
       while (existingSymbolNames.indexOf("i_" + i) > -1) i++;
       iteratorVarName = "i_" + i;
@@ -47,7 +47,7 @@ export class TemporaryVariables {
     let parentFunc = ScopeUtil.findParentFunction(scopeNode);
     let scopeId = (parentFunc && parentFunc.pos + 1) || "main";
     let existingSymbolNames =
-      scopeNode == null
+      scopeNode === null
         ? []
         : this.typeChecker
             .getSymbolsInScope(scopeNode, ts.SymbolFlags.Variable)

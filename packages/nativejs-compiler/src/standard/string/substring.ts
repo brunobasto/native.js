@@ -21,7 +21,7 @@ class StringSubstringResolver implements IResolver {
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeVisitor.inferNodeType(propAccess.expression);
-    return propAccess.name.getText() == "substring" && objType == StringType;
+    return propAccess.name.getText() === "substring" && objType === StringType;
   }
   public returnType(typeVisitor: TypeVisitor, call: ts.CallExpression) {
     return StringType;
@@ -65,10 +65,10 @@ class CStringSubstring {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     this.varAccess = new CElementAccess(scope, propAccess.expression);
     this.topExpressionOfStatement =
-      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
+      call.parent.kind === ts.SyntaxKind.ExpressionStatement;
 
     if (!this.topExpressionOfStatement) {
-      if (call.arguments.length == 0) {
+      if (call.arguments.length === 0) {
         console.log(
           "Error in " + call.getText() + ". At least one parameter expected!"
         );

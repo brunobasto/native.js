@@ -22,7 +22,7 @@ class ArrayShiftResolver implements IResolver {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeVisitor.inferNodeType(propAccess.expression);
     return (
-      propAccess.name.getText() == "shift" &&
+      propAccess.name.getText() === "shift" &&
       objType instanceof ArrayType &&
       objType.isDynamicArray
     );
@@ -70,7 +70,7 @@ class CArrayShift {
       new CVariable(scope, this.tempVarName, type.elementType)
     );
     this.topExpressionOfStatement =
-      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
+      call.parent.kind === ts.SyntaxKind.ExpressionStatement;
     HeaderRegistry.declareDependency(ArrayRemoveHeaderType);
   }
 }

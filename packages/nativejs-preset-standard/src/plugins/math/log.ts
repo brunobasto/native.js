@@ -1,9 +1,13 @@
+import {
+  CExpression,
+  CodeTemplate,
+  CodeTemplateFactory,
+  HeaderRegistry,
+  IScope,
+  MathHeaderType,
+  Plugin
+} from "nativejs-compiler";
 import * as ts from "typescript";
-import { HeaderRegistry, MathHeaderType } from "nativejs-compiler";
-import { Plugin } from "nativejs-compiler";
-import { CExpression } from "nativejs-compiler";
-import { IScope } from "nativejs-compiler";
-import { CodeTemplate, CodeTemplateFactory } from "nativejs-compiler";
 
 @CodeTemplate(`log({arguments})`)
 class MathLogTemplate {
@@ -23,7 +27,7 @@ class MathLogTemplate {
 }
 
 export class MathLogPlugin implements Plugin {
-  public execute(scope: IScope, node: ts.Node, handler: Object): CExpression {
+  public execute(scope: IScope, node: ts.Node): CExpression {
     const call = node as ts.CallExpression;
 
     return new MathLogTemplate(scope, call);
@@ -32,15 +36,15 @@ export class MathLogPlugin implements Plugin {
   public processTypes(node: ts.Node) {}
 
   public matchesNode(node: ts.Node): boolean {
-    if (node.kind != ts.SyntaxKind.CallExpression) {
+    if (node.kind !== ts.SyntaxKind.CallExpression) {
       return false;
     }
 
     const call = node as ts.CallExpression;
 
     return (
-      call.expression.kind == ts.SyntaxKind.PropertyAccessExpression &&
-      call.expression.getText() == "Math.log"
+      call.expression.kind === ts.SyntaxKind.PropertyAccessExpression &&
+      call.expression.getText() === "Math.log"
     );
   }
 }

@@ -23,7 +23,7 @@ class ArrayPushResolver implements IResolver {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeVisitor.inferNodeType(propAccess.expression);
     return (
-      propAccess.name.getText() == "push" &&
+      propAccess.name.getText() === "push" &&
       objType instanceof ArrayType &&
       objType.isDynamicArray
     );
@@ -75,7 +75,7 @@ class CArrayPush {
       (a, i) => new CPushValue(scope, this.varAccess, a, types[i])
     );
     this.topExpressionOfStatement =
-      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
+      call.parent.kind === ts.SyntaxKind.ExpressionStatement;
     if (!this.topExpressionOfStatement) {
       this.tempVarName = scope.root.temporaryVariables.addNewTemporaryVariable(
         propAccess,
@@ -108,7 +108,7 @@ class CPushValue {
     public value: CExpression,
     public type: NativeType
   ) {
-    if (type == StringType) {
+    if (type === StringType) {
       this.isString = true;
       this.tempStringName = scope.root.gc.getUniqueName();
     }

@@ -1,6 +1,9 @@
-import { Header, StdioHeaderType } from "nativejs-compiler";
-import { CExpression } from "nativejs-compiler";
-import { CodeTemplate } from "nativejs-compiler";
+import {
+  CExpression,
+  CodeTemplate,
+  Header,
+  StdioHeaderType
+} from "nativejs-compiler";
 
 export class StandardStdIoHeader implements Header {
   public getType() {

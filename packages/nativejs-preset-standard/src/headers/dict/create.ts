@@ -2,17 +2,17 @@ import {
   ArrayCreateHeaderType,
   ArrayPushHeaderType,
   ArrayTypeHeaderType,
+  CExpression,
+  CodeTemplate,
   DictCreateHeaderType,
   Header,
   HeaderRegistry,
   HeaderType,
+  Int16HeaderType,
   StdioHeaderType,
   StdlibHeaderType,
-  StringHeaderType,
-  Int16HeaderType
+  StringHeaderType
 } from "nativejs-compiler";
-import { CExpression } from "nativejs-compiler";
-import { CodeTemplate } from "nativejs-compiler";
 
 export class StandardDictCreateHeader implements Header {
   public getType() {

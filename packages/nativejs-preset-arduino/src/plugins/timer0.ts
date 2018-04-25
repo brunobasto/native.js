@@ -90,6 +90,6 @@ export class Timer0Plugin implements Plugin {
 
     const call = <ts.CallExpression>node;
 
-    return call.expression.getText() == "Timer0.onOverflow";
+    return call.expression.getText() === "Timer0.onOverflow";
   }
 }

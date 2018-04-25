@@ -1,15 +1,15 @@
 import {
+  AssertHeaderType,
+  CExpression,
+  CodeTemplate,
   Header,
   HeaderRegistry,
-  AssertHeaderType,
-  SubStringHeaderType,
+  IScope,
   StdlibHeaderType,
   StringHeaderType,
-  StringLengthHeaderType
+  StringLengthHeaderType,
+  SubStringHeaderType
 } from "nativejs-compiler";
-import { CExpression } from "nativejs-compiler";
-import { IScope } from "nativejs-compiler";
-import { CodeTemplate } from "nativejs-compiler";
 
 export class StandardSubStringHeader implements Header {
   public getType() {

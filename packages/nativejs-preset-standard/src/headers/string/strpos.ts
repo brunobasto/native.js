@@ -1,12 +1,12 @@
 import {
+  CExpression,
+  CodeTemplate,
   Header,
   HeaderRegistry,
   Int16HeaderType,
+  IScope,
   StringPositionHeaderType
 } from "nativejs-compiler";
-import { CExpression } from "nativejs-compiler";
-import { IScope } from "nativejs-compiler";
-import { CodeTemplate } from "nativejs-compiler";
 
 export class StandardStringPositionHeader implements Header {
   public getType() {

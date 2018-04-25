@@ -1,7 +1,10 @@
-import { Header, StringHeaderType } from "nativejs-compiler";
-import { CExpression } from "nativejs-compiler";
-import { IScope } from "nativejs-compiler";
-import { CodeTemplate } from "nativejs-compiler";
+import {
+  CExpression,
+  CodeTemplate,
+  Header,
+  IScope,
+  StringHeaderType
+} from "nativejs-compiler";
 
 export class StandardStringHeader implements Header {
   public getType() {

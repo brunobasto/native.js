@@ -114,7 +114,7 @@ export class CForStatement {
   public varDecl: CVariableDeclaration = null;
   constructor(scope: IScope, node: ts.ForStatement) {
     this.block = new CBlock(scope, node.statement);
-    if (node.initializer.kind == ts.SyntaxKind.VariableDeclarationList) {
+    if (node.initializer.kind === ts.SyntaxKind.VariableDeclarationList) {
       let declList = <ts.VariableDeclarationList>node.initializer;
       this.varDecl = new CVariableDeclaration(scope, declList.declarations[0]);
       this.init = "";
@@ -174,7 +174,7 @@ export class CForOfStatement implements IScope {
       if (elemType instanceof ArrayType && elemType.isDynamicArray)
         this.cast = "(void *)";
     }
-    if (node.initializer.kind == ts.SyntaxKind.VariableDeclarationList) {
+    if (node.initializer.kind === ts.SyntaxKind.VariableDeclarationList) {
       let declInit = (<ts.VariableDeclarationList>node.initializer)
         .declarations[0];
       scope.variables.push(
@@ -226,7 +226,7 @@ export class CForInStatement implements IScope {
     let dictVarType = scope.root.typeVisitor.inferNodeType(node.expression);
     // TODO: do something with dictVarType
 
-    if (node.initializer.kind == ts.SyntaxKind.VariableDeclarationList) {
+    if (node.initializer.kind === ts.SyntaxKind.VariableDeclarationList) {
       let declInit = (<ts.VariableDeclarationList>node.initializer)
         .declarations[0];
       scope.variables.push(
@@ -235,7 +235,7 @@ export class CForInStatement implements IScope {
       this.init = declInit.name.getText();
     } else this.init = new CElementAccess(scope, node.initializer);
 
-    if (node.statement.kind == ts.SyntaxKind.Block) {
+    if (node.statement.kind === ts.SyntaxKind.Block) {
       let block = <ts.Block>node.statement;
       for (let s of block.statements)
         this.statements.push(CodeTemplateFactory.createForNode(this, s));
@@ -263,9 +263,9 @@ export class CExpressionStatement {
   public expression: CExpression;
   public SemicolonCR: string = ";\n";
   constructor(scope: IScope, node: ts.ExpressionStatement) {
-    if (node.expression.kind == ts.SyntaxKind.BinaryExpression) {
+    if (node.expression.kind === ts.SyntaxKind.BinaryExpression) {
       let binExpr = <ts.BinaryExpression>node.expression;
-      if (binExpr.operatorToken.kind == ts.SyntaxKind.EqualsToken) {
+      if (binExpr.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
         this.expression = AssignmentHelper.create(
           scope,
           binExpr.left,
@@ -290,10 +290,10 @@ export class CExpressionStatement {
         {statements {    }=> {this}}
     }
 {/if}
-{#if statements.length == 1 && variables.length == 0}
+{#if statements.length === 1 && variables.length === 0}
         {statements}
 {/if}
-{#if statements.length == 0 && variables.length == 0}
+{#if statements.length === 0 && variables.length === 0}
         /* no statements */;
 {/if}`,
   ts.SyntaxKind.Block
@@ -309,7 +309,7 @@ export class CBlock implements IScope {
     this.func = scope.func;
     this.root = scope.root;
 
-    if (node.kind == ts.SyntaxKind.Block) {
+    if (node.kind === ts.SyntaxKind.Block) {
       let block = <ts.Block>node;
       block.statements.forEach(s =>
         this.statements.push(CodeTemplateFactory.createForNode(this, s))

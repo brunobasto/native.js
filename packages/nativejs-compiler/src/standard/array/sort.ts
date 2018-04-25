@@ -21,7 +21,7 @@ class ArraySortResolver implements IResolver {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeVisitor.inferNodeType(propAccess.expression);
     return (
-      propAccess.name.getText() == "sort" &&
+      propAccess.name.getText() === "sort" &&
       objType instanceof ArrayType &&
       objType.isDynamicArray
     );
@@ -71,9 +71,9 @@ class CArraySort {
     ) as ArrayType;
     this.varAccess = new CElementAccess(scope, propAccess.expression);
     this.topExpressionOfStatement =
-      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
-    this.arrayOfInts = type.elementType == IntegerType;
-    this.arrayOfStrings = type.elementType == StringType;
+      call.parent.kind === ts.SyntaxKind.ExpressionStatement;
+    this.arrayOfInts = type.elementType === IntegerType;
+    this.arrayOfStrings = type.elementType === StringType;
 
     if (this.arrayOfInts) {
       scope.root.headerFlags.array_int16_t_cmp = true;

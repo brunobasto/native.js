@@ -27,7 +27,7 @@ class StringConcatResolver implements IResolver {
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeVisitor.inferNodeType(propAccess.expression);
-    return propAccess.name.getText() == "concat" && objType == StringType;
+    return propAccess.name.getText() === "concat" && objType === StringType;
   }
   public returnType(typeVisitor: TypeVisitor, call: ts.CallExpression) {
     return StringType;
@@ -71,7 +71,7 @@ class CStringConcat {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     this.varAccess = new CElementAccess(scope, propAccess.expression);
     this.topExpressionOfStatement =
-      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
+      call.parent.kind === ts.SyntaxKind.ExpressionStatement;
 
     if (!this.topExpressionOfStatement) {
       this.tempVarName = scope.root.memoryManager.getReservedTemporaryVarName(
@@ -111,7 +111,7 @@ class CGetSize {
   public isNumber: boolean;
   constructor(scope: IScope, valueNode: ts.Node, public value: CExpression) {
     const type = scope.root.typeVisitor.inferNodeType(valueNode);
-    this.isNumber = type == IntegerType;
+    this.isNumber = type === IntegerType;
   }
 }
 
@@ -131,6 +131,6 @@ class CConcatValue {
     public value: CExpression
   ) {
     const type = scope.root.typeVisitor.inferNodeType(valueNode);
-    this.isNumber = type == IntegerType;
+    this.isNumber = type === IntegerType;
   }
 }

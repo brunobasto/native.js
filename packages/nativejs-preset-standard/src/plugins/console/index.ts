@@ -1,9 +1,12 @@
+import {
+  CExpression,
+  CodeTemplate,
+  HeaderRegistry,
+  IScope,
+  Plugin,
+  StdioHeaderType
+} from "nativejs-compiler";
 import * as ts from "typescript";
-import { HeaderRegistry, StdioHeaderType } from "nativejs-compiler";
-import { Plugin } from "nativejs-compiler";
-import { CExpression } from "nativejs-compiler";
-import { IScope } from "nativejs-compiler";
-import { CodeTemplate } from "nativejs-compiler";
 import { ConsoleLogHelper } from "./log";
 
 @CodeTemplate(`
@@ -34,7 +37,7 @@ class ConsoleLogTemplate {
 }
 
 export class ConsoleLogPlugin implements Plugin {
-  public execute(scope: IScope, node: ts.Node, handler: Object): CExpression {
+  public execute(scope: IScope, node: ts.Node): CExpression {
     const call = node as ts.CallExpression;
 
     return new ConsoleLogTemplate(scope, call);
@@ -43,15 +46,15 @@ export class ConsoleLogPlugin implements Plugin {
   public processTypes(node: ts.Node) {}
 
   public matchesNode(node: ts.Node): boolean {
-    if (node.kind != ts.SyntaxKind.CallExpression) {
+    if (node.kind !== ts.SyntaxKind.CallExpression) {
       return false;
     }
 
     const call = node as ts.CallExpression;
 
     return (
-      call.expression.kind == ts.SyntaxKind.PropertyAccessExpression &&
-      call.expression.getText() == "console.log"
+      call.expression.kind === ts.SyntaxKind.PropertyAccessExpression &&
+      call.expression.getText() === "console.log"
     );
   }
 }

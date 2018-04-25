@@ -23,7 +23,7 @@ class ArrayPopResolver implements IResolver {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeVisitor.inferNodeType(propAccess.expression);
     return (
-      propAccess.name.getText() == "pop" &&
+      propAccess.name.getText() === "pop" &&
       objType instanceof ArrayType &&
       objType.isDynamicArray
     );
@@ -63,7 +63,7 @@ class CArrayPop {
   constructor(scope: IScope, call: ts.CallExpression) {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     this.varAccess = new CElementAccess(scope, propAccess.expression);
-    call.parent.kind == ts.SyntaxKind.Block;
+    call.parent.kind === ts.SyntaxKind.Block;
     // do not use returned value if it's a direct statement
     if (call.parent.kind === ts.SyntaxKind.ExpressionStatement) {
       this.useReturnValue = false;

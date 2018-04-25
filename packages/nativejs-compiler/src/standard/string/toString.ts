@@ -23,7 +23,7 @@ class StringToStringResolver implements IResolver {
     const objType = typeVisitor.inferNodeType(propAccess.expression);
     return (
       ["toString", "valueOf"].indexOf(propAccess.name.getText()) > -1 &&
-      objType == StringType
+      objType === StringType
     );
   }
   public returnType(typeVisitor: TypeVisitor, call: ts.CallExpression) {

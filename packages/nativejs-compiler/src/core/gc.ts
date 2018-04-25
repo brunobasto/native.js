@@ -188,21 +188,21 @@ export class GarbageCollector {
   getTemporaryVariableDeclarators(scope: IScope, node: ts.Node) {
     const variables = Array.from(this.temporaryVariables.values()).filter(
       (variable, index, list) => {
-        return list.indexOf(variable) == index;
+        return list.indexOf(variable) === index;
       }
     );
     const scopeNode = ScopeUtil.getScopeNode(node);
     const simpleInitializers = variables
-      .filter(variable => variable.scopeNode == scopeNode)
+      .filter(variable => variable.scopeNode === scopeNode)
       .map((variable: TemporaryVariable) => {
         let typeString = "char *";
-        if (variable.type == IntegerType) {
+        if (variable.type === IntegerType) {
           typeString = `${IntegerType} *`;
         }
         return new CVariable(scope, variable.name, typeString, {});
       });
     const loopInitializers = variables
-      .filter(variable => variable.escapeNode == node)
+      .filter(variable => variable.escapeNode === node)
       .filter(variable => variable.disposeLater === true)
       .map((variable: TemporaryVariable) => {
         const typeString = `ARRAY(void *)`;
@@ -215,11 +215,11 @@ export class GarbageCollector {
   getTemporaryVariableDestructors(scope: IScope, node: ts.Node): any[] {
     const variables = Array.from(this.temporaryVariables.values()).filter(
       (variable, index, list) => {
-        return list.indexOf(variable) == index;
+        return list.indexOf(variable) === index;
       }
     );
     const simpleDestructors = variables
-      .filter(variable => variable.scopeNode == ScopeUtil.getScopeNode(node))
+      .filter(variable => variable.scopeNode === ScopeUtil.getScopeNode(node))
       .map((variable: TemporaryVariable) => `free(${variable.name});`);
     const loopInitializers = variables
       .filter(variable => variable.disposeLater === true)

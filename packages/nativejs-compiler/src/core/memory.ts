@@ -48,14 +48,14 @@ export class MemoryManager {
     switch (node.kind) {
       case ts.SyntaxKind.ArrayLiteralExpression:
         {
-          if (node.parent.kind == ts.SyntaxKind.VariableDeclaration) break;
+          if (node.parent.kind === ts.SyntaxKind.VariableDeclaration) break;
 
           if (
-            node.parent.kind == ts.SyntaxKind.BinaryExpression &&
-            node.parent.parent.kind == ts.SyntaxKind.ExpressionStatement
+            node.parent.kind === ts.SyntaxKind.BinaryExpression &&
+            node.parent.parent.kind === ts.SyntaxKind.ExpressionStatement
           ) {
             let binExpr = <ts.BinaryExpression>node.parent;
-            if (binExpr.left.kind == ts.SyntaxKind.Identifier) break;
+            if (binExpr.left.kind === ts.SyntaxKind.Identifier) break;
           }
 
           let type = this.typeVisitor.inferNodeType(node);
@@ -65,14 +65,14 @@ export class MemoryManager {
         break;
       case ts.SyntaxKind.ObjectLiteralExpression:
         {
-          if (node.parent.kind == ts.SyntaxKind.VariableDeclaration) break;
+          if (node.parent.kind === ts.SyntaxKind.VariableDeclaration) break;
 
           if (
-            node.parent.kind == ts.SyntaxKind.BinaryExpression &&
-            node.parent.parent.kind == ts.SyntaxKind.ExpressionStatement
+            node.parent.kind === ts.SyntaxKind.BinaryExpression &&
+            node.parent.parent.kind === ts.SyntaxKind.ExpressionStatement
           ) {
             let binExpr = <ts.BinaryExpression>node.parent;
-            if (binExpr.left.kind == ts.SyntaxKind.Identifier) break;
+            if (binExpr.left.kind === ts.SyntaxKind.Identifier) break;
           }
 
           let type = this.typeVisitor.inferNodeType(node);
@@ -84,17 +84,17 @@ export class MemoryManager {
         {
           let binExpr = <ts.BinaryExpression>node;
           if (
-            binExpr.operatorToken.kind == ts.SyntaxKind.PlusToken ||
-            binExpr.operatorToken.kind == ts.SyntaxKind.FirstCompoundAssignment
+            binExpr.operatorToken.kind === ts.SyntaxKind.PlusToken ||
+            binExpr.operatorToken.kind === ts.SyntaxKind.FirstCompoundAssignment
           ) {
             let leftType = this.typeVisitor.inferNodeType(binExpr.left);
             let rightType = this.typeVisitor.inferNodeType(binExpr.right);
-            if (leftType == StringType || rightType == StringType)
+            if (leftType === StringType || rightType === StringType)
               this.scheduleNodeDisposal(binExpr, true);
 
-            if (binExpr.left.kind == ts.SyntaxKind.BinaryExpression)
+            if (binExpr.left.kind === ts.SyntaxKind.BinaryExpression)
               this.preprocessTemporaryVariables(binExpr.left);
-            if (binExpr.right.kind == ts.SyntaxKind.BinaryExpression)
+            if (binExpr.right.kind === ts.SyntaxKind.BinaryExpression)
               this.preprocessTemporaryVariables(binExpr.right);
 
             return;
@@ -110,7 +110,7 @@ export class MemoryManager {
             )
           ) {
             let nodeToDispose = this.tryReuseExistingVariable(node) || node;
-            let isTempVar = nodeToDispose == node;
+            let isTempVar = nodeToDispose === node;
             if (!isTempVar) {
               this.reusedVariables[node.pos + "_" + node.end] =
                 nodeToDispose.pos + "_" + nodeToDispose.end;
@@ -128,7 +128,7 @@ export class MemoryManager {
 
   public getGCVariablesForScope(node: ts.Node) {
     let parentDecl = this.findParentFunctionNode(node);
-    var scopeId: string = (parentDecl && parentDecl.pos + 1 + "") || "main";
+    let scopeId: string = (parentDecl && parentDecl.pos + 1 + "") || "main";
     let realScopeId =
       this.scopes[scopeId] &&
       this.scopes[scopeId].length &&
@@ -225,14 +225,14 @@ export class MemoryManager {
 
   /** Sometimes we can reuse existing variable instead of creating a temporary one. */
   public tryReuseExistingVariable(node: ts.Node) {
-    if (node.parent.kind == ts.SyntaxKind.BinaryExpression) {
+    if (node.parent.kind === ts.SyntaxKind.BinaryExpression) {
       let assignment = <ts.BinaryExpression>node.parent;
-      if (assignment.left.kind == ts.SyntaxKind.Identifier)
+      if (assignment.left.kind === ts.SyntaxKind.Identifier)
         return assignment.left;
     }
-    if (node.parent.kind == ts.SyntaxKind.VariableDeclaration) {
+    if (node.parent.kind === ts.SyntaxKind.VariableDeclaration) {
       let assignment = <ts.VariableDeclaration>node.parent;
-      if (assignment.name.kind == ts.SyntaxKind.Identifier)
+      if (assignment.name.kind === ts.SyntaxKind.Identifier)
         return assignment.name;
     }
     return null;
@@ -240,23 +240,23 @@ export class MemoryManager {
 
   private scheduleNodeDisposal(heapNode: ts.Node, isTemp: boolean) {
     let varFuncNode = this.findParentFunctionNode(heapNode);
-    var topScope: number | "main" =
+    let topScope: number | "main" =
       (varFuncNode && varFuncNode.pos + 1) || "main";
-    var isSimple = true;
+    let isSimple = true;
     if (this.isInsideLoop(heapNode)) isSimple = false;
 
-    var scopeTree = {};
+    let scopeTree = {};
     scopeTree[topScope] = true;
 
-    var queue = [heapNode];
+    let queue = [heapNode];
     queue.push();
-    var visited = {};
+    let visited = {};
     while (queue.length > 0) {
       let node = queue.shift();
       if (visited[node.pos + "_" + node.end]) continue;
 
       let refs = [node];
-      if (node.kind == ts.SyntaxKind.Identifier) {
+      if (node.kind === ts.SyntaxKind.Identifier) {
         let varIdent = <ts.Identifier>node;
         let nodeVarInfo = this.typeVisitor.getVariableInfo(varIdent);
         if (!nodeVarInfo) {
@@ -271,13 +271,14 @@ export class MemoryManager {
         let parentNode = this.findParentFunctionNode(ref);
         if (!parentNode) topScope = "main";
 
-        if (ref.kind == ts.SyntaxKind.PropertyAccessExpression) {
+        if (ref.kind === ts.SyntaxKind.PropertyAccessExpression) {
           let elemAccess = <ts.PropertyAccessExpression>ref;
           while (
-            elemAccess.expression.kind == ts.SyntaxKind.PropertyAccessExpression
+            elemAccess.expression.kind ===
+            ts.SyntaxKind.PropertyAccessExpression
           )
             elemAccess = <ts.PropertyAccessExpression>elemAccess.expression;
-          if (elemAccess.expression.kind == ts.SyntaxKind.Identifier) {
+          if (elemAccess.expression.kind === ts.SyntaxKind.Identifier) {
             log(
               heapNode.getText() +
                 " -> Tracking parent variable: " +
@@ -288,11 +289,11 @@ export class MemoryManager {
           }
         }
 
-        if (ref.parent && ref.parent.kind == ts.SyntaxKind.BinaryExpression) {
+        if (ref.parent && ref.parent.kind === ts.SyntaxKind.BinaryExpression) {
           let binaryExpr = <ts.BinaryExpression>ref.parent;
           if (
-            binaryExpr.operatorToken.kind == ts.SyntaxKind.EqualsToken &&
-            binaryExpr.left.getText() == heapNode.getText()
+            binaryExpr.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+            binaryExpr.left.getText() === heapNode.getText()
           ) {
             log(
               heapNode.getText() +
@@ -304,7 +305,10 @@ export class MemoryManager {
           }
         }
 
-        if (ref.parent && ref.parent.kind == ts.SyntaxKind.PropertyAssignment) {
+        if (
+          ref.parent &&
+          ref.parent.kind === ts.SyntaxKind.PropertyAssignment
+        ) {
           log(
             heapNode.getText() +
               " -> Detected passing to object literal: " +
@@ -315,7 +319,7 @@ export class MemoryManager {
         }
         if (
           ref.parent &&
-          ref.parent.kind == ts.SyntaxKind.ArrayLiteralExpression
+          ref.parent.kind === ts.SyntaxKind.ArrayLiteralExpression
         ) {
           log(
             heapNode.getText() +
@@ -326,11 +330,11 @@ export class MemoryManager {
           queue.push(ref.parent);
         }
 
-        if (ref.parent && ref.parent.kind == ts.SyntaxKind.CallExpression) {
+        if (ref.parent && ref.parent.kind === ts.SyntaxKind.CallExpression) {
           let call = <ts.CallExpression>ref.parent;
           if (
-            call.expression.kind == ts.SyntaxKind.Identifier &&
-            call.expression.pos == ref.pos
+            call.expression.kind === ts.SyntaxKind.Identifier &&
+            call.expression.pos === ref.pos
           ) {
             log(heapNode.getText() + " -> Found function call!");
             if (topScope !== "main") {
@@ -347,7 +351,7 @@ export class MemoryManager {
             if (!symbol) {
               let isStandardCall =
                 StandardCallHelper.isStandardCall(this.typeVisitor, call) ||
-                call.expression.getText() == "log";
+                call.expression.getText() === "log";
 
               if (isStandardCall) {
                 let standardCallEscapeNode = StandardCallHelper.getEscapeNode(
@@ -382,7 +386,7 @@ export class MemoryManager {
                   call.arguments[i].pos <= ref.pos &&
                   call.arguments[i].end >= ref.end
                 ) {
-                  if (funcDecl.pos + 1 == topScope) {
+                  if (funcDecl.pos + 1 === topScope) {
                     log(
                       heapNode.getText() +
                         " -> Found recursive call with parameter " +
@@ -406,7 +410,7 @@ export class MemoryManager {
           }
         } else if (
           ref.parent &&
-          ref.parent.kind == ts.SyntaxKind.ReturnStatement &&
+          ref.parent.kind === ts.SyntaxKind.ReturnStatement &&
           !returned
         ) {
           returned = true;
@@ -422,22 +426,22 @@ export class MemoryManager {
 
     let type = this.typeVisitor.inferNodeType(heapNode);
     let varName: string;
-    if (heapNode.kind == ts.SyntaxKind.ArrayLiteralExpression)
+    if (heapNode.kind === ts.SyntaxKind.ArrayLiteralExpression)
       varName = this.temporaryVariables.addNewTemporaryVariable(
         heapNode,
         "tmp_array"
       );
-    else if (heapNode.kind == ts.SyntaxKind.ObjectLiteralExpression)
+    else if (heapNode.kind === ts.SyntaxKind.ObjectLiteralExpression)
       varName = this.temporaryVariables.addNewTemporaryVariable(
         heapNode,
         "tmp_obj"
       );
-    else if (heapNode.kind == ts.SyntaxKind.BinaryExpression)
+    else if (heapNode.kind === ts.SyntaxKind.BinaryExpression)
       varName = this.temporaryVariables.addNewTemporaryVariable(
         heapNode,
         "tmp_string"
       );
-    else if (heapNode.kind == ts.SyntaxKind.CallExpression)
+    else if (heapNode.kind === ts.SyntaxKind.CallExpression)
       varName = this.temporaryVariables.addNewTemporaryVariable(
         heapNode,
         StandardCallHelper.getTempVarName(this.typeVisitor, heapNode)
@@ -449,7 +453,7 @@ export class MemoryManager {
     let arrayWithContents = false;
     if (this.originalNodes[key]) vnode = this.originalNodes[key];
     if (
-      vnode.kind == ts.SyntaxKind.CallExpression &&
+      vnode.kind === ts.SyntaxKind.CallExpression &&
       new StringMatchResolver().matchesNode(
         this.typeVisitor,
         <ts.CallExpression>vnode
@@ -457,8 +461,8 @@ export class MemoryManager {
     )
       arrayWithContents = true;
 
-    let foundScopes = topScope == "main" ? [topScope] : Object.keys(scopeTree);
-    var scopeInfo = {
+    let foundScopes = topScope === "main" ? [topScope] : Object.keys(scopeTree);
+    let scopeInfo = {
       node: heapNode,
       simple: isSimple,
       arrayWithContents: arrayWithContents,
@@ -485,9 +489,9 @@ export class MemoryManager {
     ref: ts.Node,
     queue: ts.Node[]
   ): boolean {
-    if (ref.parent && ref.parent.kind == ts.SyntaxKind.VariableDeclaration) {
+    if (ref.parent && ref.parent.kind === ts.SyntaxKind.VariableDeclaration) {
       let varDecl = <ts.VariableDeclaration>ref.parent;
-      if (varDecl.initializer && varDecl.initializer.pos == ref.pos) {
+      if (varDecl.initializer && varDecl.initializer.pos === ref.pos) {
         queue.push(varDecl.name);
         log(
           varIdent.getText() +
@@ -498,12 +502,12 @@ export class MemoryManager {
       }
     } else if (
       ref.parent &&
-      ref.parent.kind == ts.SyntaxKind.BinaryExpression
+      ref.parent.kind === ts.SyntaxKind.BinaryExpression
     ) {
       let binaryExpr = <ts.BinaryExpression>ref.parent;
       if (
-        binaryExpr.operatorToken.kind == ts.SyntaxKind.FirstAssignment &&
-        binaryExpr.right.pos == ref.pos
+        binaryExpr.operatorToken.kind === ts.SyntaxKind.FirstAssignment &&
+        binaryExpr.right.pos === ref.pos
       ) {
         queue.push(binaryExpr.left);
         log(
@@ -519,7 +523,7 @@ export class MemoryManager {
   }
 
   private findParentFunctionNode(node: ts.Node) {
-    var parent = node;
+    let parent = node;
     while (parent && parent.kind != ts.SyntaxKind.FunctionDeclaration) {
       parent = parent.parent;
     }
@@ -527,7 +531,7 @@ export class MemoryManager {
   }
 
   private isInsideLoop(node: ts.Node) {
-    var parent = node;
+    let parent = node;
     while (
       parent &&
       parent.kind != ts.SyntaxKind.ForInStatement &&

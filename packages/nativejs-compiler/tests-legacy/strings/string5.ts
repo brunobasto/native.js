@@ -1,7 +1,7 @@
-var s;
+let s;
 
 s = 5 + "";
-if (5 == s) console.log("s:", s);
+if (5 === s) console.log("s:", s);
 
 s = s + "something" + s + (+s + 4);
 

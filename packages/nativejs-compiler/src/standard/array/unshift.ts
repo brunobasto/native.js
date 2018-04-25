@@ -22,7 +22,7 @@ class ArrayUnshiftResolver implements IResolver {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeVisitor.inferNodeType(propAccess.expression);
     return (
-      propAccess.name.getText() == "unshift" &&
+      propAccess.name.getText() === "unshift" &&
       objType instanceof ArrayType &&
       objType.isDynamicArray
     );
@@ -71,7 +71,7 @@ class CArrayUnshift {
       a => new CUnshiftValue(scope, this.varAccess, a)
     );
     this.topExpressionOfStatement =
-      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
+      call.parent.kind === ts.SyntaxKind.ExpressionStatement;
     if (!this.topExpressionOfStatement) {
       this.tempVarName = scope.root.temporaryVariables.addNewTemporaryVariable(
         propAccess,

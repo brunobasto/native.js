@@ -22,7 +22,7 @@ class ArrayConcatResolver implements IResolver {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeVisitor.inferNodeType(propAccess.expression);
     return (
-      propAccess.name.getText() == "concat" && objType instanceof ArrayType
+      propAccess.name.getText() === "concat" && objType instanceof ArrayType
     );
   }
   public returnType(typeVisitor: TypeVisitor, call: ts.CallExpression) {
@@ -69,7 +69,7 @@ class CArrayConcat {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     this.varAccess = new CElementAccess(scope, propAccess.expression);
     this.topExpressionOfStatement =
-      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
+      call.parent.kind === ts.SyntaxKind.ExpressionStatement;
 
     if (!this.topExpressionOfStatement) {
       this.tempVarName = scope.root.memoryManager.getReservedTemporaryVarName(

@@ -61,6 +61,6 @@ export class SetIntervalPlugin implements Plugin {
 
     const call = <ts.CallExpression>node;
 
-    return call.expression.getText() == "setInterval";
+    return call.expression.getText() === "setInterval";
   }
 }

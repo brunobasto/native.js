@@ -26,7 +26,7 @@ class StringIndexOfResolver implements IResolver {
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeVisitor.inferNodeType(propAccess.expression);
-    return propAccess.name.getText() == "indexOf" && objType == StringType;
+    return propAccess.name.getText() === "indexOf" && objType === StringType;
   }
   public returnType(typeVisitor: TypeVisitor, call: ts.CallExpression) {
     return IntegerType;
@@ -57,9 +57,9 @@ class CStringIndexOf {
     HeaderRegistry.declareDependency(StringHeaderType);
     const propAccess = call.expression as ts.PropertyAccessExpression;
     this.topExpressionOfStatement =
-      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
+      call.parent.kind === ts.SyntaxKind.ExpressionStatement;
     if (!this.topExpressionOfStatement) {
-      if (call.arguments.length == 1) {
+      if (call.arguments.length === 1) {
         this.stringAccess = new CElementAccess(scope, propAccess.expression);
         this.arg1 = CodeTemplateFactory.createForNode(scope, call.arguments[0]);
         HeaderRegistry.declareDependency(StringPositionHeaderType);

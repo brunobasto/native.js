@@ -22,16 +22,16 @@ export class AssignmentHelper {
     let accessor;
     let varType;
     let argumentExpression;
-    if (left.kind == ts.SyntaxKind.ElementAccessExpression) {
+    if (left.kind === ts.SyntaxKind.ElementAccessExpression) {
       let elemAccess = <ts.ElementAccessExpression>left;
       varType = scope.root.typeVisitor.inferNodeType(elemAccess.expression);
-      if (elemAccess.expression.kind == ts.SyntaxKind.Identifier)
+      if (elemAccess.expression.kind === ts.SyntaxKind.Identifier)
         accessor = elemAccess.expression.getText();
       else accessor = new CElementAccess(scope, elemAccess.expression);
 
       if (
         varType instanceof StructType &&
-        elemAccess.argumentExpression.kind == ts.SyntaxKind.StringLiteral
+        elemAccess.argumentExpression.kind === ts.SyntaxKind.StringLiteral
       ) {
         let ident = elemAccess.argumentExpression.getText().slice(1, -1);
         if (ident.search(/^[_A-Za-z][_A-Za-z0-9]*$/) > -1)
@@ -69,9 +69,9 @@ export class AssignmentHelper {
     {objInitializers}
 {#elseif isArrayLiteralAssignment}
     {arrInitializers}
-{#elseif isDynamicArray && argumentExpression == null}
+{#elseif isDynamicArray && argumentExpression === null}
     {accessor} = ((void *){expression}){CR}
-{#elseif argumentExpression == null}
+{#elseif argumentExpression === null}
     {accessor} = {expression}{CR}
 {#elseif isStruct}
     {accessor}->{argumentExpression} = {expression}{CR}
@@ -136,11 +136,11 @@ export class CAssignment {
     let isTempVar = !!scope.root.memoryManager.getReservedTemporaryVarName(
       right
     );
-    if (right.kind == ts.SyntaxKind.ObjectLiteralExpression && !isTempVar) {
+    if (right.kind === ts.SyntaxKind.ObjectLiteralExpression && !isTempVar) {
       this.isObjLiteralAssignment = true;
       let objLiteral = <ts.ObjectLiteralExpression>right;
       this.objInitializers = objLiteral.properties
-        .filter(p => p.kind == ts.SyntaxKind.PropertyAssignment)
+        .filter(p => p.kind === ts.SyntaxKind.PropertyAssignment)
         .map(p => <ts.PropertyAssignment>p)
         .map(
           p =>
@@ -154,7 +154,7 @@ export class CAssignment {
             )
         );
     } else if (
-      right.kind == ts.SyntaxKind.ArrayLiteralExpression &&
+      right.kind === ts.SyntaxKind.ArrayLiteralExpression &&
       !isTempVar
     ) {
       this.isArrayLiteralAssignment = true;
@@ -167,20 +167,20 @@ export class CAssignment {
       this.expression = CodeTemplateFactory.createForNode(scope, right);
     }
 
-    if (this.argumentExpression == null) {
+    if (this.argumentExpression === null) {
       let expr =
-        typeof this.expression == "string"
+        typeof this.expression === "string"
           ? this.expression
           : this.expression &&
             this.expression["resolve"] &&
             this.expression["resolve"]();
       let acc =
-        typeof this.accessor == "string"
+        typeof this.accessor === "string"
           ? this.accessor
           : this.accessor &&
             this.accessor["resolve"] &&
             this.accessor["resolve"]();
-      if (expr == "" || acc == expr) this.assignmentRemoved = true;
+      if (expr === "" || acc === expr) this.assignmentRemoved = true;
     }
 
     if (this.isDict) {
@@ -188,14 +188,14 @@ export class CAssignment {
       // only do this when we have an argument expression
       if (<ts.Expression>elementAccess.argumentExpression) {
         const isStringValue =
-          scope.root.typeVisitor.inferNodeType(right) == StringType;
+          scope.root.typeVisitor.inferNodeType(right) === StringType;
         if (isStringValue) {
           this.isStringValue = 1;
         }
       }
 
       scope.root.gc.trackAssignmentToDict(scope, left, right);
-    } else if (this.argumentExpression == null) {
+    } else if (this.argumentExpression === null) {
       scope.root.gc.trackAssignmentToVariable(left, right);
     } else if (scope.root.gc.resolveToTemporaryVariable(right)) {
       scope.root.gc.trackAssignmentToTemporaryVariable(left, right);

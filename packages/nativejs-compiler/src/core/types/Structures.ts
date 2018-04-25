@@ -46,11 +46,11 @@ export class Structures {
   }
 
   public generateStructure(tsType: ts.Type, ident?: ts.Identifier): StructType {
-    var structName =
+    let structName =
       "struct_" + Object.keys(this.declaredStructs).length + "_t";
-    var varName = ident && ident.getText();
+    let varName = ident && ident.getText();
     if (varName) {
-      if (this.declaredStructs[varName + "_t"] == null)
+      if (this.declaredStructs[varName + "_t"] === null)
         structName = varName + "_t";
       else {
         let i = 2;
@@ -69,8 +69,8 @@ export class Structures {
         <ts.Identifier>prop.valueDeclaration.name
       );
       if (
-        propType == PointerType &&
-        prop.valueDeclaration.kind == ts.SyntaxKind.PropertyAssignment
+        propType === PointerType &&
+        prop.valueDeclaration.kind === ts.SyntaxKind.PropertyAssignment
       ) {
         let propAssignment = <ts.PropertyAssignment>prop.valueDeclaration;
         if (
@@ -87,9 +87,9 @@ export class Structures {
 
     let userStructCode = this.getStructureBodyString(userStructInfo);
 
-    var found = false;
+    let found = false;
     if (Object.keys(userStructInfo).length > 0) {
-      for (var s in this.declaredStructs) {
+      for (let s in this.declaredStructs) {
         if (
           this.getStructureBodyString(this.declaredStructs[s].properties) ==
           userStructCode

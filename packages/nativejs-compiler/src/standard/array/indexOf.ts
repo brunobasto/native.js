@@ -25,7 +25,7 @@ class ArrayIndexOfResolver implements IResolver {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeVisitor.inferNodeType(propAccess.expression);
     return (
-      propAccess.name.getText() == "indexOf" && objType instanceof ArrayType
+      propAccess.name.getText() === "indexOf" && objType instanceof ArrayType
     );
   }
   public returnType(typeVisitor: TypeVisitor, call: ts.CallExpression) {
@@ -85,7 +85,7 @@ class CArrayIndexOf {
       CodeTemplateFactory.createForNode(scope, a)
     );
     this.topExpressionOfStatement =
-      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
+      call.parent.kind === ts.SyntaxKind.ExpressionStatement;
 
     if (!this.topExpressionOfStatement) {
       this.tempVarName = scope.root.temporaryVariables.addNewTemporaryVariable(

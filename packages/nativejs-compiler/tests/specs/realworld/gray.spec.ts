@@ -5,12 +5,12 @@ describe("Real World Application - Gray", () => {
   it("should gray an image", done => {
     const expression = `
     function gray(imageSrc) {
-      var imageDst = {
+      let imageDst = {
         data: [],
         height: imageSrc.height,
         width: imageSrc.width
       };
-      for (var i = 0; i < imageSrc.data.length; i += 4)
+      for (let i = 0; i < imageSrc.data.length; i += 4)
         imageDst.data.push(
           ((imageSrc.data[i] * 299 +
             imageSrc.data[i + 1] * 587 +
@@ -21,7 +21,7 @@ describe("Real World Application - Gray", () => {
         );
       return imageDst;
     }
-    var colorImage = {
+    let colorImage = {
       height: 10,
       width: 1,
       data: [
@@ -67,7 +67,7 @@ describe("Real World Application - Gray", () => {
         0
       ]
     };
-    var grayImage = gray(colorImage);
+    let grayImage = gray(colorImage);
     const result = grayImage.data;
     `;
     assertArrayResult(expression, done);

@@ -1,4 +1,4 @@
-var arr = ["some", "test", "string", "values", "go", "here"];
+let arr = ["some", "test", "string", "values", "go", "here"];
 
 // void splice
 arr.splice(0, 0);

@@ -8,7 +8,7 @@ import { CodeTemplate, CodeTemplateFactory } from "./template";
 import { CFunction, CFunctionPrototype } from "../nodes/function";
 import { CVariable, CVariableDestructors } from "../nodes/variable";
 import { Preset } from "./preset";
-import { Plugin, PluginRegistry } from "./plugin";
+import { Plugin, PluginRegistry } from "./PluginRegistry";
 import {
   Header,
   HeaderRegistry,
@@ -77,7 +77,7 @@ class HeaderFlags {
 
 {#if headerFlags.js_var}
     enum js_var_type {JS_VAR_BOOL, JS_VAR_INT, JS_VAR_STRING, JS_VAR_ARRAY, JS_VAR_STRUCT, JS_VAR_DICT};
-	struct js_var {
+	struct js_let {
 	    enum js_var_type type;
 	    uint8_t bool;
 	    int16_t number;
@@ -259,7 +259,7 @@ export class CProgram implements IScope {
 
     for (let source of sourceFiles) {
       for (let s of source.statements) {
-        if (s.kind == ts.SyntaxKind.FunctionDeclaration)
+        if (s.kind === ts.SyntaxKind.FunctionDeclaration)
           this.functions.push(new CFunction(this, <any>s));
         else this.statements.push(CodeTemplateFactory.createForNode(this, s));
       }

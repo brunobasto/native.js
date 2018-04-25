@@ -1,7 +1,10 @@
-import { Header, LimitsHeaderType } from "nativejs-compiler";
-import { CExpression } from "nativejs-compiler";
-import { IScope } from "nativejs-compiler";
-import { CodeTemplate } from "nativejs-compiler";
+import {
+  CExpression,
+  CodeTemplate,
+  Header,
+  IScope,
+  LimitsHeaderType
+} from "nativejs-compiler";
 
 export class StandardLimitsHeader implements Header {
   public getType() {

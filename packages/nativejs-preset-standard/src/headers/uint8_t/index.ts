@@ -1,6 +1,9 @@
-import { Header, Uint8HeaderType } from "nativejs-compiler";
-import { CExpression } from "nativejs-compiler";
-import { CodeTemplate } from "nativejs-compiler";
+import {
+  CExpression,
+  CodeTemplate,
+  Header,
+  Uint8HeaderType
+} from "nativejs-compiler";
 
 export class StandardUint8Header implements Header {
   public getType() {

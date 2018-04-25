@@ -4,7 +4,7 @@ import { CodeTemplate, CodeTemplateFactory } from "../core/template";
 import { CExpression } from "./expressions";
 import * as ts from "typescript";
 import { CFunction, CFunctionPrototype } from "./function";
-import { PluginRegistry } from "../core/plugin";
+import { PluginRegistry } from "../core/PluginRegistry";
 import { HeaderRegistry, Int16HeaderType } from "../core/header";
 
 @CodeTemplate(
@@ -44,8 +44,8 @@ export class CCallExpression {
     });
 
     if (
-      call.expression.kind == ts.SyntaxKind.Identifier &&
-      this.funcName == "parseInt"
+      call.expression.kind === ts.SyntaxKind.Identifier &&
+      this.funcName === "parseInt"
     ) {
       HeaderRegistry.declareDependency(Int16HeaderType);
       scope.root.headerFlags.parseInt = true;

@@ -47,8 +47,8 @@ export class AnalogReadPlugin implements Plugin {
     const call = <ts.CallExpression>node;
 
     return (
-      call.expression.kind == ts.SyntaxKind.PropertyAccessExpression &&
-      call.expression.getText() == "Analog.read"
+      call.expression.kind === ts.SyntaxKind.PropertyAccessExpression &&
+      call.expression.getText() === "Analog.read"
     );
   }
 }

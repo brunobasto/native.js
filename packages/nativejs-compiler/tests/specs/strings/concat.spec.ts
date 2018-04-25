@@ -5,8 +5,8 @@ import { evaluator } from "../../utils/evaluator";
 describe("String Concatenation", () => {
   it("should be able to concat two string references", done => {
     const expression = `
-	var s1 = "Hello";
-  var s2 = "World";
+	let s1 = "Hello";
+  let s2 = "World";
   const result = s1 + s2;
 	`;
     assertStringResult(expression, done);

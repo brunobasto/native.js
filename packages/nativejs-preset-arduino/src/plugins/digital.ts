@@ -65,8 +65,8 @@ export class DigitalWritePlugin implements Plugin {
     const call = <ts.CallExpression>node;
 
     return (
-      call.expression.kind == ts.SyntaxKind.PropertyAccessExpression &&
-      call.expression.getText() == "Digital.write"
+      call.expression.kind === ts.SyntaxKind.PropertyAccessExpression &&
+      call.expression.getText() === "Digital.write"
     );
   }
 }

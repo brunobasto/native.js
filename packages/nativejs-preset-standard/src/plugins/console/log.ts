@@ -1,25 +1,26 @@
-import * as ts from "typescript";
-import { CCallExpression } from "nativejs-compiler";
-import { CExpression } from "nativejs-compiler";
-import { CVariable } from "nativejs-compiler";
-import { IScope } from "nativejs-compiler";
-import { CodeTemplate, CodeTemplateFactory } from "nativejs-compiler";
 import {
   ArrayType,
   BooleanType,
-  NativeType,
+  CCallExpression,
+  CExpression,
+  CodeTemplate,
+  CodeTemplateFactory,
+  CVariable,
   DictType,
-  IntegerType,
-  RegexType,
-  LongType,
   FloatType,
+  IntegerType,
+  IScope,
+  LongType,
+  NativeType,
+  RegexType,
   StringType,
   StructType,
   VariableInfo
 } from "nativejs-compiler";
+import * as ts from "typescript";
 
 export class ConsoleLogHelper {
-  public static create(scope: IScope, printNodes: Array<ts.Expression>) {
+  public static create(scope: IScope, printNodes: ts.Expression[]) {
     const printfs = [];
     for (let i = 0; i < printNodes.length; i++) {
       const printNode = printNodes[i];
@@ -28,7 +29,7 @@ export class ConsoleLogHelper {
 
       let stringLit = "";
       nodeExpressions = nodeExpressions.reduce((a, c) => {
-        if (c.node.kind == ts.SyntaxKind.StringLiteral) {
+        if (c.node.kind === ts.SyntaxKind.StringLiteral) {
           stringLit += c.expression.resolve().slice(1, -1);
         } else {
           a.push(c);
@@ -42,10 +43,10 @@ export class ConsoleLogHelper {
           nodeExpressions[nodeExpressions.length - 1].postfix = stringLit;
         } else {
           nodeExpressions.push({
-            node: printNode,
             expression: stringLit,
-            prefix: "",
-            postfix: ""
+            node: printNode,
+            postfix: "",
+            prefix: ""
           });
         }
       }
@@ -54,12 +55,12 @@ export class ConsoleLogHelper {
         const { node, expression, prefix, postfix } = nodeExpressions[j];
         const accessor = expression.resolve ? expression.resolve() : expression;
         const options = {
-          prefix: (i > 0 && j == 0 ? " " : "") + prefix,
           postfix:
             postfix +
-            (i == printNodes.length - 1 && j == nodeExpressions.length - 1
+            (i === printNodes.length - 1 && j === nodeExpressions.length - 1
               ? "\\n"
-              : "")
+              : ""),
+          prefix: (i > 0 && j === 0 ? " " : "") + prefix
         };
         printfs.push(new CPrintf(scope, node, accessor, type, options));
       }
@@ -70,11 +71,14 @@ export class ConsoleLogHelper {
 
 function processBinaryExpressions(scope: IScope, printNode: ts.Node) {
   const type = scope.root.typeVisitor.inferNodeType(printNode);
-  if (type == StringType && printNode.kind == ts.SyntaxKind.BinaryExpression) {
+  if (
+    type === StringType &&
+    printNode.kind === ts.SyntaxKind.BinaryExpression
+  ) {
     const binExpr = printNode as ts.BinaryExpression;
     if (
-      scope.root.typeVisitor.inferNodeType(binExpr.left) == StringType &&
-      scope.root.typeVisitor.inferNodeType(binExpr.right) == StringType
+      scope.root.typeVisitor.inferNodeType(binExpr.left) === StringType &&
+      scope.root.typeVisitor.inferNodeType(binExpr.right) === StringType
     ) {
       const left = processBinaryExpressions(scope, binExpr.left);
       const right = processBinaryExpressions(scope, binExpr.right);
@@ -84,15 +88,15 @@ function processBinaryExpressions(scope: IScope, printNode: ts.Node) {
 
   return [
     {
-      node: printNode,
       expression: CodeTemplateFactory.createForNode(scope, printNode),
-      prefix: "",
-      postfix: ""
+      node: printNode,
+      postfix: "",
+      prefix: ""
     }
   ];
 }
 
-interface PrintfOptions {
+interface IPrintfOptions {
   prefix?: string;
   postfix?: string;
   quotedString?: boolean;
@@ -169,17 +173,17 @@ class CPrintf {
     printNode: ts.Node,
     public accessor: string,
     varType: NativeType,
-    options: PrintfOptions
+    options: IPrintfOptions
   ) {
     this.isStringLiteral =
-      varType == StringType && printNode.kind == ts.SyntaxKind.StringLiteral;
-    this.isBoolean = varType == BooleanType;
-    this.isCString = varType == StringType && !options.quotedString;
-    this.isFloat = varType == FloatType;
-    this.isInteger = varType == IntegerType;
-    this.isLong = varType == LongType;
-    this.isQuotedCString = varType == StringType && options.quotedString;
-    this.isRegex = varType == RegexType;
+      varType === StringType && printNode.kind === ts.SyntaxKind.StringLiteral;
+    this.isBoolean = varType === BooleanType;
+    this.isCString = varType === StringType && !options.quotedString;
+    this.isFloat = varType === FloatType;
+    this.isInteger = varType === IntegerType;
+    this.isLong = varType === LongType;
+    this.isQuotedCString = varType === StringType && options.quotedString;
+    this.isRegex = varType === RegexType;
 
     this.PREFIX = options.prefix || "";
     this.POSTFIX = options.postfix || "";
@@ -239,12 +243,12 @@ class CPrintf {
       ];
     } else if (varType instanceof StructType) {
       this.isStruct = true;
-      for (const k in varType.properties) {
+      for (const k of Object.keys(varType.properties)) {
         const propAccessor = accessor + "->" + k;
         const opts = {
-          quotedString: true,
+          indent: this.INDENT + "    ",
           propName: k,
-          indent: this.INDENT + "    "
+          quotedString: true
         };
         this.elementPrintfs.push(
           new CPrintf(

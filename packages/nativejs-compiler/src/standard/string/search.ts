@@ -22,7 +22,7 @@ class StringSearchResolver implements IResolver {
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeVisitor.inferNodeType(propAccess.expression);
-    return propAccess.name.getText() == "search" && objType == StringType;
+    return propAccess.name.getText() === "search" && objType === StringType;
   }
   public returnType(typeVisitor: TypeVisitor, call: ts.CallExpression) {
     return IntegerType;
@@ -52,10 +52,10 @@ class CStringSearch {
   constructor(scope: IScope, call: ts.CallExpression) {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     this.topExpressionOfStatement =
-      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
+      call.parent.kind === ts.SyntaxKind.ExpressionStatement;
     if (!this.topExpressionOfStatement) {
       HeaderRegistry.declareDependency(BooleanHeaderType);
-      if (call.arguments.length == 1) {
+      if (call.arguments.length === 1) {
         this.argAccess = new CElementAccess(scope, propAccess.expression);
         this.regexVar = CodeTemplateFactory.createForNode(
           scope,

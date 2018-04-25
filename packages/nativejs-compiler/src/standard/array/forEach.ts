@@ -22,7 +22,7 @@ class ArrayForEachResolver implements IResolver {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeVisitor.inferNodeType(propAccess.expression);
     return (
-      propAccess.name.getText() == "forEach" && objType instanceof ArrayType
+      propAccess.name.getText() === "forEach" && objType instanceof ArrayType
     );
   }
   public returnType(typeVisitor: TypeVisitor, call: ts.CallExpression) {
@@ -66,7 +66,7 @@ class CArrayForEach {
 
     this.varAccess = new CElementAccess(scope, propAccess.expression);
     this.topExpressionOfStatement =
-      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
+      call.parent.kind === ts.SyntaxKind.ExpressionStatement;
 
     const objType = scope.root.typeVisitor.inferNodeType(
       propAccess.expression
@@ -77,7 +77,7 @@ class CArrayForEach {
     );
     this.staticArraySize = objType.isDynamicArray ? "" : objType.capacity + "";
 
-    if (call.arguments.length == 0) {
+    if (call.arguments.length === 0) {
       throw Error("Array.forEach needs an argument.");
     }
 

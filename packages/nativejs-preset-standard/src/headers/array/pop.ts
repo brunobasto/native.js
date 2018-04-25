@@ -1,6 +1,9 @@
-import { ArrayPopHeaderType, Header } from "nativejs-compiler";
-import { CExpression } from "nativejs-compiler";
-import { CodeTemplate } from "nativejs-compiler";
+import {
+  ArrayPopHeaderType,
+  CExpression,
+  CodeTemplate,
+  Header
+} from "nativejs-compiler";
 
 export class StandardArrayPopHeader implements Header {
   public getType() {

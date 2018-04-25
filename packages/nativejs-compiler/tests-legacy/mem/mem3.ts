@@ -1,10 +1,10 @@
 function nested() {
-  var obj = { key: "something" };
+  let obj = { key: "something" };
   return obj;
 }
 
 function func() {
-  var x = nested();
+  let x = nested();
   console.log(x);
 }
 

@@ -58,7 +58,7 @@ describe("Object Properties", () => {
   it("should allow assigning property values with expressions", done => {
     const expression = `
     const result = {};
-    for (var x = 5; x > 0; x--) {
+    for (let x = 5; x > 0; x--) {
       result["k" + x] = x * 2;
     }
     result["a"] = 50;
@@ -71,7 +71,7 @@ describe("Object Properties", () => {
   it("should allow override existing properties", done => {
     const expression = `
     const result = {};
-    for (var x = 5; x > 0; x--) {
+    for (let x = 5; x > 0; x--) {
       result["test"] = "test";
     }
   `;

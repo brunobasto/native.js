@@ -40,42 +40,42 @@ export class TypeInferencer {
       return false;
     }
     // if expression is a division
-    if (binaryExpression.operatorToken.kind == ts.SyntaxKind.SlashToken) {
+    if (binaryExpression.operatorToken.kind === ts.SyntaxKind.SlashToken) {
       log(`Expression ${binaryExpression.getText()} evaluates to float`);
       return true;
     }
     // if left or right is float identifier
     if (
-      binaryExpression.left.kind == ts.SyntaxKind.Identifier &&
+      binaryExpression.left.kind === ts.SyntaxKind.Identifier &&
       this.getTypeVisitor().getVariableInfo(
         <ts.Identifier>binaryExpression.left
-      ).type == FloatType
+      ).type === FloatType
     ) {
       return true;
     }
     if (
-      binaryExpression.left.kind == ts.SyntaxKind.Identifier &&
+      binaryExpression.left.kind === ts.SyntaxKind.Identifier &&
       this.getTypeVisitor().getVariableInfo(
         <ts.Identifier>binaryExpression.left
-      ).type == FloatType
+      ).type === FloatType
     ) {
       return true;
     }
     // check for each binary expression inside the given expression
     if (
-      binaryExpression.right.kind == ts.SyntaxKind.BinaryExpression &&
+      binaryExpression.right.kind === ts.SyntaxKind.BinaryExpression &&
       this.isFloatExpression(<ts.BinaryExpression>binaryExpression.right)
     ) {
       return true;
     }
     if (
-      binaryExpression.left.kind == ts.SyntaxKind.BinaryExpression &&
+      binaryExpression.left.kind === ts.SyntaxKind.BinaryExpression &&
       this.isFloatExpression(<ts.BinaryExpression>binaryExpression.left)
     ) {
       return true;
     }
     // check if parenthesized expression
-    if (binaryExpression.left.kind == ts.SyntaxKind.ParenthesizedExpression) {
+    if (binaryExpression.left.kind === ts.SyntaxKind.ParenthesizedExpression) {
       const parenthesizedExpression = <ts.ParenthesizedExpression>binaryExpression.left;
       if (
         parenthesizedExpression.expression.kind ==
@@ -87,7 +87,7 @@ export class TypeInferencer {
         return true;
       }
     }
-    if (binaryExpression.right.kind == ts.SyntaxKind.ParenthesizedExpression) {
+    if (binaryExpression.right.kind === ts.SyntaxKind.ParenthesizedExpression) {
       const parenthesizedExpression = <ts.ParenthesizedExpression>binaryExpression.right;
       if (
         parenthesizedExpression.expression.kind ==
@@ -100,13 +100,13 @@ export class TypeInferencer {
       }
     }
     if (
-      binaryExpression.left.kind == ts.SyntaxKind.NumericLiteral &&
+      binaryExpression.left.kind === ts.SyntaxKind.NumericLiteral &&
       this.isFloatLiteral(<ts.NumericLiteral>binaryExpression.left)
     ) {
       return true;
     }
     if (
-      binaryExpression.right.kind == ts.SyntaxKind.NumericLiteral &&
+      binaryExpression.right.kind === ts.SyntaxKind.NumericLiteral &&
       this.isFloatLiteral(<ts.NumericLiteral>binaryExpression.right)
     ) {
       return true;
@@ -121,36 +121,36 @@ export class TypeInferencer {
     }
     // if left or right is float identifier
     if (
-      binaryExpression.left.kind == ts.SyntaxKind.Identifier &&
+      binaryExpression.left.kind === ts.SyntaxKind.Identifier &&
       this.getTypeVisitor().getVariableInfo(
         <ts.Identifier>binaryExpression.left
-      ).type == LongType
+      ).type === LongType
     ) {
       return true;
     }
     if (
-      binaryExpression.left.kind == ts.SyntaxKind.Identifier &&
+      binaryExpression.left.kind === ts.SyntaxKind.Identifier &&
       this.getTypeVisitor().getVariableInfo(
         <ts.Identifier>binaryExpression.left
-      ).type == LongType
+      ).type === LongType
     ) {
       return true;
     }
     // check for each binary expression inside the given expression
     if (
-      binaryExpression.right.kind == ts.SyntaxKind.BinaryExpression &&
+      binaryExpression.right.kind === ts.SyntaxKind.BinaryExpression &&
       this.isLongExpression(<ts.BinaryExpression>binaryExpression.right)
     ) {
       return true;
     }
     if (
-      binaryExpression.left.kind == ts.SyntaxKind.BinaryExpression &&
+      binaryExpression.left.kind === ts.SyntaxKind.BinaryExpression &&
       this.isLongExpression(<ts.BinaryExpression>binaryExpression.left)
     ) {
       return true;
     }
     // check if parenthesized expression
-    if (binaryExpression.left.kind == ts.SyntaxKind.ParenthesizedExpression) {
+    if (binaryExpression.left.kind === ts.SyntaxKind.ParenthesizedExpression) {
       const parenthesizedExpression = <ts.ParenthesizedExpression>binaryExpression.left;
       if (
         parenthesizedExpression.expression.kind ==
@@ -162,7 +162,7 @@ export class TypeInferencer {
         return true;
       }
     }
-    if (binaryExpression.right.kind == ts.SyntaxKind.ParenthesizedExpression) {
+    if (binaryExpression.right.kind === ts.SyntaxKind.ParenthesizedExpression) {
       const parenthesizedExpression = <ts.ParenthesizedExpression>binaryExpression.right;
       if (
         parenthesizedExpression.expression.kind ==
@@ -250,7 +250,7 @@ export class TypeInferencer {
 
   private inferIdentifier(node: ts.Identifier) {
     // is parameter of a function
-    if (node.parent.kind == ts.SyntaxKind.Parameter) {
+    if (node.parent.kind === ts.SyntaxKind.Parameter) {
       let parentCall = ScopeUtil.findParentCallExpression(node);
       // the function is inside a call expression
       if (parentCall) {
@@ -288,12 +288,12 @@ export class TypeInferencer {
       return parentObjectType.properties[propAccess.name.getText()];
     else if (
       parentObjectType instanceof ArrayType &&
-      propAccess.name.getText() == "length"
+      propAccess.name.getText() === "length"
     )
       return IntegerType;
     else if (
       parentObjectType === StringType &&
-      propAccess.name.getText() == "length"
+      propAccess.name.getText() === "length"
     )
       return IntegerType;
     return null;
@@ -304,18 +304,18 @@ export class TypeInferencer {
     let retType = StandardCallHelper.getReturnType(this.getTypeVisitor(), call);
     if (retType) return retType;
 
-    if (call.expression.kind == ts.SyntaxKind.PropertyAccessExpression) {
+    if (call.expression.kind === ts.SyntaxKind.PropertyAccessExpression) {
       let propAccess = <ts.PropertyAccessExpression>call.expression;
       let propName = propAccess.name.getText();
       if (
-        (propName == "indexOf" || propName == "lastIndexOf") &&
-        call.arguments.length == 1
+        (propName === "indexOf" || propName === "lastIndexOf") &&
+        call.arguments.length === 1
       ) {
         let exprType = this.inferNodeType(propAccess.expression);
-        if (exprType && exprType == StringType) return IntegerType;
+        if (exprType && exprType === StringType) return IntegerType;
       }
-    } else if (call.expression.kind == ts.SyntaxKind.Identifier) {
-      if (call.expression.getText() == "parseInt") {
+    } else if (call.expression.kind === ts.SyntaxKind.Identifier) {
+      if (call.expression.getText() === "parseInt") {
         return IntegerType;
       }
       let funcSymbol = this.typeChecker.getSymbolAtLocation(call.expression);

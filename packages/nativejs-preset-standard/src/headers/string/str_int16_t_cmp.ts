@@ -5,10 +5,10 @@ import {
   HeaderRegistry,
   Int16HeaderType,
   IScope,
-  StringHeaderType,
-  StringAndIntCompareHeaderType,
+  StdioHeaderType,
   StringAndIntBufferLengthHeaderType,
-  StdioHeaderType
+  StringAndIntCompareHeaderType,
+  StringHeaderType
 } from "nativejs-compiler";
 
 export class StandardStringAndIntCompareHeader implements Header {

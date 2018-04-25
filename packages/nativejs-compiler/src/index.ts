@@ -5,7 +5,7 @@ export default CProgram;
 export * from "./core/bottom";
 export * from "./core/header";
 export * from "./core/main";
-export * from "./core/plugin";
+export * from "./core/PluginRegistry";
 export * from "./core/preset";
 export * from "./core/program";
 export * from "./core/resolver";

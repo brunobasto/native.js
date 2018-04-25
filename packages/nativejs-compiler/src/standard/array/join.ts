@@ -29,8 +29,8 @@ class ArrayConcatResolver implements IResolver {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeVisitor.inferNodeType(propAccess.expression);
     return (
-      (propAccess.name.getText() == "join" ||
-        propAccess.name.getText() == "toString") &&
+      (propAccess.name.getText() === "join" ||
+        propAccess.name.getText() === "toString") &&
       objType instanceof ArrayType
     );
   }
@@ -81,7 +81,7 @@ class CArrayJoin {
   public catFuncName: string;
   constructor(scope: IScope, call: ts.CallExpression) {
     this.topExpressionOfStatement =
-      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
+      call.parent.kind === ts.SyntaxKind.ExpressionStatement;
 
     if (!this.topExpressionOfStatement) {
       const propAccess = call.expression as ts.PropertyAccessExpression;
@@ -92,7 +92,7 @@ class CArrayJoin {
       this.arraySize = new CArraySize(scope, this.varAccess, type);
       this.arrayElement = new CArrayElement(scope, this.varAccess, type);
       this.catFuncName =
-        type.elementType == IntegerType ? "str_int16_t_cat" : "strcat";
+        type.elementType === IntegerType ? "str_int16_t_cat" : "strcat";
       this.tempVarName = scope.root.memoryManager.getReservedTemporaryVarName(
         call
       );
@@ -112,7 +112,7 @@ class CArrayJoin {
         type,
         call
       );
-      if (call.arguments.length > 0 && propAccess.name.getText() == "join") {
+      if (call.arguments.length > 0 && propAccess.name.getText() === "join") {
         this.separator = CodeTemplateFactory.createForNode(
           scope,
           call.arguments[0]
@@ -123,7 +123,7 @@ class CArrayJoin {
       HeaderRegistry.declareDependency(StdlibHeaderType);
       HeaderRegistry.declareDependency(StringHeaderType);
 
-      if (type.elementType == IntegerType) {
+      if (type.elementType === IntegerType) {
         HeaderRegistry.declareDependency(StringAndIntConcatHeaderType);
       }
     }
@@ -170,11 +170,11 @@ class CArrayElement {
     {/if}
 {/statements}
 {#if type.isDynamicArray && arrayOfStrings}
-    {arraySize} == 0 ? 1 : {lengthVarName} + strlen({separator})*({arraySize}-1) + 1
+    {arraySize} === 0 ? 1 : {lengthVarName} + strlen({separator})*({arraySize}-1) + 1
 {#elseif arrayCapacity > 0 && arrayOfStrings}
     {lengthVarName} + strlen({separator})*({arraySize}-1) + 1
 {#elseif type.isDynamicArray && arrayOfNumbers}
-    {varAccess}->size == 0 ? 1 : STR_INT16_T_BUFLEN*{varAccess}->size + strlen({separator})*({arraySize}-1) + 1
+    {varAccess}->size === 0 ? 1 : STR_INT16_T_BUFLEN*{varAccess}->size + strlen({separator})*({arraySize}-1) + 1
 {#elseif arrayCapacity > 0 && arrayOfNumbers}
     STR_INT16_T_BUFLEN*{arraySize}+strlen({separator})*({arraySize}-1)+1
 {#else}
@@ -194,8 +194,8 @@ class CCalculateStringSize {
     public type: ArrayType,
     node: ts.Node
   ) {
-    this.arrayOfStrings = type.elementType == StringType;
-    this.arrayOfNumbers = type.elementType == IntegerType;
+    this.arrayOfStrings = type.elementType === StringType;
+    this.arrayOfNumbers = type.elementType === IntegerType;
     this.arrayCapacity = type.capacity + "";
     this.arraySize = new CArraySize(scope, this.varAccess, type);
     this.arrayElement = new CArrayElement(scope, this.varAccess, type);

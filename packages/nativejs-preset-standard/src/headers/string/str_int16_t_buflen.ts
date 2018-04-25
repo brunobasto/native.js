@@ -5,9 +5,9 @@ import {
   HeaderRegistry,
   Int16HeaderType,
   IScope,
-  StringHeaderType,
+  LimitsHeaderType,
   StringAndIntBufferLengthHeaderType,
-  LimitsHeaderType
+  StringHeaderType
 } from "nativejs-compiler";
 
 export class StandardStringAndIntBufferLengthHeader implements Header {

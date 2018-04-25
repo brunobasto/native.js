@@ -1,8 +1,8 @@
-var matched = 0;
-var count = 0;
+let matched = 0;
+let count = 0;
 function print(string, regex, expect) {
   count++;
-  var pos = string.search(regex);
+  let pos = string.search(regex);
   if (pos != expect)
     console.log(
       '"' +

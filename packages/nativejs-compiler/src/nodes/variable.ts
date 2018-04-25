@@ -217,9 +217,9 @@ export class CVariable {
   ) {
     let typeString = scope.root.typeVisitor.getTypeString(typeSource);
 
-    if (typeString == IntegerType) {
+    if (typeString === IntegerType) {
       HeaderRegistry.declareDependency(Int16HeaderType);
-    } else if (typeString == BooleanType) {
+    } else if (typeString === BooleanType) {
       HeaderRegistry.declareDependency(Uint8HeaderType);
     }
     if (typeString.indexOf("{var}") > -1)
@@ -227,7 +227,7 @@ export class CVariable {
     else this.varString = typeString + " " + name;
 
     // root scope, make variables file-scoped by default
-    if (scope.parent == null && this.varString.indexOf("static") != 0)
+    if (scope.parent === null && this.varString.indexOf("static") != 0)
       this.varString = "static " + this.varString;
 
     if (options && options.removeStorageSpecifier)

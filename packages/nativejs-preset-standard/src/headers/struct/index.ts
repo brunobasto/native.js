@@ -1,11 +1,11 @@
 import {
-  HeaderRegistry,
-  Header,
-  StructHeaderType,
-  CodeTemplate,
   CExpression,
+  CodeTemplate,
   CVariable,
-  IScope
+  Header,
+  HeaderRegistry,
+  IScope,
+  StructHeaderType
 } from "nativejs-compiler";
 
 export class StandardStructHeader implements Header {

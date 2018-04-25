@@ -21,7 +21,7 @@ class StringCharAtResolver implements IResolver {
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeVisitor.inferNodeType(propAccess.expression);
-    return propAccess.name.getText() == "charAt" && objType == StringType;
+    return propAccess.name.getText() === "charAt" && objType === StringType;
   }
   public returnType(typeVisitor: TypeVisitor, call: ts.CallExpression) {
     return StringType;
@@ -50,7 +50,7 @@ class StringCharAtResolver implements IResolver {
 {/statements}
 {#if !topExpressionOfStatement && start != null}
     {tempVarName}
-{#elseif !topExpressionOfStatement && start == null}
+{#elseif !topExpressionOfStatement && start === null}
     /* Error: parameter expected for charAt */
 {/if}`)
 class CStringCharAt {
@@ -62,10 +62,10 @@ class CStringCharAt {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     this.varAccess = new CElementAccess(scope, propAccess.expression);
     this.topExpressionOfStatement =
-      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
+      call.parent.kind === ts.SyntaxKind.ExpressionStatement;
 
     if (!this.topExpressionOfStatement) {
-      if (call.arguments.length == 0) {
+      if (call.arguments.length === 0) {
         console.log("Error in " + call.getText() + ". Parameter expected!");
       } else {
         this.tempVarName = scope.root.memoryManager.getReservedTemporaryVarName(

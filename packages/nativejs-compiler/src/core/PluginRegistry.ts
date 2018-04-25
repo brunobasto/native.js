@@ -12,7 +12,7 @@ export class PluginRegistry {
   ): CExpression {
     const matchingPlugins = plugins.filter(p => p.matchesNode(node));
 
-    if (matchingPlugins.length == 0) {
+    if (matchingPlugins.length === 0) {
       return null;
     }
 
@@ -21,6 +21,15 @@ export class PluginRegistry {
       node,
       handler
     );
+  }
+
+  public static matchesNode(node: ts.Node): boolean {
+    for (const plugin of plugins) {
+      if (plugin.matchesNode(node)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public static processTypesForNode(node: ts.Node) {

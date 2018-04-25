@@ -17,7 +17,7 @@ class ArraySortResolver implements IResolver {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeVisitor.inferNodeType(propAccess.expression);
     return (
-      propAccess.name.getText() == "reverse" &&
+      propAccess.name.getText() === "reverse" &&
       objType instanceof ArrayType &&
       objType.isDynamicArray
     );
@@ -68,7 +68,7 @@ class CArrayReverse {
     ) as ArrayType;
     this.varAccess = new CElementAccess(scope, propAccess.expression);
     this.topExpressionOfStatement =
-      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
+      call.parent.kind === ts.SyntaxKind.ExpressionStatement;
     this.iteratorVar1 = scope.root.temporaryVariables.addNewIteratorVariable(
       call
     );

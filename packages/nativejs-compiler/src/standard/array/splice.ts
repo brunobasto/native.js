@@ -27,7 +27,7 @@ class ArraySpliceResolver implements IResolver {
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeVisitor.inferNodeType(propAccess.expression);
     return (
-      propAccess.name.getText() == "splice" &&
+      propAccess.name.getText() === "splice" &&
       objType instanceof ArrayType &&
       objType.isDynamicArray
     );
@@ -88,7 +88,7 @@ class CArraySplice {
     this.startPosArg = args[0];
     this.deleteCountArg = args[1];
     this.topExpressionOfStatement =
-      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
+      call.parent.kind === ts.SyntaxKind.ExpressionStatement;
 
     if (!this.topExpressionOfStatement) {
       HeaderRegistry.declareDependency(ArrayCreateHeaderType);
@@ -113,7 +113,7 @@ class CArraySplice {
         .map(a => new CInsertValue(scope, this.varAccess, this.startPosArg, a));
       HeaderRegistry.declareDependency(ArrayInsertHeaderType);
     }
-    if (call.arguments[1].kind == ts.SyntaxKind.NumericLiteral) {
+    if (call.arguments[1].kind === ts.SyntaxKind.NumericLiteral) {
       this.needsRemove = call.arguments[1].getText() != "0";
     }
     HeaderRegistry.declareDependency(ArrayRemoveHeaderType);

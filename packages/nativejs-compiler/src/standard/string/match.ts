@@ -29,7 +29,7 @@ export class StringMatchResolver implements IResolver {
     }
     const propAccess = call.expression as ts.PropertyAccessExpression;
     const objType = typeVisitor.inferNodeType(propAccess.expression);
-    return propAccess.name.getText() == "match" && objType == StringType;
+    return propAccess.name.getText() === "match" && objType === StringType;
   }
   public returnType(typeVisitor: TypeVisitor, call: ts.CallExpression) {
     return new ArrayType(StringType, 1, true);
@@ -67,10 +67,10 @@ class CStringMatch {
     HeaderRegistry.declareDependency(SubStringHeaderType);
     const propAccess = call.expression as ts.PropertyAccessExpression;
     this.topExpressionOfStatement =
-      call.parent.kind == ts.SyntaxKind.ExpressionStatement;
+      call.parent.kind === ts.SyntaxKind.ExpressionStatement;
 
     if (!this.topExpressionOfStatement) {
-      if (call.arguments.length == 1) {
+      if (call.arguments.length === 1) {
         this.argAccess = new CElementAccess(scope, propAccess.expression);
         this.regexVar = CodeTemplateFactory.createForNode(
           scope,

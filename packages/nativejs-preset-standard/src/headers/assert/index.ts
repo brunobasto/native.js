@@ -1,7 +1,10 @@
-import { AssertHeaderType, Header } from "nativejs-compiler";
-import { CExpression } from "nativejs-compiler";
-import { IScope } from "nativejs-compiler";
-import { CodeTemplate } from "nativejs-compiler";
+import {
+  AssertHeaderType,
+  CExpression,
+  CodeTemplate,
+  Header,
+  IScope
+} from "nativejs-compiler";
 
 export class StandardAssertHeader implements Header {
   public getType() {

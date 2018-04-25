@@ -1,4 +1,4 @@
-var str = "тест test";
+let str = "тест test";
 console.log(str.charCodeAt(3));
 console.log(str.charCodeAt(8));
 console.log(str.charCodeAt(10));

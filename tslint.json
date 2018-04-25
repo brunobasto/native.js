@@ -2,5 +2,18 @@
   "extends": [
     "tslint:latest",
     "tslint-eslint-rules"
-  ]
+  ],
+  "rules": {
+    "arrow-parens": false,
+    "no-console": [false, "log", "error"],
+    "no-empty": false,
+    "max-classes-per-file": [false, 1],
+    "trailing-comma": [
+            false,
+            {
+                "multiline": "always",
+                "singleline": "never"
+            }
+        ]
+    }
 }
