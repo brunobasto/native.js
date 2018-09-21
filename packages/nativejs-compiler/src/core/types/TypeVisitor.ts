@@ -63,7 +63,7 @@ class TypePromise {
   ) {}
 }
 
-interface PromiseDictionary { [promiseId: string]: TypePromise; }
+interface IPromiseDictionary { [promiseId: string]: TypePromise; }
 
 class VariableData {
   public addedProperties: { [propName: string]: NativeType } = {};
@@ -81,18 +81,23 @@ class VariableData {
 }
 
 export class TypeVisitor {
+  public variables: { [varDeclPos: number]: VariableInfo } = {};
+
   private variablesData: { [varDeclPos: number]: VariableData } = {};
   private functionCallsData: {
-    [funcDeclPos: number]: PromiseDictionary[];
+    [funcDeclPos: number]: IPromiseDictionary[];
   } = {};
 
-  public variables: { [varDeclPos: number]: VariableInfo } = {};
   private arrayLiteralsTypes: { [litArrayPos: number]: NativeType } = {};
   private objectLiteralsTypes: { [litObjectPos: number]: NativeType } = {};
 
   private structures: Structures;
   private typeInferencer: TypeInferencer;
   private typeChecker: ts.TypeChecker;
+
+  private functionPrototypes: {
+    [funcDeclPos: number]: ts.FunctionDeclaration;
+  } = {};
 
   constructor(private program: CProgram) {
     this.structures = new Structures(program.typeChecker, this);
@@ -122,9 +127,9 @@ export class TypeVisitor {
     // }
     const name = ArrayType.getArrayStructName(elementTypeText);
     const struct = new StructType(name, {
-      size: IntegerType,
       capacity: IntegerType,
-      data: elementTypeText + "*"
+      data: elementTypeText + "*",
+      size: IntegerType
     });
 
     this.structures.declare(name, struct);
@@ -147,26 +152,26 @@ export class TypeVisitor {
 
   /** Get textual representation of type of the parameter for inserting into the C code */
   public getTypeString(source) {
-    if (source.flags != null && source.intrinsicName != null) {
+    if (source.flags !== null && source.intrinsicName !== null) {
       // ts.Type
       source = this.convertType(source);
     } else if (
-      source.flags != null &&
-      source.callSignatures != null &&
-      source.constructSignatures != null
+      source.flags !== null &&
+      source.callSignatures !== null &&
+      source.constructSignatures !== null
     ) {
       // ts.Type
       source = this.convertType(source);
-    } else if (source.kind != null && source.flags != null) {
+    } else if (source.kind !== null && source.flags !== null) {
       // ts.Node
       source = this.inferNodeType(source);
     } else if (
-      source.name != null &&
-      source.flags != null &&
-      source.valueDeclaration != null &&
-      source.declarations != null
+      source.name !== null &&
+      source.flags !== null &&
+      source.valueDeclaration !== null &&
+      source.declarations !== null
     ) {
-      //ts.Symbol
+      // ts.Symbol
       source = this.variables[source.valueDeclaration.pos].type;
     }
 
@@ -208,7 +213,7 @@ export class TypeVisitor {
     ) {
       return BooleanType;
     } else if (
-      tsType.flags & ts.TypeFlags.Object &&
+      tsType.flags && ts.TypeFlags.Object &&
       tsType.getProperties().length > 0
     ) {
       return this.structures.generateStructure(tsType, ident);
@@ -221,9 +226,43 @@ export class TypeVisitor {
     return PointerType;
   }
 
-  private functionPrototypes: {
-    [funcDeclPos: number]: ts.FunctionDeclaration;
-  } = {};
+  public determineArrayType(arrLiteral: ts.ArrayLiteralExpression): ArrayType {
+    let elementType: NativeType = PointerType;
+    const cap = arrLiteral.elements.length;
+    if (cap > 0) {
+      if (
+        arrLiteral.elements[0].kind === ts.SyntaxKind.ArrayLiteralExpression
+      ) {
+        elementType = this.determineArrayType(
+          arrLiteral.elements[0] as ts.ArrayLiteralExpression
+        );
+      } else {
+        elementType = this.inferNodeType(arrLiteral.elements[0]);
+        if (!elementType) {
+          elementType = this.convertType(
+            this.typeChecker.getTypeAtLocation(arrLiteral.elements[0])
+          );
+        }
+      }
+    }
+
+    const type = new ArrayType(elementType, cap, false);
+    this.arrayLiteralsTypes[arrLiteral.pos] = type;
+    return type;
+  }
+
+  public getArrayLiteralType(pos: number) {
+    return this.arrayLiteralsTypes[pos];
+  }
+
+  public getObjectLiteralType(pos: number) {
+    return this.objectLiteralsTypes[pos];
+  }
+
+  public getVariableType(pos: number) {
+    const varInfo = this.variables[pos];
+    return varInfo && varInfo.type;
+  }
 
   public getFunctionPrototypes() {
     return Object.keys(this.functionPrototypes).map(
@@ -460,7 +499,7 @@ export class TypeVisitor {
       ) {
         const forOfStatement = varDecl.parent.parent as ts.ForOfStatement;
         if (
-          forOfStatement.initializer.kind ==
+          forOfStatement.initializer.kind ===
           ts.SyntaxKind.VariableDeclarationList
         ) {
           const forOfInitializer = forOfStatement.initializer as ts.VariableDeclarationList;
@@ -479,7 +518,7 @@ export class TypeVisitor {
       ) {
         const forInStatement = varDecl.parent.parent as ts.ForInStatement;
         if (
-          forInStatement.initializer.kind ==
+          forInStatement.initializer.kind ===
           ts.SyntaxKind.VariableDeclarationList
         ) {
           const forInInitializer = forInStatement.initializer as ts.VariableDeclarationList;
@@ -767,12 +806,12 @@ export class TypeVisitor {
     do {
       somePromisesAreResolved = this.tryResolvePromises();
 
-      for (const k of Object.keys(this.variables).map(k => +k)) {
+      for (const k of Object.keys(this.variables).map(key => +key)) {
         const promises = Object.keys(this.variablesData[k].typePromises).map(
           p => this.variablesData[k].typePromises[p]
         );
         const variableBestTypes = promises
-          .filter(p => p.promiseKind != TypePromiseKind.propertyType)
+          .filter(p => p.promiseKind !== TypePromiseKind.propertyType)
           .map(p => p.bestType);
 
         if (this.variables[k].type) {
@@ -833,7 +872,7 @@ export class TypeVisitor {
       }
     } while (somePromisesAreResolved);
 
-    for (const k of Object.keys(this.variables).map(k => +k)) {
+    for (const k of Object.keys(this.variables).map(key => +key)) {
       const varInfo = this.variables[k];
       for (const ref of varInfo.references) {
         if (ref.parent.kind === ts.SyntaxKind.BinaryExpression) {
@@ -848,7 +887,7 @@ export class TypeVisitor {
           const propAssignment = ref.parent as ts.PropertyAssignment;
           if (
             propAssignment.initializer &&
-            propAssignment.initializer.kind ==
+            propAssignment.initializer.kind ===
               ts.SyntaxKind.ArrayLiteralExpression
           ) {
             const type = this.inferNodeType(ref.parent.parent);
@@ -938,10 +977,10 @@ export class TypeVisitor {
         if (mergeResult.replaced) {
           somePromisesAreResolved = true;
           this.variablesData[varPos].typeResolutionLog.push({
-            prop: promise.propertyName,
-            result: mergeResult.type,
             finalType,
-            promise
+            promise,
+            prop: promise.propertyName,
+            result: mergeResult.type
           });
         }
         promise.bestType = mergeResult.type;
@@ -962,44 +1001,6 @@ export class TypeVisitor {
     }
 
     return somePromisesAreResolved;
-  }
-
-  public determineArrayType(arrLiteral: ts.ArrayLiteralExpression): ArrayType {
-    let elementType: NativeType = PointerType;
-    const cap = arrLiteral.elements.length;
-    if (cap > 0) {
-      if (
-        arrLiteral.elements[0].kind === ts.SyntaxKind.ArrayLiteralExpression
-      ) {
-        elementType = this.determineArrayType(
-          arrLiteral.elements[0] as ts.ArrayLiteralExpression
-        );
-      } else {
-        elementType = this.inferNodeType(arrLiteral.elements[0]);
-        if (!elementType) {
-          elementType = this.convertType(
-            this.typeChecker.getTypeAtLocation(arrLiteral.elements[0])
-          );
-        }
-      }
-    }
-
-    const type = new ArrayType(elementType, cap, false);
-    this.arrayLiteralsTypes[arrLiteral.pos] = type;
-    return type;
-  }
-
-  public getArrayLiteralType(pos: number) {
-    return this.arrayLiteralsTypes[pos];
-  }
-
-  public getObjectLiteralType(pos: number) {
-    return this.objectLiteralsTypes[pos];
-  }
-
-  public getVariableType(pos: number) {
-    const varInfo = this.variables[pos];
-    return varInfo && varInfo.type;
   }
 
   private addTypePromise(
@@ -1025,13 +1026,29 @@ export class TypeVisitor {
     const newResult = { type: newType, replaced: true };
     const currentResult = { type: currentType, replaced: false };
 
-    if (!currentType && newType) { return newResult; } else if (!newType) { return currentResult; } else if (this.getTypeString(currentType) === this.getTypeString(newType)) {
-      return currentResult;
-         } else if (currentType === "void") { return newResult; } else if (newType === "void") { return currentResult; } else if (currentType === PointerType) { return newResult; } else if (newType === PointerType) { return currentResult; } else if (currentType === UniversalType) { return newResult; } else if (newType === UniversalType) { return currentResult; } else if (currentType === IntegerType && newType === FloatType) {
+    if (!currentType && newType) {
       return newResult;
-         } else if (currentType === FloatType && newType === IntegerType) {
+    } else if (!newType) {
       return currentResult;
-         } else if (currentType instanceof ArrayType && newType instanceof ArrayType) {
+    } else if (this.getTypeString(currentType) === this.getTypeString(newType)) {
+      return currentResult;
+    } else if (currentType === "void") {
+      return newResult;
+    } else if (newType === "void") {
+      return currentResult;
+    } else if (currentType === PointerType) {
+      return newResult;
+    } else if (newType === PointerType) {
+      return currentResult;
+    } else if (currentType === UniversalType) {
+      return newResult;
+    } else if (newType === UniversalType) {
+      return currentResult;
+    } else if (currentType === IntegerType && newType === FloatType) {
+      return newResult;
+    } else if (currentType === FloatType && newType === IntegerType) {
+      return currentResult;
+    } else if (currentType instanceof ArrayType && newType instanceof ArrayType) {
       const cap = Math.max(newType.capacity, currentType.capacity);
       newType.capacity = cap;
       currentType.capacity = cap;
@@ -1045,8 +1062,9 @@ export class TypeVisitor {
       );
       newType.elementType = mergeResult.type;
       currentType.elementType = mergeResult.type;
-      if (mergeResult.replaced) { return newResult; }
-
+      if (mergeResult.replaced) {
+        return newResult;
+      }
       return currentResult;
     } else if (
       currentType instanceof DictType &&
@@ -1075,7 +1093,7 @@ export class TypeVisitor {
       return newResult;
     } else if (currentType instanceof DictType && newType instanceof DictType) {
       if (
-        newType.elementType != PointerType &&
+        newType.elementType !== PointerType &&
         currentType.elementType === PointerType
       ) {
         return newResult;
