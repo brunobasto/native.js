@@ -556,6 +556,6 @@ export class MemoryManager {
   }
 
   private getSymbolId(node: ts.Node) {
-    return this.typeChecker.getSymbolAtLocation(node).id;
+    return this.typeChecker.getSymbolAtLocation(node).name;
   }
 }

@@ -24,7 +24,6 @@ import {
 } from "../core/types/NativeTypes";
 import { AssignmentHelper, CAssignment } from "./assignment";
 import { CElementAccess } from "./elementaccess";
-import { CRegexAsString } from "./regexfunc";
 import { CVariable } from "./variable";
 
 export interface INativeExpression {}
@@ -128,14 +127,14 @@ export class CSimpleBinaryExpression {
     const operatorMap: { [token: number]: string } = {};
     const callReplaceMap: { [token: number]: [string, string] } = {};
 
-    if (leftType === RegexType && operatorKind === ts.SyntaxKind.PlusToken) {
-      leftType = StringType;
-      this.left = new CRegexAsString(left);
-    }
-    if (rightType === RegexType && operatorKind === ts.SyntaxKind.PlusToken) {
-      rightType = StringType;
-      this.right = new CRegexAsString(right);
-    }
+    // if (leftType === RegexType && operatorKind === ts.SyntaxKind.PlusToken) {
+    //   leftType = StringType;
+    //   this.left = new CRegexAsString(left);
+    // }
+    // if (rightType === RegexType && operatorKind === ts.SyntaxKind.PlusToken) {
+    //   rightType = StringType;
+    //   this.right = new CRegexAsString(right);
+    // }
 
     operatorMap[ts.SyntaxKind.AmpersandAmpersandToken] = "&&";
     operatorMap[ts.SyntaxKind.BarBarToken] = "||";

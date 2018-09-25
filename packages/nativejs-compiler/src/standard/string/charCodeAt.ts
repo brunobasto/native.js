@@ -11,7 +11,7 @@ import { TypeVisitor } from "../../core/types/TypeVisitor";
 import { CElementAccess } from "../../nodes/elementaccess";
 import { INativeExpression } from "../../nodes/expressions";
 import { CVariable } from "../../nodes/variable";
-import { RegexBuilder, RegexMachine, RegexState } from "../../util/regex";
+// import { RegexBuilder, RegexMachine, RegexState } from "../../util/regex";
 
 @StandardCallResolver
 class StringCharCodeAtResolver implements IResolver {

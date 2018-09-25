@@ -18,9 +18,11 @@ import {
   VariableInfo
 } from "nativejs-compiler";
 import * as ts from "typescript";
+import { Expression } from "typescript";
+import { NodeArray } from "typescript";
 
 export class ConsoleLogHelper {
-  public static create(scope: IScope, printNodes: ts.Expression[]) {
+  public static create(scope: IScope, printNodes: NodeArray<Expression>) {
     const printfs = [];
     for (let i = 0; i < printNodes.length; i++) {
       const printNode = printNodes[i];

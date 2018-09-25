@@ -3,7 +3,7 @@
 		"module": "commonjs",
 		"target": "es6",
 		"noImplicitAny": false,
-		"sourceMap": true,
+		"inlineSourceMap": true,
 		"experimentalDecorators": true,
 		"allowJs": false,
 		"baseUrl": "./packages",

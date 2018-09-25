@@ -1,6 +1,9 @@
 import { execFile } from "child_process";
 import { compile } from "../../src/util/compile";
 import { gcc } from "../../src/util/gcc";
+import debug from "debug";
+
+const log = debug("assert");
 
 const compileToC = (jsSource, callback) => {
   // returns c output code
@@ -31,7 +34,7 @@ const execute = (executablePath, callback) => {
 const evaluator = (jsSource, callback: (result) => void) => {
   // compile source to c
   compileToC(jsSource, cSource => {
-    // compile c to executable
+    // // compile c to executable
     compileToExecutable(cSource, executablePath => {
       // execute and return result
       execute(executablePath, result => {

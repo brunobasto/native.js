@@ -9,7 +9,7 @@ const log = debug("gcc");
 
 const gcc = (source, callback) => {
   const sourceTempFile = fileSync({
-    keep: process.env.DEBUG,
+    keep: process.env['DEBUG'],
     postfix: ".c"
   });
   const sourceFileName = sourceTempFile.name;

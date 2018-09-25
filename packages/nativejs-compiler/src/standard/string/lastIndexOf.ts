@@ -7,15 +7,12 @@ import { IScope } from "../../core/program";
 import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
-  ArrayType,
   IntegerType,
   StringType
 } from "../../core/types/NativeTypes";
 import { TypeVisitor } from "../../core/types/TypeVisitor";
 import { CElementAccess } from "../../nodes/elementaccess";
 import { INativeExpression } from "../../nodes/expressions";
-import { CVariable } from "../../nodes/variable";
-import { RegexBuilder, RegexMachine, RegexState } from "../../util/regex";
 
 @StandardCallResolver
 class StringIndexOfResolver implements IResolver {

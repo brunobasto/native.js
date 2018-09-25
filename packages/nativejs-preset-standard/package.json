@@ -10,7 +10,7 @@
   "author": "Bruno Basto",
   "license": "ISC",
   "dependencies": {
-    "typescript": "2.1.6",
+    "typescript": "^3.0.3",
     "nativejs-compiler": "^1.1.2",
     "prune": "^0.0.2"
   }

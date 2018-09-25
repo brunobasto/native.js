@@ -24,9 +24,9 @@ export class CodeTemplateFactory {
 export function CodeTemplate(
   tempString: string,
   nodeKind?: number | number[]
-): ClassDecorator {
-  return function(target: Function) {
-    const newConstructor = function(scope: IScope, ...rest: any[]) {
+) {
+  return function(target: Function): any {
+    const newConstructor = function(scope: IScope, ...rest: any[]) : any {
       const self = this;
       const makeTarget = () => {
         const newTarget = target as any;

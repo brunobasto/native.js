@@ -1,6 +1,5 @@
 import * as ts from "typescript";
 import {
-  ArrayPushHeaderType,
   HeaderRegistry,
   RegexMatchHeaderType,
   SubStringHeaderType
@@ -10,16 +9,12 @@ import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
 import {
   ArrayType,
-  IntegerType,
-  RegexMatchType,
-  RegexType,
   StringType
 } from "../../core/types/NativeTypes";
 import { TypeVisitor } from "../../core/types/TypeVisitor";
 import { CElementAccess } from "../../nodes/elementaccess";
 import { INativeExpression } from "../../nodes/expressions";
 import { CVariable } from "../../nodes/variable";
-import { RegexBuilder, RegexMachine, RegexState } from "../../util/regex";
 
 @StandardCallResolver
 export class StringMatchResolver implements IResolver {
@@ -93,8 +88,8 @@ class CStringMatch {
       } else {
         console.log(
           "Unsupported number of parameters in " +
-            call.getText() +
-            ". Expected one parameter."
+          call.getText() +
+          ". Expected one parameter."
         );
       }
     }

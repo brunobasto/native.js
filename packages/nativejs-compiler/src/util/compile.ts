@@ -7,7 +7,7 @@ import { resolvePresets } from "./resolvePresets";
 
 const log = debug("compile");
 
-const compile = (source, options: any = {}, callback: () => void) => {
+const compile = (source, options: any = {}, callback: (out) => void) => {
   if (options.downTranspileToES3) {
     source = ts.transpileModule(source.toString("utf8"), {
       compilerOptions: {
@@ -27,7 +27,7 @@ const compile = (source, options: any = {}, callback: () => void) => {
       pretty: true
     });
     const presets = resolvePresets(options.presets);
-    const output = new CProgram(program, presets).resolve();
+    const output = new CProgram(program, presets)['resolve']();
 
     log(output);
     callback(output);

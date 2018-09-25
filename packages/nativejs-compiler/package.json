@@ -14,13 +14,13 @@
     "debug": "^3.1.0",
     "mocha": "^5.1.0",
     "nativejs-preset-standard": "^0.1.1",
-    "nyc": "^11.6.0",
     "source-map-support": "^0.5.4",
     "tmp": "0.0.33",
-    "typescript": "2.1.6",
+    "typescript": "^3.0.3",
     "yargs": "^11.0.0"
   },
   "devDependencies": {
+    "nyc": "^13.0.1",
     "prettier": "^1.11.1",
     "remap-istanbul": "^0.6.4",
     "tslint": "^5.9.1",
@@ -31,7 +31,7 @@
     "format": "yarn --cwd ../../ format",
     "lint": "yarn --cwd ../../ lint",
     "prepare": "yarn --cwd ../../ prepare",
-    "test": "nyc mocha --opts tests/mocha.opts",
+    "test": "DEBUG=compiling nyc mocha --opts tests/mocha.opts",
     "test-legacy": "cd tests && make -B all"
   },
   "nyc": {
@@ -42,6 +42,7 @@
     "include": [
       "src/"
     ],
+    "sourceMap": false,
     "exclude": [
       "src/util"
     ],

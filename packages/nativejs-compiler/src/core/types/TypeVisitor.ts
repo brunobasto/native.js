@@ -15,7 +15,6 @@ import {
   StructType,
   UniversalType
 } from "./NativeTypes";
-import { PropertiesDictionary } from "./PropertiesDictionary";
 import { Structures } from "./Structures";
 import { TypeInferencer } from "./TypeInferencer";
 
@@ -371,7 +370,7 @@ export class TypeVisitor {
           this.variables[varPos] = new VariableInfo();
           this.variablesData[varPos] = new VariableData();
           this.variables[varPos].name = node.getText();
-          this.variables[varPos].declaration = symbol.declarations[0].name;
+          this.variables[varPos].declaration = symbol.declarations[0];
         }
         varInfo = this.variables[varPos];
         varData = this.variablesData[varPos];

@@ -1,9 +1,7 @@
-import { expect, use } from "chai";
 import "mocha";
 import { assertStringResult } from "../../utils/assert";
-import { evaluator } from "../../utils/evaluator";
 
-describe("Array Iterators", () => {
+describe.only("Array Iterators", () => {
   describe("forEach", () => {
     it("should summ all elements in an Array", done => {
       const expression = `

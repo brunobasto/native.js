@@ -66,7 +66,7 @@ export class Structures {
       );
       let propType = this.typeVisitor.convertType(
         propTsType,
-        prop.valueDeclaration.name as ts.Identifier
+        prop.valueDeclaration as ts.Identifier
       );
       if (
         propType === PointerType &&

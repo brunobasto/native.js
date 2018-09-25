@@ -174,14 +174,14 @@ export class CAssignment {
         typeof this.expression === "string"
           ? this.expression
           : this.expression &&
-            this.expression.resolve &&
-            this.expression.resolve();
+            this.expression['resolve'] &&
+            this.expression['resolve']();
       const acc =
         typeof this.accessor === "string"
           ? this.accessor
           : this.accessor &&
-            this.accessor.resolve &&
-            this.accessor.resolve();
+            this.accessor['resolve'] &&
+            this.accessor['resolve']();
       if (expr === "" || acc === expr) { this.assignmentRemoved = true; }
     }
 

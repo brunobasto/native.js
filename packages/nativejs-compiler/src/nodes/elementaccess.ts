@@ -32,7 +32,7 @@ export class CElementAccess {
         (node.parent.kind === ts.SyntaxKind.IfStatement ||
           node.parent.kind === ts.SyntaxKind.WhileStatement ||
           node.parent.kind === ts.SyntaxKind.DoStatement) &&
-        node.parent.expression === node;
+        node.parent === node;
       if (
         !isLogicalContext &&
         node.parent.kind === ts.SyntaxKind.ForStatement &&

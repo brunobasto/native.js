@@ -24,6 +24,5 @@ export * from "./nodes/elementaccess";
 export * from "./nodes/expressions";
 export * from "./nodes/function";
 export * from "./nodes/literals";
-export * from "./nodes/regexfunc";
 export * from "./nodes/statements";
 export * from "./nodes/variable";
