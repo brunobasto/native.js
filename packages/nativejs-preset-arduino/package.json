@@ -2,11 +2,11 @@
   "name": "nativejs-preset-arduino",
   "main": "src/index.js",
   "typings": "src/index.d.ts",
-  "version": "0.1.5",
+  "version": "1.0.0",
   "description": "Example of AVR Firmaware writtin in Typescript",
   "dependencies": {
-    "nativejs-compiler": "^1.1.2",
-    "nativejs-preset-standard": "^0.1.1",
+    "nativejs-compiler": "^2.0.0",
+    "nativejs-preset-standard": "^1.0.0",
     "typescript": "^3.0.3"
   },
   "scripts": {
