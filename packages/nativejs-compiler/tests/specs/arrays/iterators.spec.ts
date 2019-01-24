@@ -1,7 +1,7 @@
 import "mocha";
 import { assertStringResult } from "../../utils/assert";
 
-describe.only("Array Iterators", () => {
+describe("Array Iterators", () => {
   describe("forEach", () => {
     it("should summ all elements in an Array", done => {
       const expression = `

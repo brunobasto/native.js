@@ -151,30 +151,28 @@ export class TypeVisitor {
 
   /** Get textual representation of type of the parameter for inserting into the C code */
   public getTypeString(source) {
-    if (source.flags !== null && source.intrinsicName !== null) {
+    if (source.hasOwnProperty('flags') && source.hasOwnProperty('intrinsicName')) {
       // ts.Type
       source = this.convertType(source);
     } else if (
-      source.flags !== null &&
-      source.callSignatures !== null &&
-      source.constructSignatures !== null
+      source.hasOwnProperty('flags') &&
+      source.hasOwnProperty('callSignatures') &&
+      source.hasOwnProperty('constructSignatures')
     ) {
       // ts.Type
       source = this.convertType(source);
-    } else if (source.kind !== null && source.flags !== null) {
+    } else if (source.hasOwnProperty('kind') && source.hasOwnProperty('flags')) {
       // ts.Node
       source = this.inferNodeType(source);
     } else if (
-      source.name !== null &&
-      source.flags !== null &&
-      source.valueDeclaration !== null &&
-      source.declarations !== null
+      source.hasOwnProperty('pos') &&
+      this.variables[source.pos]
     ) {
       // ts.Symbol
-      source = this.variables[source.valueDeclaration.pos].type;
+      source = this.variables[source.pos].type;
     }
 
-    if (source instanceof ArrayType) {
+    if (source.type === 'ArrayType') {
       this.ensureArrayStruct(source.elementType);
       return source.getText();
     } else if (source instanceof StructType) {
@@ -220,6 +218,8 @@ export class TypeVisitor {
       return PointerType;
     }
 
+    // console.log('trying to convert type to string', tsType);
+
     log("Non-standard type: " + this.typeChecker.typeToString(tsType));
 
     return PointerType;
@@ -246,7 +246,9 @@ export class TypeVisitor {
     }
 
     const type = new ArrayType(elementType, cap, false);
+
     this.arrayLiteralsTypes[arrLiteral.pos] = type;
+
     return type;
   }
 

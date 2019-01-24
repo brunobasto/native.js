@@ -12,7 +12,15 @@ export const StringType = "const char *";
 export const UniversalType = "struct js_let *";
 
 /** Type that represents static or dynamic array */
-export class ArrayType {
+
+export interface INativeType {
+  type: string
+}
+
+export class ArrayType implements INativeType {
+  public type: string = 'ArrayType';
+  private structName: string;
+
   public static getArrayStructName(elementTypeText: string) {
     while (elementTypeText.indexOf(IntegerType) > -1) {
       elementTypeText = elementTypeText.replace(IntegerType, "number");
@@ -45,7 +53,6 @@ export class ArrayType {
     );
   }
 
-  private structName: string;
   public getText() {
     const elementType = this.elementType;
     let elementTypeText;
@@ -63,7 +70,9 @@ export class ArrayType {
 }
 
 /** Type that represents JS object with dynamic properties (implemented as dynamic dictionary) */
-export class DictType {
+export class DictType implements INativeType {
+  public type: 'DictType'
+
   public getText() {
     const elementType = this.elementType;
     let elementTypeText;
@@ -75,7 +84,9 @@ export class DictType {
 }
 
 /** Type that represents JS object with static properties (implemented as C struct) */
-export class StructType {
+export class StructType implements INativeType {
+  public type: 'StructType'
+
   public getText() {
     return this.structName;
   }
