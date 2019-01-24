@@ -31,7 +31,8 @@
     "format": "yarn --cwd ../../ format",
     "lint": "yarn --cwd ../../ lint",
     "prepare": "yarn --cwd ../../ prepare",
-    "test": "DEBUG=compiling nyc mocha --opts tests/mocha.opts",
+    "test": "nyc mocha --opts tests/mocha.opts",
+    "test-debug": "DEBUG=compile nyc mocha --opts tests/mocha.opts",
     "test-legacy": "cd tests && make -B all"
   },
   "nyc": {
