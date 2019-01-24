@@ -13,7 +13,10 @@ import {
   CElementAccess,
   CSimpleElementAccess
 } from "../../nodes/elementaccess";
-import { CSimpleBinaryExpression, INativeExpression } from "../../nodes/expressions";
+import {
+  CSimpleBinaryExpression,
+  INativeExpression
+} from "../../nodes/expressions";
 import { CVariable } from "../../nodes/variable";
 
 @StandardCallResolver

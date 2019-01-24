@@ -9,7 +9,9 @@ import {
 import { PropertiesDictionary } from "./PropertiesDictionary";
 import { TypeVisitor } from "./TypeVisitor";
 
-interface StructData { [name: string]: StructType; }
+interface StructData {
+  [name: string]: StructType;
+}
 
 export class Structures {
   private declaredStructs: StructData = {};
@@ -36,7 +38,9 @@ export class Structures {
             "    " +
             propTypeText.replace(/^static /, "").replace("{var}", propName) +
             ";\n";
-        } else { userStructCode += "    " + propTypeText + " " + propName + ";\n"; }
+        } else {
+          userStructCode += "    " + propTypeText + " " + propName + ";\n";
+        }
       } else {
         userStructCode += "    " + propType.getText() + " " + propName + ";\n";
       }
@@ -54,7 +58,9 @@ export class Structures {
         structName = varName + "_t";
       } else {
         let i = 2;
-        while (this.declaredStructs[varName + "_" + i + "_t"] != null) { i++; }
+        while (this.declaredStructs[varName + "_" + i + "_t"] != null) {
+          i++;
+        }
         structName = varName + "_" + i + "_t";
       }
     }

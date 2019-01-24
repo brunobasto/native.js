@@ -75,14 +75,18 @@ export class CElementAccess {
       type = scope.root.typeVisitor.inferNodeType(propAccess.expression);
       if (propAccess.expression.kind === ts.SyntaxKind.Identifier) {
         elementAccess = propAccess.expression.getText();
-      } else { elementAccess = new CElementAccess(scope, propAccess.expression); }
+      } else {
+        elementAccess = new CElementAccess(scope, propAccess.expression);
+      }
       argumentExpression = propAccess.name.getText();
     } else if (node.kind === ts.SyntaxKind.ElementAccessExpression) {
       const elemAccess = node as ts.ElementAccessExpression;
       type = scope.root.typeVisitor.inferNodeType(elemAccess.expression);
       if (elemAccess.expression.kind === ts.SyntaxKind.Identifier) {
         elementAccess = elemAccess.expression.getText();
-      } else { elementAccess = new CElementAccess(scope, elemAccess.expression); }
+      } else {
+        elementAccess = new CElementAccess(scope, elemAccess.expression);
+      }
       if (
         type instanceof StructType &&
         elemAccess.argumentExpression.kind === ts.SyntaxKind.StringLiteral
@@ -151,7 +155,9 @@ export class CSimpleElementAccess {
     public argumentExpression: INativeExpression
   ) {
     this.isSimpleVar =
-      typeof type === "string" && type !== UniversalType && type !== PointerType;
+      typeof type === "string" &&
+      type !== UniversalType &&
+      type !== PointerType;
     this.isDynamicArray = type instanceof ArrayType && type.isDynamicArray;
     this.isStaticArray = type instanceof ArrayType && !type.isDynamicArray;
     this.arrayCapacity =

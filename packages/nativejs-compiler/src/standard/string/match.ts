@@ -7,10 +7,7 @@ import {
 import { IScope } from "../../core/program";
 import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
-import {
-  ArrayType,
-  StringType
-} from "../../core/types/NativeTypes";
+import { ArrayType, StringType } from "../../core/types/NativeTypes";
 import { TypeVisitor } from "../../core/types/TypeVisitor";
 import { CElementAccess } from "../../nodes/elementaccess";
 import { INativeExpression } from "../../nodes/expressions";
@@ -88,8 +85,8 @@ class CStringMatch {
       } else {
         console.log(
           "Unsupported number of parameters in " +
-          call.getText() +
-          ". Expected one parameter."
+            call.getText() +
+            ". Expected one parameter."
         );
       }
     }

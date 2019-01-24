@@ -38,7 +38,9 @@ class CArrayLiteralExpression {
         );
         let s = "{ ";
         for (let i = 0; i < arrSize; i++) {
-          if (i !== 0) { s += ", "; }
+          if (i !== 0) {
+            s += ", ";
+          }
           const cExpr = CodeTemplateFactory.createForNode(
             scope,
             node.elements[i]
@@ -116,7 +118,9 @@ class CObjectLiteralExpression {
     this.isStruct = type instanceof StructType;
     this.isDict = type instanceof DictType;
     if (this.isStruct || this.isDict) {
-      const varName = scope.root.memoryManager.getReservedTemporaryVarName(node);
+      const varName = scope.root.memoryManager.getReservedTemporaryVarName(
+        node
+      );
 
       scope.func.variables.push(
         new CVariable(scope, varName, type, { initializer: "NULL" })
@@ -183,7 +187,9 @@ export class CString {
           .replace(/([^\\])\\'/g, "$1'")
           .slice(1, -1) +
         '"';
-    } else { this.value = s; }
+    } else {
+      this.value = s;
+    }
   }
 }
 

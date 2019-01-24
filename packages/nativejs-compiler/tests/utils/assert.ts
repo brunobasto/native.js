@@ -5,7 +5,7 @@ import { evaluator } from "./evaluator";
 const log = debug("assert");
 
 use((chaiInstance, _) => {
-  chaiInstance.Assertion.addMethod("withMessage", (msg) => {
+  chaiInstance.Assertion.addMethod("withMessage", msg => {
     _.flag(this, "message", msg);
   });
 });
@@ -26,7 +26,8 @@ const assertStringResult = (
       expected = eval(`${expression};result`);
       /* tslint:enable:no-eval */
     }
-    expect(actual)['withMessage'](expression)
+    expect(actual)
+      ["withMessage"](expression)
       .to.equal(`${expected}\n`);
     callback();
   });
@@ -38,7 +39,8 @@ const assertArrayResult = (expression, callback: () => void) => {
     const expected = eval(`${expression};result`);
     /* tslint:enable:no-eval */
     log("parsing", actual);
-    expect(JSON.parse(actual))['withMessage'](expression)
+    expect(JSON.parse(actual))
+      ["withMessage"](expression)
       .to.deep.equal(expected);
     callback();
   });
@@ -50,7 +52,8 @@ const assertObjectResult = (expression, callback: () => void) => {
     const expected = eval(`${expression};result`);
     /* tslint:enable:no-eval */
     log("parsing", actual);
-    expect(JSON.parse(actual))['withMessage'](expression)
+    expect(JSON.parse(actual))
+      ["withMessage"](expression)
       .to.deep.equal(expected);
     callback();
   });

@@ -226,7 +226,9 @@ export class CVariable {
     }
     if (typeString.indexOf("{var}") > -1) {
       this.varString = typeString.replace("{var}", name);
-    } else { this.varString = typeString + " " + name; }
+    } else {
+      this.varString = typeString + " " + name;
+    }
 
     // root scope, make variables file-scoped by default
     if (scope.parent === null && this.varString.indexOf("static") !== 0) {

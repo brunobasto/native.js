@@ -27,7 +27,9 @@ export class AssignmentHelper {
       varType = scope.root.typeVisitor.inferNodeType(elemAccess.expression);
       if (elemAccess.expression.kind === ts.SyntaxKind.Identifier) {
         accessor = elemAccess.expression.getText();
-      } else { accessor = new CElementAccess(scope, elemAccess.expression); }
+      } else {
+        accessor = new CElementAccess(scope, elemAccess.expression);
+      }
 
       if (
         varType instanceof StructType &&
@@ -124,9 +126,14 @@ export class CAssignment {
     let argType = type;
     let argAccessor = accessor;
     if (argumentExpression) {
-      if (type instanceof StructType && typeof argumentExpression === "string") {
+      if (
+        type instanceof StructType &&
+        typeof argumentExpression === "string"
+      ) {
         argType = type.properties[argumentExpression];
-      } else if (type instanceof ArrayType) { argType = type.elementType; }
+      } else if (type instanceof ArrayType) {
+        argType = type.elementType;
+      }
       argAccessor = new CSimpleElementAccess(
         scope,
         type,
@@ -174,15 +181,17 @@ export class CAssignment {
         typeof this.expression === "string"
           ? this.expression
           : this.expression &&
-            this.expression['resolve'] &&
-            this.expression['resolve']();
+            this.expression["resolve"] &&
+            this.expression["resolve"]();
       const acc =
         typeof this.accessor === "string"
           ? this.accessor
           : this.accessor &&
-            this.accessor['resolve'] &&
-            this.accessor['resolve']();
-      if (expr === "" || acc === expr) { this.assignmentRemoved = true; }
+            this.accessor["resolve"] &&
+            this.accessor["resolve"]();
+      if (expr === "" || acc === expr) {
+        this.assignmentRemoved = true;
+      }
     }
 
     if (this.isDict) {

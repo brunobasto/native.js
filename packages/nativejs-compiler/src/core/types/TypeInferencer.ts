@@ -263,7 +263,9 @@ export class TypeInferencer {
         }
       }
     }
-    const varInfo = this.getTypeVisitor().getVariableInfo(node as ts.Identifier);
+    const varInfo = this.getTypeVisitor().getVariableInfo(
+      node as ts.Identifier
+    );
     return (varInfo && varInfo.type) || null;
   }
 
@@ -276,9 +278,9 @@ export class TypeInferencer {
       return parentObjectType.properties[
         elemAccess.argumentExpression.getText().slice(1, -1)
       ];
-         } else if (parentObjectType instanceof DictType) {
+    } else if (parentObjectType instanceof DictType) {
       return parentObjectType.elementType;
-         }
+    }
     return null;
   }
 
@@ -292,19 +294,24 @@ export class TypeInferencer {
       propAccess.name.getText() === "length"
     ) {
       return IntegerType;
-         } else if (
+    } else if (
       parentObjectType === StringType &&
       propAccess.name.getText() === "length"
     ) {
       return IntegerType;
-         }
+    }
     return null;
   }
 
   private inferCallExpression(node: ts.CallExpression) {
     const call = node as ts.CallExpression;
-    const retType = StandardCallHelper.getReturnType(this.getTypeVisitor(), call);
-    if (retType) { return retType; }
+    const retType = StandardCallHelper.getReturnType(
+      this.getTypeVisitor(),
+      call
+    );
+    if (retType) {
+      return retType;
+    }
 
     if (call.expression.kind === ts.SyntaxKind.PropertyAccessExpression) {
       const propAccess = call.expression as ts.PropertyAccessExpression;
@@ -314,7 +321,9 @@ export class TypeInferencer {
         call.arguments.length === 1
       ) {
         const exprType = this.inferNodeType(propAccess.expression);
-        if (exprType && exprType === StringType) { return IntegerType; }
+        if (exprType && exprType === StringType) {
+          return IntegerType;
+        }
       }
     } else if (call.expression.kind === ts.SyntaxKind.Identifier) {
       if (call.expression.getText() === "parseInt") {
@@ -332,7 +341,9 @@ export class TypeInferencer {
   public inferNodeType(node: ts.Node): NativeType {
     const typeVisitor = this.getTypeVisitor();
 
-    if (!node.kind) { return null; }
+    if (!node.kind) {
+      return null;
+    }
     // Look for known registered types
     const nodeType = TypeRegistry.getNodeType(node);
     if (nodeType) {
@@ -384,7 +395,9 @@ export class TypeInferencer {
         {
           const tsType = this.typeChecker.getTypeAtLocation(node);
           const type = tsType && this.getTypeVisitor().convertType(tsType);
-          if (type != UniversalType && type != PointerType) { return type; }
+          if (type != UniversalType && type != PointerType) {
+            return type;
+          }
         }
         return null;
     }

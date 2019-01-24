@@ -21,12 +21,9 @@ export class CodeTemplateFactory {
   }
 }
 
-export function CodeTemplate(
-  tempString: string,
-  nodeKind?: number | number[]
-) {
+export function CodeTemplate(tempString: string, nodeKind?: number | number[]) {
   return function(target: Function): any {
-    const newConstructor = function(scope: IScope, ...rest: any[]) : any {
+    const newConstructor = function(scope: IScope, ...rest: any[]): any {
       const self = this;
       const makeTarget = () => {
         const newTarget = target as any;
@@ -34,7 +31,9 @@ export function CodeTemplate(
       };
       const retValue = makeTarget();
       const [code, statements] = processTemplate(tempString, retValue);
-      if (statements) { scope.statements.push(statements); }
+      if (statements) {
+        scope.statements.push(statements);
+      }
       retValue.resolve = function() {
         return code;
       };
@@ -44,7 +43,11 @@ export function CodeTemplate(
     if (nodeKind) {
       if (typeof nodeKind === "number") {
         nodeKindTemplates[nodeKind] = newConstructor as any;
-      } else { for (const nk of nodeKind) { nodeKindTemplates[nk] = newConstructor as any; } }
+      } else {
+        for (const nk of nodeKind) {
+          nodeKindTemplates[nk] = newConstructor as any;
+        }
+      }
     }
     return newConstructor;
   };
@@ -65,7 +68,10 @@ function processTemplate(template: string, context: any): [string, string] {
     ) {
       statementsStartPos--;
     }
-    if (statementsBodyEndPos > 0 && template[statementsBodyEndPos - 1] === "\n") {
+    if (
+      statementsBodyEndPos > 0 &&
+      template[statementsBodyEndPos - 1] === "\n"
+    ) {
       statementsBodyEndPos--;
     }
     const templateText = template
@@ -92,18 +98,28 @@ function processTemplate(template: string, context: any): [string, string] {
     }
     ifPos += 5;
     const conditionStartPos = ifPos;
-    while (template[ifPos] != "}") { ifPos++; }
+    while (template[ifPos] != "}") {
+      ifPos++;
+    }
 
     let endIfPos = template.indexOf("{/if}", ifPos);
     const elseIfPos = template.indexOf("{#elseif ", ifPos);
     const elsePos = template.indexOf("{#else}", ifPos);
     let endIfBodyPos = endIfPos;
-    if (elseIfPos != -1 && elseIfPos < endIfBodyPos) { endIfBodyPos = elseIfPos; }
-    if (elsePos != -1 && elsePos < endIfBodyPos) { endIfBodyPos = elsePos; }
-    if (endIfBodyPos > 0 && template[endIfBodyPos - 1] === "\n") { endIfBodyPos--; }
+    if (elseIfPos != -1 && elseIfPos < endIfBodyPos) {
+      endIfBodyPos = elseIfPos;
+    }
+    if (elsePos != -1 && elsePos < endIfBodyPos) {
+      endIfBodyPos = elsePos;
+    }
+    if (endIfBodyPos > 0 && template[endIfBodyPos - 1] === "\n") {
+      endIfBodyPos--;
+    }
 
     const posAfterIf = endIfPos + 5;
-    if (endIfPos > 0 && template[endIfPos - 1] === "\n") { endIfPos--; }
+    if (endIfPos > 0 && template[endIfPos - 1] === "\n") {
+      endIfPos--;
+    }
 
     let evalText = template.slice(conditionStartPos, ifPos);
     for (const k in context) {
@@ -122,20 +138,26 @@ function processTemplate(template: string, context: any): [string, string] {
     } else if (elseIfPos > -1) {
       template =
         template.slice(0, posBeforeIf) + "{#" + template.slice(elseIfPos + 6);
-         } else if (elsePos > -1) {
+    } else if (elsePos > -1) {
       template =
         template.slice(0, posBeforeIf) +
         template.slice(elsePos + 7, endIfPos).replace(/\n    /g, "\n") +
         template.slice(posAfterIf);
-         } else { template = template.slice(0, posBeforeIf) + template.slice(posAfterIf); }
+    } else {
+      template = template.slice(0, posBeforeIf) + template.slice(posAfterIf);
+    }
   }
 
   let replaced = false;
   for (const k in context) {
-    if (k === "resolve") { continue; }
+    if (k === "resolve") {
+      continue;
+    }
     if (context[k] && context[k].push) {
       const data = { template };
-      while (replaceArray(data, k, context[k], statements)) { replaced = true; }
+      while (replaceArray(data, k, context[k], statements)) {
+        replaced = true;
+      }
       template = data.template;
     } else {
       let index = -1;
@@ -146,7 +168,9 @@ function processTemplate(template: string, context: any): [string, string] {
           spaces += " ";
         }
         let value = context[k];
-        if (value && value.resolve) { value = value.resolve(); }
+        if (value && value.resolve) {
+          value = value.resolve();
+        }
         if (value && typeof value === "string") {
           value = value.replace(/\n/g, "\n" + spaces);
         }
@@ -183,13 +207,23 @@ function replaceArray(data, k, array, statements) {
       data.template.slice(pos + k.length + 2);
     return true;
   }
-  if (pos === -1) { pos = data.template.indexOf("{" + k + " "); }
-  if (pos === -1) { pos = data.template.indexOf("{" + k + "="); }
-  if (pos === -1) { pos = data.template.indexOf("{" + k + "{"); }
-  if (pos === -1) { return false; }
+  if (pos === -1) {
+    pos = data.template.indexOf("{" + k + " ");
+  }
+  if (pos === -1) {
+    pos = data.template.indexOf("{" + k + "=");
+  }
+  if (pos === -1) {
+    pos = data.template.indexOf("{" + k + "{");
+  }
+  if (pos === -1) {
+    return false;
+  }
   let startPos = pos;
   pos += k.length + 1;
-  while (data.template[pos] === " ") { pos++; }
+  while (data.template[pos] === " ") {
+    pos++;
+  }
   let separator = "";
 
   if (data.template[pos] === "{") {
@@ -211,7 +245,9 @@ function replaceArray(data, k, array, statements) {
   }
 
   pos += 2;
-  if (data.template[pos] === " " && data.template[pos + 1] != " ") { pos++; }
+  if (data.template[pos] === " " && data.template[pos + 1] != " ") {
+    pos++;
+  }
 
   let curlyBracketCounter = 1;
   const elementTemplateStart = pos;
@@ -221,8 +257,12 @@ function replaceArray(data, k, array, statements) {
         "Internal error: incorrect template format for array " + k + "."
       );
     }
-    if (data.template[pos] === "{") { curlyBracketCounter++; }
-    if (data.template[pos] === "}") { curlyBracketCounter--; }
+    if (data.template[pos] === "{") {
+      curlyBracketCounter++;
+    }
+    if (data.template[pos] === "}") {
+      curlyBracketCounter--;
+    }
     pos++;
   }
   const elementTemplate = data.template.slice(elementTemplateStart, pos - 1);
@@ -240,7 +280,9 @@ function replaceArray(data, k, array, statements) {
       if (resolvedElement.search(/\n/) > -1) {
         for (const line of resolvedElement.split("\n")) {
           if (line != "") {
-            if (elementsResolved != "") { elementsResolved += separator; }
+            if (elementsResolved != "") {
+              elementsResolved += separator;
+            }
             elementsResolved += line + "\n";
           }
         }
@@ -253,17 +295,29 @@ function replaceArray(data, k, array, statements) {
         }
       }
     } else {
-      if (elementsResolved != "") { elementsResolved += separator; }
+      if (elementsResolved != "") {
+        elementsResolved += separator;
+      }
       elementsResolved += resolvedElement;
     }
   }
 
   if (array.length === 0) {
-    while (pos < data.template.length && data.template[pos] === " ") { pos++; }
-    while (pos < data.template.length && data.template[pos] === "\n") { pos++; }
-    while (startPos > 0 && data.template[startPos - 1] === " ") { startPos--; }
-    while (startPos > 0 && data.template[startPos - 1] === "\n") { startPos--; }
-    if (data.template[startPos] === "\n") { startPos++; }
+    while (pos < data.template.length && data.template[pos] === " ") {
+      pos++;
+    }
+    while (pos < data.template.length && data.template[pos] === "\n") {
+      pos++;
+    }
+    while (startPos > 0 && data.template[startPos - 1] === " ") {
+      startPos--;
+    }
+    while (startPos > 0 && data.template[startPos - 1] === "\n") {
+      startPos--;
+    }
+    if (data.template[startPos] === "\n") {
+      startPos++;
+    }
   }
   data.template =
     data.template.slice(0, startPos) +

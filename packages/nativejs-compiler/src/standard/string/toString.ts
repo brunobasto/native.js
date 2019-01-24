@@ -2,9 +2,7 @@ import * as ts from "typescript";
 import { IScope } from "../../core/program";
 import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
-import {
-  StringType
-} from "../../core/types/NativeTypes";
+import { StringType } from "../../core/types/NativeTypes";
 import { TypeVisitor } from "../../core/types/TypeVisitor";
 
 @StandardCallResolver

@@ -235,7 +235,9 @@ export class CForInStatement implements IScope {
         new CVariable(scope, declInit.name.getText(), declInit.name)
       );
       this.init = declInit.name.getText();
-    } else { this.init = new CElementAccess(scope, node.initializer); }
+    } else {
+      this.init = new CElementAccess(scope, node.initializer);
+    }
 
     if (node.statement.kind === ts.SyntaxKind.Block) {
       const block = node.statement as ts.Block;

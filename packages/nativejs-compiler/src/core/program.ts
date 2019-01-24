@@ -261,7 +261,9 @@ export class CProgram implements IScope {
       for (const s of source.statements) {
         if (s.kind === ts.SyntaxKind.FunctionDeclaration) {
           this.functions.push(new CFunction(this, s as any));
-        } else { this.statements.push(CodeTemplateFactory.createForNode(this, s)); }
+        } else {
+          this.statements.push(CodeTemplateFactory.createForNode(this, s));
+        }
       }
     }
 

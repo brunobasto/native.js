@@ -14,11 +14,11 @@ export const UniversalType = "struct js_let *";
 /** Type that represents static or dynamic array */
 
 export interface INativeType {
-  type: string
+  type: string;
 }
 
 export class ArrayType implements INativeType {
-  public type: string = 'ArrayType';
+  public type: string = "ArrayType";
   private structName: string;
 
   public static getArrayStructName(elementTypeText: string) {
@@ -56,11 +56,19 @@ export class ArrayType implements INativeType {
   public getText() {
     const elementType = this.elementType;
     let elementTypeText;
-    if (typeof elementType === "string") { elementTypeText = elementType; } else { elementTypeText = elementType.getText(); }
+    if (typeof elementType === "string") {
+      elementTypeText = elementType;
+    } else {
+      elementTypeText = elementType.getText();
+    }
 
     this.structName = ArrayType.getArrayStructName(elementTypeText);
 
-    if (this.isDynamicArray) { return "struct " + this.structName + " *"; } else { return "static " + elementTypeText + " {var}[" + this.capacity + "]"; }
+    if (this.isDynamicArray) {
+      return "struct " + this.structName + " *";
+    } else {
+      return "static " + elementTypeText + " {var}[" + this.capacity + "]";
+    }
   }
   constructor(
     public elementType: NativeType,
@@ -71,12 +79,16 @@ export class ArrayType implements INativeType {
 
 /** Type that represents JS object with dynamic properties (implemented as dynamic dictionary) */
 export class DictType implements INativeType {
-  public type: 'DictType'
+  public type: "DictType";
 
   public getText() {
     const elementType = this.elementType;
     let elementTypeText;
-    if (typeof elementType === "string") { elementTypeText = elementType; } else { elementTypeText = elementType.getText(); }
+    if (typeof elementType === "string") {
+      elementTypeText = elementType;
+    } else {
+      elementTypeText = elementType.getText();
+    }
 
     return "DICT(" + elementTypeText + ")";
   }
@@ -85,7 +97,7 @@ export class DictType implements INativeType {
 
 /** Type that represents JS object with static properties (implemented as C struct) */
 export class StructType implements INativeType {
-  public type: 'StructType'
+  public type: "StructType";
 
   public getText() {
     return this.structName;

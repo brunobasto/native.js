@@ -6,10 +6,7 @@ import {
 import { IScope } from "../../core/program";
 import { IResolver, StandardCallResolver } from "../../core/resolver";
 import { CodeTemplate, CodeTemplateFactory } from "../../core/template";
-import {
-  IntegerType,
-  StringType
-} from "../../core/types/NativeTypes";
+import { IntegerType, StringType } from "../../core/types/NativeTypes";
 import { TypeVisitor } from "../../core/types/TypeVisitor";
 import { CElementAccess } from "../../nodes/elementaccess";
 import { INativeExpression } from "../../nodes/expressions";

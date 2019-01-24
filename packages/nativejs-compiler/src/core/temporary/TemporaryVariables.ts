@@ -31,9 +31,13 @@ export class TemporaryVariables {
     let iteratorVarName;
     if (i === this.iteratorVarNames.length) {
       i = 2;
-      while (existingSymbolNames.indexOf("i_" + i) > -1) { i++; }
+      while (existingSymbolNames.indexOf("i_" + i) > -1) {
+        i++;
+      }
       iteratorVarName = "i_" + i;
-    } else { iteratorVarName = this.iteratorVarNames[i]; }
+    } else {
+      iteratorVarName = this.iteratorVarNames[i];
+    }
 
     this.temporaryVariables[scopeId].push(iteratorVarName);
     return iteratorVarName;
@@ -62,7 +66,9 @@ export class TemporaryVariables {
     );
     if (existingSymbolNames.indexOf(proposedName) > -1) {
       let i = 2;
-      while (existingSymbolNames.indexOf(proposedName + "_" + i) > -1) { i++; }
+      while (existingSymbolNames.indexOf(proposedName + "_" + i) > -1) {
+        i++;
+      }
       proposedName = proposedName + "_" + i;
     }
 

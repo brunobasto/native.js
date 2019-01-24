@@ -19,7 +19,9 @@ export function StandardCallResolver(target: any) {
 export class StandardCallHelper {
   public static isStandardCall(typeVisitor: TypeVisitor, node: ts.Node) {
     for (const resolver of standardCallResolvers) {
-      if (resolver.matchesNode(typeVisitor, node)) { return true; }
+      if (resolver.matchesNode(typeVisitor, node)) {
+        return true;
+      }
     }
 
     return false;
@@ -28,8 +30,8 @@ export class StandardCallHelper {
     for (const resolver of standardCallResolvers) {
       if (resolver.matchesNode(scope.root.typeVisitor, node)) {
         return resolver.createTemplate(scope, node);
-    }
       }
+    }
 
     return null;
   }
@@ -45,16 +47,16 @@ export class StandardCallHelper {
     for (const resolver of standardCallResolvers) {
       if (resolver.matchesNode(typeVisitor, node)) {
         return resolver.needsDisposal(typeVisitor, node);
-    }
       }
+    }
     return false;
   }
   public static getTempVarName(typeVisitor: TypeVisitor, node: ts.Node) {
     for (const resolver of standardCallResolvers) {
       if (resolver.matchesNode(typeVisitor, node)) {
         return resolver.getTempVarName(typeVisitor, node);
-    }
       }
+    }
     console.log(
       "Internal error: cannot find matching resolver for node '" +
         node.getText() +
@@ -66,8 +68,8 @@ export class StandardCallHelper {
     for (const resolver of standardCallResolvers) {
       if (resolver.matchesNode(typeVisitor, node)) {
         return resolver.getEscapeNode(typeVisitor, node);
-    }
       }
+    }
 
     return null;
   }

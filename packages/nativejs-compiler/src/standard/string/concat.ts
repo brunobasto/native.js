@@ -109,7 +109,11 @@ class CStringConcat {
 {/if}`)
 class CGetSize {
   public isNumber: boolean;
-  constructor(scope: IScope, valueNode: ts.Node, public value: INativeExpression) {
+  constructor(
+    scope: IScope,
+    valueNode: ts.Node,
+    public value: INativeExpression
+  ) {
     const type = scope.root.typeVisitor.inferNodeType(valueNode);
     this.isNumber = type === IntegerType;
   }

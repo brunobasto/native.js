@@ -40,7 +40,9 @@ export class MemoryManager {
   public preprocessVariables() {
     for (const k in this.typeVisitor.variables) {
       const v = this.typeVisitor.variables[k];
-      if (v.requiresAllocation) { this.scheduleNodeDisposal(v.declaration, false); }
+      if (v.requiresAllocation) {
+        this.scheduleNodeDisposal(v.declaration, false);
+      }
     }
   }
 
@@ -48,14 +50,18 @@ export class MemoryManager {
     switch (node.kind) {
       case ts.SyntaxKind.ArrayLiteralExpression:
         {
-          if (node.parent.kind === ts.SyntaxKind.VariableDeclaration) { break; }
+          if (node.parent.kind === ts.SyntaxKind.VariableDeclaration) {
+            break;
+          }
 
           if (
             node.parent.kind === ts.SyntaxKind.BinaryExpression &&
             node.parent.parent.kind === ts.SyntaxKind.ExpressionStatement
           ) {
             const binExpr = node.parent as ts.BinaryExpression;
-            if (binExpr.left.kind === ts.SyntaxKind.Identifier) { break; }
+            if (binExpr.left.kind === ts.SyntaxKind.Identifier) {
+              break;
+            }
           }
 
           const type = this.typeVisitor.inferNodeType(node);
@@ -66,18 +72,25 @@ export class MemoryManager {
         break;
       case ts.SyntaxKind.ObjectLiteralExpression:
         {
-          if (node.parent.kind === ts.SyntaxKind.VariableDeclaration) { break; }
+          if (node.parent.kind === ts.SyntaxKind.VariableDeclaration) {
+            break;
+          }
 
           if (
             node.parent.kind === ts.SyntaxKind.BinaryExpression &&
             node.parent.parent.kind === ts.SyntaxKind.ExpressionStatement
           ) {
             const binExpr = node.parent as ts.BinaryExpression;
-            if (binExpr.left.kind === ts.SyntaxKind.Identifier) { break; }
+            if (binExpr.left.kind === ts.SyntaxKind.Identifier) {
+              break;
+            }
           }
 
           const type = this.typeVisitor.inferNodeType(node);
-          if (type && (type instanceof StructType || type instanceof DictType)) {
+          if (
+            type &&
+            (type instanceof StructType || type instanceof DictType)
+          ) {
             this.scheduleNodeDisposal(node, true);
           }
         }
@@ -171,17 +184,23 @@ export class MemoryManager {
   public getGCVariableForNode(node: ts.Node) {
     const parentDecl = this.findParentFunctionNode(node);
     let key = node.pos + "_" + node.end;
-    if (this.reusedVariables[key]) { key = this.reusedVariables[key]; }
+    if (this.reusedVariables[key]) {
+      key = this.reusedVariables[key];
+    }
 
     if (this.scopesOfVariables[key] && !this.scopesOfVariables[key].simple) {
       if (this.scopesOfVariables[key].array) {
         return "gc_" + this.scopesOfVariables[key].scopeId + "_arrays";
       } else if (this.scopesOfVariables[key].arrayWithContents) {
         return "gc_" + this.scopesOfVariables[key].scopeId + "_arrays_c";
-           } else if (this.scopesOfVariables[key].dict) {
+      } else if (this.scopesOfVariables[key].dict) {
         return "gc_" + this.scopesOfVariables[key].scopeId + "_dicts";
-           } else { return "gc_" + this.scopesOfVariables[key].scopeId; }
-    } else { return null; }
+      } else {
+        return "gc_" + this.scopesOfVariables[key].scopeId;
+      }
+    } else {
+      return null;
+    }
   }
 
   public getDestructorsForScope(node: ts.Node) {
@@ -221,12 +240,16 @@ export class MemoryManager {
   /** Variables that need to be disposed are tracked by memory manager */
   public getReservedTemporaryVarName(node: ts.Node) {
     let key = node.pos + "_" + node.end;
-    if (this.reusedVariables[key]) { key = this.reusedVariables[key]; }
+    if (this.reusedVariables[key]) {
+      key = this.reusedVariables[key];
+    }
     const scopeOfVar = this.scopesOfVariables[key];
     if (scopeOfVar) {
       scopeOfVar.used = true;
       return scopeOfVar.varName;
-    } else { return null; }
+    } else {
+      return null;
+    }
   }
 
   /** Sometimes we can reuse existing variable instead of creating a temporary one. */
@@ -251,7 +274,9 @@ export class MemoryManager {
     let topScope: number | "main" =
       (varFuncNode && varFuncNode.pos + 1) || "main";
     let isSimple = true;
-    if (this.isInsideLoop(heapNode)) { isSimple = false; }
+    if (this.isInsideLoop(heapNode)) {
+      isSimple = false;
+    }
 
     const scopeTree = {};
     scopeTree[topScope] = true;
@@ -261,7 +286,9 @@ export class MemoryManager {
     const visited = {};
     while (queue.length > 0) {
       const node = queue.shift();
-      if (visited[node.pos + "_" + node.end]) { continue; }
+      if (visited[node.pos + "_" + node.end]) {
+        continue;
+      }
 
       let refs = [node];
       if (node.kind === ts.SyntaxKind.Identifier) {
@@ -277,7 +304,9 @@ export class MemoryManager {
       for (const ref of refs) {
         visited[ref.pos + "_" + ref.end] = true;
         const parentNode = this.findParentFunctionNode(ref);
-        if (!parentNode) { topScope = "main"; }
+        if (!parentNode) {
+          topScope = "main";
+        }
 
         if (ref.kind === ts.SyntaxKind.PropertyAccessExpression) {
           let elemAccess = ref as ts.PropertyAccessExpression;
@@ -351,12 +380,16 @@ export class MemoryManager {
               topScope = (funcNode && funcNode.pos + 1) || "main";
               const targetScope = node.parent.pos + 1 + "";
               isSimple = false;
-              if (scopeTree[targetScope]) { delete scopeTree[targetScope]; }
+              if (scopeTree[targetScope]) {
+                delete scopeTree[targetScope];
+              }
               scopeTree[topScope] = targetScope;
             }
             this.addIfFoundInAssignment(heapNode, call, queue);
           } else {
-            const symbol = this.typeChecker.getSymbolAtLocation(call.expression);
+            const symbol = this.typeChecker.getSymbolAtLocation(
+              call.expression
+            );
             if (!symbol) {
               const isStandardCall =
                 StandardCallHelper.isStandardCall(this.typeVisitor, call) ||
@@ -429,7 +462,9 @@ export class MemoryManager {
               " -> Found variable returned from the function!"
           );
           isSimple = false;
-        } else { this.addIfFoundInAssignment(heapNode, ref, queue); }
+        } else {
+          this.addIfFoundInAssignment(heapNode, ref, queue);
+        }
       }
     }
 
@@ -445,22 +480,26 @@ export class MemoryManager {
         heapNode,
         "tmp_obj"
       );
-         } else if (heapNode.kind === ts.SyntaxKind.BinaryExpression) {
+    } else if (heapNode.kind === ts.SyntaxKind.BinaryExpression) {
       varName = this.temporaryVariables.addNewTemporaryVariable(
         heapNode,
         "tmp_string"
       );
-         } else if (heapNode.kind === ts.SyntaxKind.CallExpression) {
+    } else if (heapNode.kind === ts.SyntaxKind.CallExpression) {
       varName = this.temporaryVariables.addNewTemporaryVariable(
         heapNode,
         StandardCallHelper.getTempVarName(this.typeVisitor, heapNode)
       );
-         } else { varName = heapNode.getText().replace(/\./g, "->"); }
+    } else {
+      varName = heapNode.getText().replace(/\./g, "->");
+    }
 
     let vnode = heapNode;
     const key = vnode.pos + "_" + vnode.end;
     let arrayWithContents = false;
-    if (this.originalNodes[key]) { vnode = this.originalNodes[key]; }
+    if (this.originalNodes[key]) {
+      vnode = this.originalNodes[key];
+    }
     if (
       vnode.kind === ts.SyntaxKind.CallExpression &&
       new StringMatchResolver().matchesNode(
@@ -471,7 +510,8 @@ export class MemoryManager {
       arrayWithContents = true;
     }
 
-    const foundScopes = topScope === "main" ? [topScope] : Object.keys(scopeTree);
+    const foundScopes =
+      topScope === "main" ? [topScope] : Object.keys(scopeTree);
     const scopeInfo = {
       node: heapNode,
       simple: isSimple,

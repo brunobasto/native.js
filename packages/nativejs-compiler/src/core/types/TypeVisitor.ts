@@ -62,7 +62,9 @@ class TypePromise {
   ) {}
 }
 
-interface IPromiseDictionary { [promiseId: string]: TypePromise; }
+interface IPromiseDictionary {
+  [promiseId: string]: TypePromise;
+}
 
 class VariableData {
   public addedProperties: { [propName: string]: NativeType } = {};
@@ -151,28 +153,31 @@ export class TypeVisitor {
 
   /** Get textual representation of type of the parameter for inserting into the C code */
   public getTypeString(source) {
-    if (source.hasOwnProperty('flags') && source.hasOwnProperty('intrinsicName')) {
-      // ts.Type
-      source = this.convertType(source);
-    } else if (
-      source.hasOwnProperty('flags') &&
-      source.hasOwnProperty('callSignatures') &&
-      source.hasOwnProperty('constructSignatures')
+    if (
+      source.hasOwnProperty("flags") &&
+      source.hasOwnProperty("intrinsicName")
     ) {
       // ts.Type
       source = this.convertType(source);
-    } else if (source.hasOwnProperty('kind') && source.hasOwnProperty('flags')) {
+    } else if (
+      source.hasOwnProperty("flags") &&
+      source.hasOwnProperty("callSignatures") &&
+      source.hasOwnProperty("constructSignatures")
+    ) {
+      // ts.Type
+      source = this.convertType(source);
+    } else if (
+      source.hasOwnProperty("kind") &&
+      source.hasOwnProperty("flags")
+    ) {
       // ts.Node
       source = this.inferNodeType(source);
-    } else if (
-      source.hasOwnProperty('pos') &&
-      this.variables[source.pos]
-    ) {
+    } else if (source.hasOwnProperty("pos") && this.variables[source.pos]) {
       // ts.Symbol
       source = this.variables[source.pos].type;
     }
 
-    if (source.type === 'ArrayType') {
+    if (source.type === "ArrayType") {
       this.ensureArrayStruct(source.elementType);
       return source.getText();
     } else if (source instanceof StructType) {
@@ -210,7 +215,8 @@ export class TypeVisitor {
     ) {
       return BooleanType;
     } else if (
-      tsType.flags && ts.TypeFlags.Object &&
+      tsType.flags &&
+      ts.TypeFlags.Object &&
       tsType.getProperties().length > 0
     ) {
       return this.structures.generateStructure(tsType, ident);
@@ -232,9 +238,8 @@ export class TypeVisitor {
       if (
         arrLiteral.elements[0].kind === ts.SyntaxKind.ArrayLiteralExpression
       ) {
-        elementType = this.determineArrayType(
-          arrLiteral.elements[0] as ts.ArrayLiteralExpression
-        );
+        elementType = this.determineArrayType(arrLiteral
+          .elements[0] as ts.ArrayLiteralExpression);
       } else {
         elementType = this.inferNodeType(arrLiteral.elements[0]);
         if (!elementType) {
@@ -291,7 +296,9 @@ export class TypeVisitor {
           }
           const callData = this.functionCallsData[funcDeclPos];
           const argId = node.arguments[i].pos + "_" + node.arguments[i].end;
-          if (!callData[i]) { callData[i] = {}; }
+          if (!callData[i]) {
+            callData[i] = {};
+          }
           callData[i][argId] = new TypePromise(node.arguments[i]);
         }
       }
@@ -316,7 +323,9 @@ export class TypeVisitor {
               propAssignment.name.getText()
             );
           }
-        } else { this.addTypePromise(funcPos, node.expression); }
+        } else {
+          this.addTypePromise(funcPos, node.expression);
+        }
       } else {
         this.addTypePromise(funcPos, node, TypePromiseKind.void);
       }
@@ -419,8 +428,7 @@ export class TypeVisitor {
             // create new variable that represents this property
             this.variablesData[varPos].varDeclPosByPropName[
               propIdent.getText()
-            ] =
-              propIdent.pos;
+            ] = propIdent.pos;
             this.variables[nextVarPos] = new VariableInfo();
             this.variablesData[nextVarPos] = new VariableData();
             this.variables[nextVarPos].name = varName;
@@ -924,7 +932,9 @@ export class TypeVisitor {
             functionCallsPromises[id].associatedNode
           );
           const mergeResult = this.mergeTypes(currentType, resolvedType);
-          if (mergeResult.replaced) { somePromisesAreResolved = true; }
+          if (mergeResult.replaced) {
+            somePromisesAreResolved = true;
+          }
           variablePromises[id].bestType = mergeResult.type;
         }
       }
@@ -967,7 +977,9 @@ export class TypeVisitor {
           const propVarPos = this.variablesData[varPos].varDeclPosByPropName[
             promise.propertyName
           ];
-          if (propVarPos) { bestType = this.variables[propVarPos].type; } else {
+          if (propVarPos) {
+            bestType = this.variables[propVarPos].type;
+          } else {
             bestType = this.variablesData[varPos].addedProperties[
               promise.propertyName
             ];
@@ -993,7 +1005,9 @@ export class TypeVisitor {
           const propVarPos = this.variablesData[varPos].varDeclPosByPropName[
             promise.propertyName
           ];
-          if (propVarPos) { this.variables[propVarPos].type = mergeResult.type; } else {
+          if (propVarPos) {
+            this.variables[propVarPos].type = mergeResult.type;
+          } else {
             this.variablesData[varPos].addedProperties[promise.propertyName] =
               mergeResult.type;
           }
@@ -1010,7 +1024,9 @@ export class TypeVisitor {
     promiseKind: TypePromiseKind = TypePromiseKind.variable,
     propName: string = null
   ) {
-    if (!associatedNode) { return; }
+    if (!associatedNode) {
+      return;
+    }
     if (associatedNode.kind === ts.SyntaxKind.ConditionalExpression) {
       const ternary = associatedNode as ts.ConditionalExpression;
       this.addTypePromise(varPos, ternary.whenTrue, promiseKind, propName);
@@ -1031,7 +1047,9 @@ export class TypeVisitor {
       return newResult;
     } else if (!newType) {
       return currentResult;
-    } else if (this.getTypeString(currentType) === this.getTypeString(newType)) {
+    } else if (
+      this.getTypeString(currentType) === this.getTypeString(newType)
+    ) {
       return currentResult;
     } else if (currentType === "void") {
       return newResult;
@@ -1049,11 +1067,15 @@ export class TypeVisitor {
       return newResult;
     } else if (currentType === FloatType && newType === IntegerType) {
       return currentResult;
-    } else if (currentType instanceof ArrayType && newType instanceof ArrayType) {
+    } else if (
+      currentType instanceof ArrayType &&
+      newType instanceof ArrayType
+    ) {
       const cap = Math.max(newType.capacity, currentType.capacity);
       newType.capacity = cap;
       currentType.capacity = cap;
-      const isDynamicArray = newType.isDynamicArray || currentType.isDynamicArray;
+      const isDynamicArray =
+        newType.isDynamicArray || currentType.isDynamicArray;
       newType.isDynamicArray = isDynamicArray;
       currentType.isDynamicArray = isDynamicArray;
 

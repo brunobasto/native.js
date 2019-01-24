@@ -309,7 +309,9 @@ class CUnaryExpression {
     }
     if (type === StringType) {
       callReplaceMap[ts.SyntaxKind.PlusToken] = ["atoi", ""];
-      if (callReplaceMap[node.operator]) { scope.root.headerFlags.atoi = true; }
+      if (callReplaceMap[node.operator]) {
+        scope.root.headerFlags.atoi = true;
+      }
     }
     this.operator = operatorMap[node.operator];
     if (callReplaceMap[node.operator]) {

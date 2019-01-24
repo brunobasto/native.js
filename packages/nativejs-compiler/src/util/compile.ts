@@ -27,7 +27,7 @@ const compile = (source, options: any = {}, callback: (out) => void) => {
       pretty: true
     });
     const presets = resolvePresets(options.presets);
-    const output = new CProgram(program, presets)['resolve']();
+    const output = new CProgram(program, presets)["resolve"]();
 
     log(output);
     callback(output);
